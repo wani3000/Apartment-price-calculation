@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --grey-100: #212529;
+  --grey-80: #495057;
+  --grey-60: #ADB5BD;
+  --primary: #7577FF;
+}
+
+body {
+  color: var(--grey-100);
+  background: white;
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+.card-slider-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-slider {
+  display: flex;
+  animation: slideLeft 15s linear infinite;
+  padding: 0 20px;
+}
+
+.custom-card {
+  flex-shrink: 0;
+  width: 280px;
+  margin-right: 10px;
+}
+
+@keyframes slideLeft {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+} 
