@@ -19,7 +19,11 @@ export default function LoadingPage() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-5 py-12">
       {/* 로딩 애니메이션 */}
       <div className="mb-8">
-        <div className="w-16 h-16 border-t-4 border-primary border-solid rounded-full animate-spin"></div>
+        <div className="dots-loader">
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
+        </div>
       </div>
 
       {/* 타이틀 */}

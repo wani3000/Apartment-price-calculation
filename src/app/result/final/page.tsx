@@ -72,8 +72,8 @@ export default function FinalResultPage() {
   const [activeTab, setActiveTab] = useState('gap'); // 'gap' 또는 'live'
   
   // 카드 배경 스타일 및 이미지 이름 상태
-  const [cardBackground, setCardBackground] = useState(HOUSE_STYLES.LOW_TIER.gradient); // 기본값
-  const [currentImageName, setCurrentImageName] = useState(HOUSE_STYLES.LOW_TIER.image); // 기본값
+  const [gapImageName, setGapImageName] = useState('img_house_01.png'); // 갭투자용 이미지
+  const [liveImageName, setLiveImageName] = useState('img_house_02.png'); // 실거주용 이미지
   
   const [imageError, setImageError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -103,22 +103,22 @@ export default function FinalResultPage() {
     }
   });
   
-  // 현재 활성화된 탭의 가격에 따른 이미지 파일 이름 및 배경 업데이트
+  // 컴포넌트 마운트 시 랜덤 이미지 선택
   useEffect(() => {
-    const price = activeTab === 'gap' 
-      ? calculationResult.investment.maxPropertyPrice
-      : calculationResult.living.maxPropertyPrice;
+    const availableImages = ['img_house_01.png', 'img_house_02.png', 'img_house_03.png', 'img_house_04.png', 'img_house_05.png'];
     
-    if (price > 0) { // 계산 결과가 있고 0보다 클 때만 업데이트
-      const style = getHouseStyleByPrice(price);
-      setCurrentImageName(style.imageName);
-      setCardBackground(style.backgroundGradient);
-    } else {
-      // 가격 정보가 없거나 0일 경우 기본값 설정 (또는 다른 로직)
-      setCurrentImageName(HOUSE_STYLES.LOW_TIER.image);
-      setCardBackground(HOUSE_STYLES.LOW_TIER.gradient);
-    }
-  }, [activeTab, calculationResult]);
+    // 갭투자용 이미지 랜덤 선택
+    const gapIndex = Math.floor(Math.random() * availableImages.length);
+    const selectedGapImage = availableImages[gapIndex];
+    
+    // 실거주용 이미지는 갭투자용과 다르게 선택
+    const remainingImages = availableImages.filter(img => img !== selectedGapImage);
+    const liveIndex = Math.floor(Math.random() * remainingImages.length);
+    const selectedLiveImage = remainingImages[liveIndex];
+    
+    setGapImageName(selectedGapImage);
+    setLiveImageName(selectedLiveImage);
+  }, []); // 빈 dependency array로 컴포넌트 마운트 시 한 번만 실행
 
   useEffect(() => {
     // 로컬 스토리지에서 사용자 이름 가져오기
@@ -219,13 +219,15 @@ export default function FinalResultPage() {
 
   // 이미지 로드 에러 핸들러
   const handleImageError = () => {
-    console.error('Image failed to load:', currentImageName);
+    const imageName = activeTab === 'gap' ? gapImageName : liveImageName;
+    console.error('Image failed to load:', imageName);
     setImageError(true);
   };
 
   // 이미지 로드 성공 핸들러
   const handleImageLoad = () => {
-    console.log('Image loaded successfully:', currentImageName);
+    const imageName = activeTab === 'gap' ? gapImageName : liveImageName;
+    console.log('Image loaded successfully:', imageName);
     setImageError(false);
   };
 
@@ -288,7 +290,7 @@ export default function FinalResultPage() {
         </h1>
 
         {/* 탭 */}
-        <div className="flex border-b border-grey-40 mb-6">
+        <div className="flex border-b border-grey-40 mb-10">
           <button
             className={`flex-1 py-[10px] px-4 text-center ${
               activeTab === 'gap' 
@@ -315,41 +317,99 @@ export default function FinalResultPage() {
         <div className="flex flex-col items-center mb-6">
           <div 
             ref={cardRef}
-            className="relative w-[302px] h-[335px] rounded-xl overflow-hidden"
-            style={{ background: cardBackground }} // 동적 배경 적용
+            style={{
+              display: 'flex',
+              width: '298px',
+              height: '380px',
+              padding: '20px 20px 0px 20px',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              borderRadius: '12px',
+              background: '#DFECFF'
+            }}
           >
-            {/* 이미지 (카드 위에 겹침) */}
-            {!imageError ? (
-              <img 
-                className="absolute top-0 left-0 w-full h-full object-cover z-10"
-                src={`/images/${currentImageName}`} // 동적 이미지 적용
-                alt="아파트 이미지"
-                onError={handleImageError}
-                onLoad={handleImageLoad}
-                crossOrigin="anonymous"
-              />
-            ) : (
-              <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-[#F8F9FA] z-10">
-                <span className="text-grey-60 text-sm">
-                  {imageError ? "이미지 로드 실패" : "이미지 로딩 중..."}
-                </span>
-              </div>
-            )}
-            
-            {/* 텍스트 (이미지 위에 위치) */}
-            <div className="absolute top-[30px] left-[30px] right-[30px] z-20 flex flex-col items-start w-[calc(100%-60px)] gap-2">
-              {/* 금액 먼저 표시 */}
-              <p className="w-full text-left text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px]">
+            {/* 상단 텍스트들 */}
+            <div className="flex flex-col items-start w-full">
+              {/* 상단 텍스트 */}
+              <p 
+                style={{
+                  color: 'var(--grey-100, #212529)',
+                  fontFamily: 'Pretendard',
+                  fontSize: '16px',
+                  fontStyle: 'normal',
+                  fontWeight: '700',
+                  lineHeight: '24px',
+                  letterSpacing: '-0.16px',
+                  marginBottom: '8px'
+                }}
+              >
+                <span style={{ fontWeight: '700' }}>{username}</span> 님이<br />살 수 있는 아파트는
+              </p>
+              
+              {/* 금액 텍스트 */}
+              <p 
+                style={{
+                  color: 'var(--grey-100, #212529)',
+                  fontFamily: 'Pretendard',
+                  fontSize: '24px',
+                  fontStyle: 'normal',
+                  fontWeight: '700',
+                  lineHeight: '32px',
+                  letterSpacing: '-0.24px',
+                  marginBottom: '4px'
+                }}
+              >
                 {activeTab === 'gap' 
                   ? formatToKorean(calculationResult.investment.maxPropertyPrice)
                   : formatToKorean(calculationResult.living.maxPropertyPrice)
                 }
               </p>
               
-              {/* 닉네임 텍스트 작게 표시 */}
-              <p className="w-full text-left text-grey-100 text-sm font-bold leading-5 tracking-[-0.14px]">
-                {username} 님이<br />살 수 있는 아파트
+              {/* 실거주시/갭투자시 작은 텍스트 */}
+              <p 
+                style={{
+                  color: 'var(--Gray-60, #707075)',
+                  fontFamily: 'var(--font-family-Pretendard, Pretendard)',
+                  fontSize: 'var(--font-size-Label-2, 13px)',
+                  fontStyle: 'normal',
+                  fontWeight: '700',
+                  lineHeight: 'var(--font-line-height-Label-2-reading, 20px)',
+                  letterSpacing: '-0.13px'
+                }}
+              >
+                {activeTab === 'gap' ? '갭투자 시 최대' : '실거주 시 최대'}
               </p>
+            </div>
+            
+            {/* 이미지 */}
+            <div 
+              style={{
+                display: 'flex',
+                width: '298px',
+                height: '238px',
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexShrink: '0',
+                aspectRatio: '149/119'
+              }}
+            >
+              {!imageError ? (
+                <img 
+                  className="w-full h-full object-contain"
+                  src={`/images/${activeTab === 'gap' ? gapImageName : liveImageName}`}
+                  alt="아파트 이미지"
+                  onError={handleImageError}
+                  onLoad={handleImageLoad}
+                  crossOrigin="anonymous"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-[#F6F7FF]">
+                  <span className="text-grey-60 text-sm">
+                    {imageError ? "이미지 로드 실패" : "이미지 로딩 중..."}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -357,7 +417,7 @@ export default function FinalResultPage() {
         {/* 자금계획 섹션 (24px 간격으로 변경) */}
         <div className="flex flex-col items-center">
           {/* 최대 금액 정보 */}
-          <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-6 w-[302px]">
+          <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF] mb-6 w-[302px]">
             <h2 className="text-black text-[18px] font-bold leading-[26px] tracking-[-0.18px]">
               {activeTab === 'gap' ? '갭투자 시' : '실거주 시'}
             </h2>
@@ -382,7 +442,7 @@ export default function FinalResultPage() {
                 <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   신용대출
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       연소득의 120%
@@ -402,7 +462,7 @@ export default function FinalResultPage() {
                 <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   월 상환액 (이자)
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       1년 만기
@@ -422,7 +482,7 @@ export default function FinalResultPage() {
                 <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   전세금
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       전세가율 60%
@@ -444,7 +504,7 @@ export default function FinalResultPage() {
                 <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   DSR (총부채원리금상환비율)
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       {loanOptions.dsr}% 기준
@@ -464,7 +524,7 @@ export default function FinalResultPage() {
                 <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   주택담보대출
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       40년 만기
@@ -484,7 +544,7 @@ export default function FinalResultPage() {
                 <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   월 상환액 (원금+이자)
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       40년 만기
@@ -506,7 +566,7 @@ export default function FinalResultPage() {
             <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
               보유자산
             </h3>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
               <div className="flex justify-between items-center w-full">
                 <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                   보유자산

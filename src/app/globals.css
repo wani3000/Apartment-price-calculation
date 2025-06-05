@@ -23,9 +23,9 @@ body {
 
 .image-slider {
   display: flex;
-  animation: slideLeft 20s linear infinite;
-  padding: 0 20px;
+  animation: infiniteSlide 15s linear infinite;
   align-items: center;
+  width: calc(275px * 10); /* 5개 이미지 × 2세트 × 275px */
 }
 
 .image-card {
@@ -34,11 +34,50 @@ body {
   margin-right: 10px;
 }
 
-@keyframes slideLeft {
+@keyframes infiniteSlide {
   0% {
-    transform: translateX(100%);
+    transform: translateX(0);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(calc(-275px * 5)); /* 5개 이미지만큼 이동 */
+  }
+}
+
+/* Dots Loader */
+.dots-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  animation: dotPulse 1.4s ease-in-out infinite both;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
   }
 } 

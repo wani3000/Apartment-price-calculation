@@ -6,15 +6,13 @@ import { useState } from 'react';
 export default function Home() {
   const router = useRouter();
   
-  // 지정된 순서로 이미지 배열 설정 (1>4>6>7>2>3>5)
+  // 지정된 순서로 이미지 배열 설정 (1>3>5>2>4)
   const [orderedImages] = useState<string[]>([
     'home-image-01.png',
-    'home-image-04.png',
-    'home-image-06.png',
-    'home-image-07.png',
-    'home-image-02.png',
     'home-image-03.png',
-    'home-image-05.png'
+    'home-image-05.png',
+    'home-image-02.png',
+    'home-image-04.png'
   ]);
 
   return (
@@ -32,8 +30,19 @@ export default function Home() {
       {/* 이미지 슬라이더 */}
       <div className="image-slider-container my-10 w-full max-w-md">
         <div className="image-slider">
+          {/* 첫 번째 세트 */}
           {orderedImages.map((imageName, index) => (
-            <div key={index} className="image-card">
+            <div key={`first-${index}`} className="image-card">
+              <img 
+                src={`/images/${imageName}`} 
+                alt={`아파트 이미지 ${index + 1}`}
+                className="w-full h-auto object-contain rounded-xl"
+              />
+            </div>
+          ))}
+          {/* 두 번째 세트 (무한 루프용) */}
+          {orderedImages.map((imageName, index) => (
+            <div key={`second-${index}`} className="image-card">
               <img 
                 src={`/images/${imageName}`} 
                 alt={`아파트 이미지 ${index + 1}`}
