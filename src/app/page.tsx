@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { shareContent, getHomeShareData } from '@/utils/share';
 
 export default function Home() {
   const router = useRouter();
@@ -14,6 +15,16 @@ export default function Home() {
     'home-image-02.png',
     'home-image-04.png'
   ]);
+
+  // 공유하기 핸들러
+  const handleShare = async () => {
+    try {
+      const shareData = getHomeShareData();
+      await shareContent(shareData);
+    } catch (error) {
+      console.error('공유 오류:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-between px-5 py-12">
@@ -62,6 +73,7 @@ export default function Home() {
           시작하기
         </button>
         <button
+          onClick={handleShare}
           className="flex h-14 w-full justify-center items-center gap-2.5 border border-grey-60 text-grey-100 rounded-[300px] font-medium text-base hover:bg-gray-50 transition"
         >
           공유하기

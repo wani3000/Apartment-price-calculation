@@ -1,10 +1,11 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { calculateMaxPurchaseForLiving, calculateMaxPurchaseForInvestment, convertManToWon, calculateMonthlyPayment, calculateMonthlyInterestOnly } from '@/utils/calculator';
 import Header from '@/components/Header';
 import html2canvas from 'html2canvas';
+import { shareContent, getResultShareData } from '@/utils/share';
 
 // 카드 배경 스타일 정의
 // const CARD_BACKGROUNDS = [
@@ -68,8 +69,12 @@ const getHouseStyleByPrice = (price: number): { imageName: string; backgroundGra
 
 export default function FinalResultPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [username, setUsername] = useState('');
   const [activeTab, setActiveTab] = useState('gap'); // 'gap' 또는 'live'
+  
+  // 공유받은 링크인지 확인
+  const isSharedLink = searchParams.get('shared') === 'true';
   
   // 카드 배경 스타일 및 이미지 이름 상태
   const [gapImageName, setGapImageName] = useState('img_house_01.png'); // 갭투자용 이미지
@@ -269,17 +274,40 @@ export default function FinalResultPage() {
     }
   };
 
+  // 공유하기 핸들러
+  const handleShare = async () => {
+    try {
+      const amount = formatToKorean(
+        activeTab === 'gap' 
+          ? calculationResult.investment.maxPropertyPrice
+          : calculationResult.living.maxPropertyPrice
+      );
+      const type = activeTab === 'gap' ? '갭투자' : '실거주';
+      const shareData = getResultShareData(username, amount, type);
+      await shareContent(shareData);
+    } catch (error) {
+      console.error('공유 오류:', error);
+    }
+  };
+
+  // 홈으로 이동 핸들러
+  const handleGoHome = () => {
+    router.push('/');
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col px-5 pt-6 pb-12 relative">
-      {/* 헤더 - 뒤로가기 버튼과 수정 버튼 */}
-      <Header 
-        backUrl="/result" 
-        rightAction={{
-          label: "소득·자산 수정",
-          onClick: handleEditIncome,
-          className: "flex px-[10px] py-2 justify-center items-center gap-2.5 rounded-[4px] bg-[#F1F3F5]"
-        }}
-      />
+      {/* 헤더 - 공유받은 링크가 아닐 때만 표시 */}
+      {!isSharedLink && (
+        <Header 
+          backUrl="/result" 
+          rightAction={{
+            label: "소득·자산 수정",
+            onClick: handleEditIncome,
+            className: "flex px-[10px] py-2 justify-center items-center gap-2.5 rounded-[4px] bg-[#F1F3F5]"
+          }}
+        />
+      )}
 
       {/* 컨텐츠 영역 - flex-grow를 사용해 공간 확보 */}
       <div className="flex-grow flex flex-col pb-32">
@@ -590,18 +618,32 @@ export default function FinalResultPage() {
             background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)'
           }}
         >
-          <button
-            className="flex-1 h-14 justify-center items-center gap-2.5 flex border border-[#ADB5BD] rounded-[300px] text-grey-100 font-medium"
-            onClick={handleSaveCard}
-            disabled={isSaving}
-          >
-            {isSaving ? '저장 중...' : '카드 저장'}
-          </button>
-          <button
-            className="flex-1 h-14 justify-center items-center gap-2.5 flex bg-[#7577FF] text-white rounded-[300px] font-semibold"
-          >
-            공유하기
-          </button>
+          {isSharedLink ? (
+            // 공유받은 링크일 때: 홈으로 이동 버튼만 표시
+            <button 
+              className="w-full h-14 justify-center items-center gap-2.5 flex bg-[#7577FF] text-white rounded-[300px] font-semibold"
+              onClick={handleGoHome}
+            >
+              내 소득으로 아파트 계산해보기
+            </button>
+          ) : (
+            // 일반 사용자일 때: 기존 버튼들 표시
+            <>
+              <button
+                className="flex-1 h-14 justify-center items-center gap-2.5 flex border border-[#ADB5BD] rounded-[300px] text-grey-100 font-medium"
+                onClick={handleSaveCard}
+                disabled={isSaving}
+              >
+                {isSaving ? '저장 중...' : '카드 저장'}
+              </button>
+              <button
+                onClick={handleShare}
+                className="flex-1 h-14 justify-center items-center gap-2.5 flex bg-[#7577FF] text-white rounded-[300px] font-semibold"
+              >
+                공유하기
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
