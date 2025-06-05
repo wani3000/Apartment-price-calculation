@@ -1,9 +1,21 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function Home() {
   const router = useRouter();
+  
+  // 지정된 순서로 이미지 배열 설정 (1>4>6>7>2>3>5)
+  const [orderedImages] = useState<string[]>([
+    'home-image-01.png',
+    'home-image-04.png',
+    'home-image-06.png',
+    'home-image-07.png',
+    'home-image-02.png',
+    'home-image-03.png',
+    'home-image-05.png'
+  ]);
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-between px-5 py-12">
@@ -17,44 +29,18 @@ export default function Home() {
         </p>
       </div>
 
-      {/* 카드 슬라이더 */}
-      <div className="card-slider-container my-10 w-full max-w-md">
-        <div className="card-slider">
-          {/* 카드 1 */}
-          <div className="custom-card rounded-xl bg-indigo-50 p-4">
-            <p className="text-xs text-grey-80 mb-1">치즈 님이<br />살 수 있는 아파트</p>
-            <div className="h-24 mb-2 flex items-center justify-center">
-              <svg className="w-16 h-16 text-indigo-300" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" />
-              </svg>
+      {/* 이미지 슬라이더 */}
+      <div className="image-slider-container my-10 w-full max-w-md">
+        <div className="image-slider">
+          {orderedImages.map((imageName, index) => (
+            <div key={index} className="image-card">
+              <img 
+                src={`/images/${imageName}`} 
+                alt={`아파트 이미지 ${index + 1}`}
+                className="w-full h-auto object-contain rounded-xl"
+              />
             </div>
-            <p className="text-xs text-grey-60">갭투자 시</p>
-            <p className="text-base font-semibold text-grey-100">14억 2,000만 원</p>
-          </div>
-
-          {/* 카드 2 */}
-          <div className="custom-card rounded-xl bg-orange-50 p-4">
-            <p className="text-xs text-grey-80 mb-1">케빈 님이<br />살 수 있는 아파트</p>
-            <div className="h-24 mb-2 flex items-center justify-center">
-              <svg className="w-16 h-16 text-orange-300" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" />
-              </svg>
-            </div>
-            <p className="text-xs text-grey-60">갭투자 시</p>
-            <p className="text-base font-semibold text-grey-100">16억 5,000만 원</p>
-          </div>
-
-          {/* 카드 3 (반복을 위한 추가 카드) */}
-          <div className="custom-card rounded-xl bg-blue-50 p-4">
-            <p className="text-xs text-grey-80 mb-1">민수 님이<br />살 수 있는 아파트</p>
-            <div className="h-24 mb-2 flex items-center justify-center">
-              <svg className="w-16 h-16 text-blue-300" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" />
-              </svg>
-            </div>
-            <p className="text-xs text-grey-60">갭투자 시</p>
-            <p className="text-base font-semibold text-grey-100">18억 3,000만 원</p>
-          </div>
+          ))}
         </div>
       </div>
 
