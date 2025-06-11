@@ -2,8 +2,14 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '아파트 구매 계산기',
-  description: '내 소득으로 살 수 있는 아파트 가격 계산하기',
+  title: '내 연봉으로 살 수 있는 아파트 가격은 얼마일까?',
+  description: '내 연봉으로 살 수 있는 아파트 가격을 계산해 보세요!',
+  openGraph: {
+    title: '내 연봉으로 살 수 있는 아파트 가격은 얼마일까?',
+    description: '내 연봉으로 살 수 있는 아파트 가격을 계산해 보세요!',
+    // 여기에 대표 이미지 URL을 추가할 수 있습니다.
+    // images: ['/og-image.png'],
+  },
 };
 
 export default function RootLayout({
