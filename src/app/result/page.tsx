@@ -56,7 +56,9 @@ export default function ResultPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col px-5 pt-6 pb-12">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
+      {/* 메인 컨텐츠 영역 */}
+      <div className="flex-1 flex flex-col px-5 pt-6 pb-4">
       {/* 헤더 컴포넌트 사용 */}
       <Header backUrl="/calculator" />
 
@@ -65,6 +67,7 @@ export default function ResultPage() {
         실거주 시 받을 수 있는 대출을<br />확인해요
       </h1>
 
+        {/* 선택 옵션들 */}
       <div className="space-y-8">
         {/* LTV 섹션 */}
         <div>
@@ -117,12 +120,13 @@ export default function ResultPage() {
             >
               <span className="text-sm font-medium leading-5 tracking-[-0.14px]">50%</span>
             </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 다음 버튼 */}
-      <div className="mt-auto">
+      {/* 하단 고정 버튼 */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5">
         <button
           onClick={handleSubmit}
           className="flex h-14 w-full justify-center items-center rounded-[300px] bg-primary text-white font-semibold text-base"

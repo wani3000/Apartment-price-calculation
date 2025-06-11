@@ -76,6 +76,12 @@ export default function FinalResultPage() {
   // 공유받은 링크인지 확인
   const isSharedLink = searchParams.get('shared') === 'true';
   
+  // 디버깅용 로그
+  useEffect(() => {
+    console.log('isSharedLink:', isSharedLink);
+    console.log('searchParams.get("shared"):', searchParams.get('shared'));
+  }, [isSharedLink, searchParams]);
+  
   // 카드 배경 스타일 및 이미지 이름 상태
   const [gapImageName, setGapImageName] = useState('img_house_01.png'); // 갭투자용 이미지
   const [liveImageName, setLiveImageName] = useState('img_house_02.png'); // 실거주용 이미지
@@ -236,42 +242,140 @@ export default function FinalResultPage() {
     setImageError(false);
   };
 
-  // 카드 저장 함수
+  // 카드 저장 함수 (iOS 갤러리 저장 지원)
   const handleSaveCard = async () => {
     if (!cardRef.current) return;
     
     try {
       setIsSaving(true);
       
+      // 폰트 로딩 완료 대기
+      await document.fonts.ready;
+      
+      // 추가 대기 시간 (폰트 완전 로딩 보장)
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // 카드 엘리먼트의 스크린샷 캡처
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
+        backgroundColor: '#DFECFF',
         scale: 2,  // 해상도 2배로 향상
         logging: false,
-        useCORS: true  // 외부 이미지 로드를 위해
+        useCORS: true,  // 외부 이미지 로드를 위해
+        allowTaint: true,
+        foreignObjectRendering: false,  // 폰트 렌더링 문제 해결을 위해 false로 변경
+        imageTimeout: 15000,  // 이미지 로딩 대기 시간
+        onclone: (clonedDoc) => {
+          // 클론된 문서의 모든 텍스트 요소에 시스템 폰트 적용
+          const textElements = clonedDoc.querySelectorAll('p, span, div, h1, h2, h3, h4, h5, h6');
+          textElements.forEach((element) => {
+            if (element instanceof HTMLElement) {
+              element.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif';
+            }
+          });
+          
+          // 폰트 로딩 완료 대기
+          clonedDoc.fonts?.ready?.then(() => {
+            console.log('Cloned document fonts ready');
+          });
+        }
       });
       
-      // 캔버스를 데이터 URL로 변환
-      const dataUrl = canvas.toDataURL('image/png');
+      // iOS 감지 (더 정확한 감지)
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad on iOS 13+
       
-      // 다운로드 링크 생성
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = `${username}_${activeTab === 'gap' ? '갭투자' : '실거주'}_카드.png`;
-      document.body.appendChild(link);
-      
-      // 다운로드 링크 클릭 후 제거
-      link.click();
-      document.body.removeChild(link);
-      
-      // 저장 완료 메시지 표시 (선택 사항)
-      alert('카드가 저장되었습니다.');
+      if (isIOS) {
+        // iOS에서는 새 탭에서 이미지를 열어서 사용자가 길게 눌러서 저장할 수 있게 함
+        const dataUrl = canvas.toDataURL('image/png');
+        
+        // 새 창에서 이미지 열기
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+          newWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>${username}님의 아파트 구매 가능 금액</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body {
+                  margin: 0;
+                  padding: 20px;
+                  background: #f5f5f5;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                }
+                .instruction {
+                  background: white;
+                  padding: 15px 20px;
+                  border-radius: 12px;
+                  margin-bottom: 20px;
+                  text-align: center;
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                  max-width: 300px;
+                }
+                .instruction h3 {
+                  margin: 0 0 8px 0;
+                  color: #007AFF;
+                  font-size: 16px;
+                }
+                .instruction p {
+                  margin: 0;
+                  color: #666;
+                  font-size: 14px;
+                  line-height: 1.4;
+                }
+                img {
+                  max-width: 100%;
+                  height: auto;
+                  border-radius: 12px;
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                }
+              </style>
+            </head>
+            <body>
+              <div class="instruction">
+                <h3>📱 갤러리에 저장하기</h3>
+                <p>아래 이미지를 <strong>길게 눌러서</strong><br>"사진에 저장"을 선택하세요</p>
+              </div>
+              <img src="${dataUrl}" alt="아파트 구매 가능 금액 카드" />
+            </body>
+            </html>
+          `);
+          newWindow.document.close();
+        }
+        
+        alert('새 탭에서 이미지를 길게 눌러서 "사진에 저장"을 선택하세요.');
+      } else {
+        // 다른 브라우저에서는 기존 다운로드 방식 사용
+        fallbackDownload(canvas);
+      }
     } catch (error) {
       console.error('카드 저장 중 오류 발생:', error);
       alert('카드 저장에 실패했습니다.');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // 기존 다운로드 방식 (fallback)
+  const fallbackDownload = (canvas: HTMLCanvasElement) => {
+    // 캔버스를 데이터 URL로 변환
+    const dataUrl = canvas.toDataURL('image/png');
+    
+    // 다운로드 링크 생성
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = `${username}_${activeTab === 'gap' ? '갭투자' : '실거주'}_카드.png`;
+    document.body.appendChild(link);
+    
+    // 다운로드 링크 클릭 후 제거
+    link.click();
+    document.body.removeChild(link);
+    
+    alert('카드가 저장되었습니다.');
   };
 
   // 공유하기 핸들러
@@ -292,7 +396,14 @@ export default function FinalResultPage() {
 
   // 홈으로 이동 핸들러
   const handleGoHome = () => {
-    router.push('/');
+    console.log('홈으로 이동 버튼 클릭됨');
+    console.log('현재 URL:', window.location.href);
+    console.log('searchParams:', Object.fromEntries(searchParams.entries()));
+    console.log('isSharedLink:', isSharedLink);
+    
+    // 직접 window.location 사용
+    console.log('홈으로 이동 시작');
+    window.location.href = '/';
   };
 
   return (
@@ -363,7 +474,7 @@ export default function FinalResultPage() {
               <p 
                 style={{
                   color: 'var(--grey-100, #212529)',
-                  fontFamily: 'Pretendard',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif',
                   fontSize: '16px',
                   fontStyle: 'normal',
                   fontWeight: '700',
@@ -379,7 +490,7 @@ export default function FinalResultPage() {
               <p 
                 style={{
                   color: 'var(--grey-100, #212529)',
-                  fontFamily: 'Pretendard',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif',
                   fontSize: '24px',
                   fontStyle: 'normal',
                   fontWeight: '700',
@@ -398,11 +509,11 @@ export default function FinalResultPage() {
               <p 
                 style={{
                   color: 'var(--Gray-60, #707075)',
-                  fontFamily: 'var(--font-family-Pretendard, Pretendard)',
-                  fontSize: 'var(--font-size-Label-2, 13px)',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif',
+                  fontSize: '13px',
                   fontStyle: 'normal',
                   fontWeight: '700',
-                  lineHeight: 'var(--font-line-height-Label-2-reading, 20px)',
+                  lineHeight: '20px',
                   letterSpacing: '-0.13px'
                 }}
               >

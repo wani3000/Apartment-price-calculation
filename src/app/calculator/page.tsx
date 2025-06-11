@@ -86,7 +86,9 @@ export default function CalculatorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col px-5 pt-6 pb-12">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
+      {/* 메인 컨텐츠 영역 */}
+      <div className="flex-1 flex flex-col px-5 pt-6 pb-4 overflow-y-auto">
       {/* 헤더 사용 */}
       <Header backUrl="/nickname" />
 
@@ -95,7 +97,7 @@ export default function CalculatorPage() {
         내 연 소득과 현재 보유자산이<br />얼마인가요?
       </h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col flex-grow justify-between">
+        {/* 입력 필드들 */}
         <div className="space-y-6">
           {/* 연소득 입력 */}
           <div>
@@ -216,11 +218,12 @@ export default function CalculatorPage() {
             </div>
           )}
         </div>
+        </div>
 
-        {/* 다음 버튼 */}
-        <div className="mt-auto">
+      {/* 하단 고정 버튼 */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5">
           <button
-            type="submit"
+          onClick={handleSubmit}
             disabled={!income.trim() || !assets.trim()}
             className={`flex h-14 w-full justify-center items-center rounded-[300px] font-semibold text-base transition ${
               income.trim() && assets.trim()
@@ -231,7 +234,6 @@ export default function CalculatorPage() {
             다음
           </button>
         </div>
-      </form>
     </div>
   );
 } 

@@ -27,9 +27,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-between px-5 py-12">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-between py-12">
       {/* 상단 텍스트 */}
-      <div className="w-full max-w-md text-center">
+      <div className="w-full max-w-md text-center px-5">
         <h1 className="text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px] mb-2">
           내 소득으로 얼마까지<br />아파트를 살 수 있을까?
         </h1>
@@ -38,8 +38,8 @@ export default function Home() {
         </p>
       </div>
 
-      {/* 이미지 슬라이더 */}
-      <div className="image-slider-container my-10 w-full max-w-md">
+      {/* 이미지 슬라이더 - 좌우 패딩 없음 */}
+      <div className="image-slider-container my-5 w-full">
         <div className="image-slider">
           {/* 첫 번째 세트 */}
           {orderedImages.map((imageName, index) => (
@@ -65,7 +65,7 @@ export default function Home() {
       </div>
 
       {/* 버튼 섹션 */}
-      <div className="w-full max-w-md mt-12 space-y-3">
+      <div className="w-full max-w-md space-y-3 px-5">
         <button
           onClick={() => router.push('/nickname')}
           className="flex h-14 w-full justify-center items-center gap-2.5 bg-primary text-white rounded-[300px] font-semibold text-base hover:bg-indigo-600 transition"

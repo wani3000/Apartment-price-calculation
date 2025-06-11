@@ -26,7 +26,9 @@ export default function NicknamePage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col px-5 pt-6 pb-12">
+    <div className="h-screen bg-white flex flex-col overflow-hidden">
+      {/* 메인 컨텐츠 영역 */}
+      <div className="flex-1 flex flex-col px-5 pt-6 pb-4">
       {/* 헤더 컴포넌트 사용 */}
       <Header backUrl="/" />
 
@@ -35,7 +37,7 @@ export default function NicknamePage() {
         닉네임을 알려주세요
       </h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col flex-grow justify-between">
+        {/* 입력 필드 */}
         <div>
           <label htmlFor="nickname" className="block text-grey-100 text-sm font-medium mb-2">
             닉네임
@@ -49,11 +51,12 @@ export default function NicknamePage() {
             className="w-full px-4 py-3 rounded-xl border border-grey-60 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
           />
         </div>
+        </div>
 
-        {/* 버튼은 항상 하단에 고정 */}
-        <div className="mt-auto">
+      {/* 하단 고정 버튼 */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5">
           <button
-            type="submit"
+          onClick={handleSubmit}
             disabled={!nickname.trim()}
             className={`flex h-14 w-full justify-center items-center rounded-[300px] font-semibold text-base transition ${
               nickname.trim() 
@@ -64,7 +67,6 @@ export default function NicknamePage() {
             다음
           </button>
         </div>
-      </form>
     </div>
   );
 } 
