@@ -72,7 +72,14 @@ export default function FinalResultPage() {
   const searchParams = useSearchParams();
   const [username, setUsername] = useState('');
   const [activeTab, setActiveTab] = useState('gap'); // 'gap' 또는 'live'
-  const [sharedResult, setSharedResult] = useState<{ amount: string, type: '갭투자' | '실거주' } | null>(null);
+  const [sharedCalculationData, setSharedCalculationData] = useState<{
+    income: number;
+    assets: number;
+    spouseIncome: number;
+    ltv: number;
+    dsr: number;
+  } | null>(null);
+
   
   // 공유받은 링크인지 확인
   const isSharedLink = searchParams.get('shared') === 'true';
@@ -92,6 +99,55 @@ export default function FinalResultPage() {
   
   // 카드 요소에 대한 ref 추가
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // 계산 수행 공통 함수 (공유 링크용, 이미 원 단위로 받음)
+  const performCalculation = (data: { income: number; assets: number; spouseIncome: number; ltv: number; dsr: number }) => {
+    const { income, assets, spouseIncome, ltv, dsr } = data;
+    const totalIncome = income + spouseIncome;
+    
+    // 실거주 시나리오 계산
+    const livingResult = calculateMaxPurchaseForLiving(
+      totalIncome, 
+      assets, 
+      dsr, 
+      3.5, // 금리 3.5%
+      40,  // 대출 기간 40년
+      ltv
+    );
+    
+    // 갭투자 시나리오 계산
+    const investmentResult = calculateMaxPurchaseForInvestment(
+      totalIncome,
+      assets,
+      60 // 전세가율 60%
+    );
+
+    // 월 상환액 계산
+    const livingMonthlyRepayment = calculateMonthlyPayment(livingResult.mortgageLimit, 3.5, 40);
+    const investmentMonthlyRepayment = calculateMonthlyInterestOnly(investmentResult.creditLoan, 3.5);
+
+    // 계산 결과 업데이트 (만원 단위로 변환)
+    const newResult = {
+      income: Math.round(income / 10000),
+      assets: Math.round(assets / 10000),
+      spouseIncome: Math.round(spouseIncome / 10000),
+      living: {
+        maxPropertyPrice: Math.round(livingResult.maxPropertyPrice / 10000),
+        mortgageLimit: Math.round(livingResult.mortgageLimit / 10000),
+        creditLoan: Math.round(livingResult.creditLoan / 10000),
+        monthlyRepayment: Math.round(livingMonthlyRepayment / 10000)
+      },
+      investment: {
+        maxPropertyPrice: Math.round(investmentResult.maxPropertyPrice / 10000),
+        creditLoan: Math.round(investmentResult.creditLoan / 10000),
+        jeonseDeposit: Math.round(investmentResult.jeonseDeposit / 10000),
+        monthlyRepayment: Math.round(investmentMonthlyRepayment / 10000)
+      }
+    };
+    
+    setCalculationResult(newResult);
+    setIsCalculated(true);
+  };
 
   const [loanOptions, setLoanOptions] = useState({
     ltv: 70,
@@ -114,6 +170,7 @@ export default function FinalResultPage() {
       monthlyRepayment: 0
     }
   });
+  const [isCalculated, setIsCalculated] = useState(false);
   
   // 컴포넌트 마운트 시 랜덤 이미지 선택
   useEffect(() => {
@@ -132,21 +189,51 @@ export default function FinalResultPage() {
     setLiveImageName(selectedLiveImage);
   }, []); // 빈 dependency array로 컴포넌트 마운트 시 한 번만 실행
 
+  // 공유받은 링크에서 탭 변경 시 계산 다시 수행
   useEffect(() => {
-    // 공유된 링크인 경우 URL 파라미터에서 데이터 추출
+    if (isSharedLink && sharedCalculationData) {
+      setIsCalculated(false); // 계산 중 상태로 변경
+      // 약간의 지연을 두어 UI 업데이트 보장
+      setTimeout(() => {
+        performCalculation(sharedCalculationData);
+      }, 50);
+    }
+  }, [activeTab, sharedCalculationData, isSharedLink]);
+
+  useEffect(() => {
+    // 공유된 링크인 경우 URL 파라미터에서 데이터 추출 및 계산
     if (isSharedLink) {
       const sharedUsername = searchParams.get('username');
       const sharedAmount = searchParams.get('amount');
       const sharedType = searchParams.get('type');
+      const sharedIncome = searchParams.get('income');
+      const sharedAssets = searchParams.get('assets');
+      const sharedSpouseIncome = searchParams.get('spouseIncome');
+      const sharedLtv = searchParams.get('ltv');
+      const sharedDsr = searchParams.get('dsr');
 
       if (sharedUsername) setUsername(decodeURIComponent(sharedUsername));
       if (sharedType === 'gap' || sharedType === 'live') setActiveTab(sharedType);
-      if (sharedAmount) {
-        setSharedResult({
-          amount: decodeURIComponent(sharedAmount),
-          type: sharedType as '갭투자' | '실거주',
-        });
-      }
+      
+      // 공유받은 데이터로 계산 수행
+      if (sharedIncome && sharedAssets && sharedLtv && sharedDsr) {
+        const income = parseInt(sharedIncome);
+        const assets = parseInt(sharedAssets);
+        const spouseIncome = parseInt(sharedSpouseIncome || '0');
+        const ltv = parseInt(sharedLtv);
+        const dsr = parseInt(sharedDsr);
+        const totalIncome = income + spouseIncome;
+        
+        // 공유받은 계산 데이터 저장
+        const calculationData = { income, assets, spouseIncome, ltv, dsr };
+        setSharedCalculationData(calculationData);
+        
+        // 대출 옵션 설정
+        setLoanOptions({ ltv, dsr });
+        
+        // 계산 수행 및 결과 저장
+        performCalculation(calculationData);
+             }
       return; // 공유 링크인 경우 localStorage 로직을 건너뜁니다.
     }
 
@@ -167,15 +254,33 @@ export default function FinalResultPage() {
     if (calculatorDataStr) {
       const calculatorData = JSON.parse(calculatorDataStr);
       
-      // 만 원 단위로 저장된 값을 원 단위로 변환
+      // localStorage에서 읽은 데이터를 만원 단위 그대로 저장 (공유 링크용)
+      setCalculationResult({
+        income: calculatorData.income,
+        assets: calculatorData.assets,
+        spouseIncome: calculatorData.spouseIncome || 0,
+        living: {
+          maxPropertyPrice: 0,
+          mortgageLimit: 0,
+          creditLoan: 0,
+          monthlyRepayment: 0
+        },
+        investment: {
+          maxPropertyPrice: 0,
+          creditLoan: 0,
+          jeonseDeposit: 0,
+          monthlyRepayment: 0
+        }
+      });
+
+      // 계산 수행 (원 단위로 변환해서 계산 후 다시 만원 단위로 저장)
       const income = convertManToWon(calculatorData.income);
       const assets = convertManToWon(calculatorData.assets);
       const spouseIncome = convertManToWon(calculatorData.spouseIncome || 0);
-      const totalIncome = income + spouseIncome;
       
       // 실거주 시나리오 계산
       const livingResult = calculateMaxPurchaseForLiving(
-        totalIncome, 
+        income + spouseIncome, 
         assets, 
         loanOptions.dsr, 
         3.5, // 금리 3.5%
@@ -185,26 +290,16 @@ export default function FinalResultPage() {
       
       // 갭투자 시나리오 계산
       const investmentResult = calculateMaxPurchaseForInvestment(
-        totalIncome,
+        income + spouseIncome,
         assets,
         60 // 전세가율 60%
       );
 
       // 월 상환액 계산
-      // 실거주 시: 원리금균등상환 (40년)
       const livingMonthlyRepayment = calculateMonthlyPayment(livingResult.mortgageLimit, 3.5, 40);
-      
-      // 갭투자 시: 만기일시상환 (이자만 상환)
       const investmentMonthlyRepayment = calculateMonthlyInterestOnly(investmentResult.creditLoan, 3.5);
 
-      // 디버깅용 로그
-      console.log('DSR 값:', loanOptions.dsr);
-      console.log('연소득:', totalIncome);
-      console.log('자산:', assets);
-      console.log('실거주 최대 구매가능 금액:', livingResult.maxPropertyPrice);
-      console.log('주택담보대출 한도:', livingResult.mortgageLimit);
-      console.log('LTV로 계산한 최대 주택가격:', livingResult.mortgageLimit / (loanOptions.ltv / 100));
-      
+      // 계산 결과를 만원 단위로 변환해서 저장
       setCalculationResult({
         income: calculatorData.income,
         assets: calculatorData.assets,
@@ -223,7 +318,7 @@ export default function FinalResultPage() {
         }
       });
     }
-  }, [loanOptions, isSharedLink, searchParams]);
+  }, [isSharedLink, searchParams]);
 
   // 숫자를 한글 표기로 변환 (예: 12000 -> 1억 2,000만 원)
   const formatToKorean = (num: number) => {
@@ -405,7 +500,27 @@ export default function FinalResultPage() {
           : calculationResult.living.maxPropertyPrice
       );
       const type = activeTab === 'gap' ? '갭투자' : '실거주';
-      const shareData = getResultShareData(username, amount, type);
+      
+      // 상세 정보 포함한 공유 데이터 생성
+      const currentUrl = new URL(window.location.origin + '/result/final');
+      currentUrl.searchParams.set('shared', 'true');
+      currentUrl.searchParams.set('username', encodeURIComponent(username));
+      currentUrl.searchParams.set('amount', encodeURIComponent(amount));
+      currentUrl.searchParams.set('type', type === '갭투자' ? 'gap' : 'live');
+      
+      // 계산에 필요한 원본 데이터도 URL에 포함 (만원 단위를 원 단위로 변환)
+      currentUrl.searchParams.set('income', (calculationResult.income * 10000).toString());
+      currentUrl.searchParams.set('assets', (calculationResult.assets * 10000).toString());
+      currentUrl.searchParams.set('spouseIncome', (calculationResult.spouseIncome * 10000).toString());
+      currentUrl.searchParams.set('ltv', loanOptions.ltv.toString());
+      currentUrl.searchParams.set('dsr', loanOptions.dsr.toString());
+      
+      const shareData = {
+        title: `${username}님의 아파트 구매 가능 금액`,
+        text: `${username}님이 ${type} 시 살 수 있는 아파트: ${amount}`,
+        url: currentUrl.toString()
+      };
+      
       await shareContent(shareData);
     } catch (error) {
       console.error('공유 오류:', error);
@@ -517,12 +632,11 @@ export default function FinalResultPage() {
                   marginBottom: '4px'
                 }}
               >
-                {isSharedLink
-                  ? (sharedResult ? sharedResult.amount : '계산 중...')
-                  : (activeTab === 'gap'
+                {isSharedLink && !isCalculated ? '계산 중...' : (
+                  activeTab === 'gap'
                     ? formatToKorean(calculationResult.investment.maxPropertyPrice)
-                    : formatToKorean(calculationResult.living.maxPropertyPrice))
-                }
+                    : formatToKorean(calculationResult.living.maxPropertyPrice)
+                )}
               </p>
               
               {/* 실거주시/갭투자시 작은 텍스트 */}
@@ -537,10 +651,7 @@ export default function FinalResultPage() {
                   letterSpacing: '-0.13px'
                 }}
               >
-                {isSharedLink
-                  ? (sharedResult ? `${sharedResult.type} 시 최대` : '')
-                  : (activeTab === 'gap' ? '갭투자 시 최대' : '실거주 시 최대')
-                }
+                {activeTab === 'gap' ? '갭투자 시 최대' : '실거주 시 최대'}
               </p>
             </div>
             
@@ -576,9 +687,8 @@ export default function FinalResultPage() {
           </div>
         </div>
         
-        {/* 자금계획 섹션 (공유 링크일 때는 숨김) */}
-        {!isSharedLink && (
-          <div className="flex flex-col items-center">
+        {/* 자금계획 섹션 */}
+        <div className="flex flex-col items-center">
             {/* 최대 금액 정보 */}
             <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF] mb-6 w-[302px]">
               <h2 className="text-black text-[18px] font-bold leading-[26px] tracking-[-0.18px]">
@@ -741,7 +851,6 @@ export default function FinalResultPage() {
               </div>
             </div>
           </div>
-        )}
 
         {/* 자금계획 버튼 제거 (내용을 직접 표시하므로) */}
       </div>
