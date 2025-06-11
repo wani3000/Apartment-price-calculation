@@ -517,11 +517,11 @@ export default function FinalResultPage() {
                   marginBottom: '4px'
                 }}
               >
-                {isSharedLink && sharedResult
-                  ? sharedResult.amount
-                  : activeTab === 'gap' 
+                {isSharedLink
+                  ? (sharedResult ? sharedResult.amount : '계산 중...')
+                  : (activeTab === 'gap'
                     ? formatToKorean(calculationResult.investment.maxPropertyPrice)
-                    : formatToKorean(calculationResult.living.maxPropertyPrice)
+                    : formatToKorean(calculationResult.living.maxPropertyPrice))
                 }
               </p>
               
@@ -537,9 +537,9 @@ export default function FinalResultPage() {
                   letterSpacing: '-0.13px'
                 }}
               >
-                {isSharedLink && sharedResult
-                  ? `${sharedResult.type} 시 최대`
-                  : activeTab === 'gap' ? '갭투자 시 최대' : '실거주 시 최대'
+                {isSharedLink
+                  ? (sharedResult ? `${sharedResult.type} 시 최대` : '')
+                  : (activeTab === 'gap' ? '갭투자 시 최대' : '실거주 시 최대')
                 }
               </p>
             </div>
