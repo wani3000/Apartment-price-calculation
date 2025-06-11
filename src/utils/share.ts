@@ -1,6 +1,6 @@
 interface ShareData {
   title: string;
-  text: string;
+  text?: string;
   url: string;
 }
 
@@ -9,7 +9,19 @@ export const shareContent = async (data: ShareData): Promise<boolean> => {
   try {
     // Web Share API 지원 여부 확인
     if (navigator.share) {
-      await navigator.share(data);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      const shareDataForOS: ShareData = { ...data };
+
+      // iOS의 '복사' 기능은 text 필드를 복사합니다.
+      // '복사' 시 URL만 복사되도록 하려면 text 필드를 제거합니다.
+      // 다른 앱(카톡 등)으로 공유 시에는 title과 url이 표시됩니다.
+      if (isIOS) {
+        delete shareDataForOS.text;
+      }
+
+      await navigator.share(shareDataForOS);
       return true;
     } else {
       // fallback: URL 복사
@@ -70,8 +82,11 @@ export const getHomeShareData = (): ShareData => ({
 
 // 결과페이지 공유 데이터
 export const getResultShareData = (username: string, amount: string, type: '갭투자' | '실거주'): ShareData => {
-  const currentUrl = new URL(window.location.href);
+  const currentUrl = new URL(window.location.origin + '/result/final'); // 항상 최종 결과 페이지로 URL 고정
   currentUrl.searchParams.set('shared', 'true');
+  currentUrl.searchParams.set('username', encodeURIComponent(username));
+  currentUrl.searchParams.set('amount', encodeURIComponent(amount));
+  currentUrl.searchParams.set('type', type);
   
   return {
     title: `${username}님의 아파트 구매 가능 금액`,
