@@ -1,0 +1,172 @@
+/**
+ * 계산기 유틸리티 함수
+ */
+
+/**
+ * 원리금 균등상환 계산을 위한 월 상환액
+ * @param principal 원금
+ * @param rate 연이율 (%)
+ * @param years 대출 기간 (년)
+ * @returns 월 상환액
+ */
+export function calculateMonthlyPayment(principal: number, rate: number, years: number): number {
+  // 월이자율 변환
+  const monthlyRate = rate / 100 / 12;
+  // 총 납입 횟수
+  const payments = years * 12;
+  
+  // 월납입액 = 원금 × 월이자율 × (1 + 월이자율)^총개월수 ÷ (1 + 월이자율)^총개월수 − 1
+  return principal * (monthlyRate * Math.pow(1 + monthlyRate, payments)) / (Math.pow(1 + monthlyRate, payments) - 1);
+}
+
+/**
+ * 만기일시상환 방식의 월 이자 계산 (원금은 만기에 일시상환)
+ * @param principal 원금
+ * @param rate 연이율 (%)
+ * @returns 월 이자액
+ */
+export function calculateMonthlyInterestOnly(principal: number, rate: number): number {
+  // 월이자율 변환
+  const monthlyRate = rate / 100 / 12;
+  
+  // 월 이자액 = 원금 × 월이자율
+  return principal * monthlyRate;
+}
+
+/**
+ * 주택담보대출 한도 계산 (월 상환액 기준으로 대출 한도 계산)
+ * @param monthlyDSR 월 DSR 한도 (원)
+ * @param rate 연이율 (%)
+ * @param years 대출 기간 (년)
+ * @returns 대출 한도 (원)
+ */
+export function calculateLoanLimit(monthlyDSR: number, rate: number, years: number): number {
+  // 월이자율 변환
+  const monthlyRate = rate / 100 / 12;
+  // 총 납입 횟수
+  const payments = years * 12;
+  
+  // 대출한도 = 월납입액 × (1 - (1 + 월이자율)^-총개월수) ÷ 월이자율
+  return monthlyDSR * ((1 - Math.pow(1 + monthlyRate, -payments)) / monthlyRate);
+}
+
+/**
+ * 실거주 시나리오에서 최대 구매 가능 금액 계산 (2025 기준)
+ * @param annualIncome 연소득 (원)
+ * @param assets 보유자산 (원)
+ * @param dsrRatio DSR 비율 (%) - 40% 또는 50%
+ * @param loanRate 대출 이자율 (%) - 기본값 3.5%
+ * @param loanYears 대출 기간 (년) - 기본값 40
+ * @param ltv LTV 비율 (%) - 기본값 70%
+ * @returns { maxPropertyPrice, mortgageLimit, creditLoan }
+ */
+export function calculateMaxPurchaseForLiving(
+  annualIncome: number,
+  assets: number,
+  dsrRatio: number,
+  loanRate: number = 3.5,
+  loanYears: number = 40,
+  ltv: number = 70
+): { maxPropertyPrice: number, mortgageLimit: number, creditLoan: number } {
+  // 월 DSR 한도 = (연소득 × DSR비율) ÷ 12
+  const monthlyDSR = (annualIncome * dsrRatio / 100) / 12;
+  
+  // 주택담보대출 한도 계산 (원리금 균등 상환 기준)
+  const mortgageLimit = calculateLoanLimit(monthlyDSR, loanRate, loanYears);
+  
+  // 신용대출은 고려하지 않음
+  const creditLoan = 0;
+  
+  // 최대 구매 가능 금액 = 보유자산 + 주택담보대출 한도
+  // DSR이 높을수록 대출 한도가 높아지고, 최대 구매 가능 금액도 커짐
+  const maxPropertyPrice = assets + mortgageLimit;
+  
+  console.log('계산 정보:', {
+    annualIncome,
+    dsrRatio,
+    monthlyDSR,
+    mortgageLimit,
+    assets,
+    maxPropertyPrice
+  });
+  
+  return {
+    maxPropertyPrice,
+    mortgageLimit,
+    creditLoan
+  };
+}
+
+/**
+ * 갭투자 시나리오에서 최대 구매 가능 금액 계산 (2025 기준)
+ * @param annualIncome 연소득 (원)
+ * @param assets 보유자산 (원)
+ * @param jeonseRatio 전세가율 (%) - 기본값 60%
+ * @returns { maxPropertyPrice, creditLoan, jeonseDeposit }
+ */
+export function calculateMaxPurchaseForInvestment(
+  annualIncome: number,
+  assets: number,
+  jeonseRatio: number = 60
+): { maxPropertyPrice: number, creditLoan: number, jeonseDeposit: number } {
+  // 신용대출 = 연소득 × 1.2
+  const creditLoan = annualIncome * 1.2;
+  
+  // 총 자본 = 보유자산 + 신용대출
+  const totalCapital = assets + creditLoan;
+  
+  // 최대 구매가능 금액 = 총 자본 ÷ (1 - 전세가율)
+  const maxPropertyPrice = totalCapital / (1 - jeonseRatio / 100);
+  
+  // 전세보증금 = 매매가 × 전세가율
+  const jeonseDeposit = maxPropertyPrice * (jeonseRatio / 100);
+  
+  return {
+    maxPropertyPrice,
+    creditLoan,
+    jeonseDeposit
+  };
+}
+
+/**
+ * 숫자를 한글 금액으로 변환 (예: 1억 2,000만 원)
+ * @param amount 금액 (원)
+ * @returns 한글로 변환된 금액 문자열
+ */
+export function formatKoreanCurrency(amount: number): string {
+  if (amount === 0) return "0원";
+  
+  const units = ["", "만", "억", "조"];
+  let result = "";
+  let unitIndex = 0;
+  
+  // 4자리씩 끊어서 처리
+  while (amount > 0) {
+    const chunk = amount % 10000;
+    if (chunk > 0) {
+      result = `${chunk.toLocaleString()}${units[unitIndex]} ${result}`;
+    }
+    amount = Math.floor(amount / 10000);
+    unitIndex++;
+  }
+  
+  return result.trim() + "원";
+}
+
+/**
+ * 만 원 단위 입력값을 원 단위로 변환
+ * @param value 만 원 단위 값
+ * @returns 원 단위 값
+ */
+export function convertManToWon(value: number): number {
+  return value * 10000;
+}
+
+/**
+ * 원 단위 값을 만 원 단위로 변환
+ * @param value 원 단위 값
+ * @returns 만 원 단위 값
+ */
+export function convertWonToMan(value: number): number {
+  return value / 10000;
+} 
