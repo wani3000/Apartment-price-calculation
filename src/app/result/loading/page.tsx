@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import AdSense from '@/components/AdSense';
 
 export default function LoadingPage() {
   const router = useRouter();
@@ -24,6 +25,16 @@ export default function LoadingPage() {
           <div className="dot"></div>
           <div className="dot"></div>
         </div>
+      </div>
+
+      {/* AdSense 광고 - 로딩 애니메이션과 텍스트 사이 */}
+      <div className="w-full max-w-md mb-8">
+        <AdSense
+          adSlot="3456789012" // 실제 광고 슬롯 ID로 교체
+          adFormat="rectangle"
+          style={{ minHeight: '200px' }}
+          className="rounded-lg overflow-hidden bg-gray-50"
+        />
       </div>
 
       {/* 타이틀 */}

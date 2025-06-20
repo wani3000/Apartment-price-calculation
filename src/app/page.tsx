@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { shareContent, getHomeShareData } from '@/utils/share';
+import AdSense from '@/components/AdSense';
 
 export default function Home() {
   const router = useRouter();
@@ -62,6 +63,16 @@ export default function Home() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* AdSense 광고 - 이미지 슬라이더와 버튼 사이 */}
+      <div className="w-full max-w-md px-5 my-6">
+        <AdSense
+          adSlot="1234567890" // 실제 광고 슬롯 ID로 교체
+          adFormat="horizontal"
+          style={{ minHeight: '100px' }}
+          className="rounded-lg overflow-hidden"
+        />
       </div>
 
       {/* 버튼 섹션 */}

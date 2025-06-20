@@ -6,6 +6,7 @@ import { calculateMaxPurchaseForLiving, calculateMaxPurchaseForInvestment, conve
 import Header from '@/components/Header';
 import html2canvas from 'html2canvas';
 import { shareContent, getResultShareData } from '@/utils/share';
+import AdSense from '@/components/AdSense';
 
 // 카드 배경 스타일 정의
 // const CARD_BACKGROUNDS = [
@@ -728,6 +729,16 @@ export default function FinalResultPage() {
                       금리 3.5% 기준이에요
                     </p>
                   </div>
+                </div>
+
+                {/* AdSense 광고 - 갭투자 섹션 중간 */}
+                <div className="mb-6 w-[302px]">
+                  <AdSense
+                    adSlot="2345678901" // 실제 광고 슬롯 ID로 교체
+                    adFormat="rectangle"
+                    style={{ minHeight: '250px' }}
+                    className="rounded-xl overflow-hidden bg-gray-50"
+                  />
                 </div>
 
                 {/* 월 상환액 섹션 - 갭투자 시 */}
