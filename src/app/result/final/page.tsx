@@ -740,7 +740,7 @@ export default function FinalResultPage() {
                 {isSharedLink && !isCalculated ? '계산 중...' : (
                   activeTab === 'gap'
                     ? formatToKorean(calculationResult.investment.maxPropertyPrice)
-                    : formatToKorean(stressDSRResult.local.maxPropertyPrice)
+                    : formatToKorean(stressDSRResult.capital.maxPropertyPrice)
                 )}
               </p>
               
@@ -812,14 +812,19 @@ export default function FinalResultPage() {
                 최대 {formatToKorean(
                   activeTab === 'gap' 
                     ? calculationResult.investment.maxPropertyPrice 
-                    : stressDSRResult.local.maxPropertyPrice
+                    : stressDSRResult.capital.maxPropertyPrice
                 )}
               </p>
-              <p className="text-[#495057] text-sm font-normal leading-5 tracking-[-0.28px]">
+              <div className="text-[#495057] text-sm font-normal leading-5 tracking-[-0.28px]">
                 {activeTab === 'gap' 
                   ? '세입자의 전세금을 활용해 투자해요' 
-                  : '주택 가격의 70%까지 대출받을 수 있어요'}
-              </p>
+                  : (
+                    <>
+                      • 주택 가격의 최대 70% 대출 가능<br/>
+                      • 스트레스 DSR 3단계 적용 (수도권) + 보유자산
+                    </>
+                  )}
+              </div>
             </div>
 
             {activeTab === 'gap' ? (
@@ -904,15 +909,15 @@ export default function FinalResultPage() {
                     
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 기존 금리 (3.5%)</span>
+                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 실제 금리 (3.5%)</span>
                         <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(calculationResult.living.mortgageLimit)}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 수도권 (5.0%)</span>
+                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 수도권 (3.5% + 1.5%)</span>
                         <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.capital.mortgageLimit)}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 지방 (4.25%)</span>
+                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 지방 (3.5% + 0.75%)</span>
                         <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.local.mortgageLimit)}</span>
                       </div>
                       
@@ -927,18 +932,34 @@ export default function FinalResultPage() {
                       </div>
                     </div>
                     
-                    <p className="text-blue-600 text-[13px] font-normal leading-[18px] tracking-[-0.26px] mt-2">
-                      ※ 2025.7.1일부터 시행, 실제 대출금리는 변경되지 않음
-                    </p>
+                    <div className="text-blue-600 text-[13px] font-normal leading-[18px] tracking-[-0.26px] mt-2">
+                      <p>2025.7.1일부터 시행되며, 대출 한도 산정 시 실제 대출 금리에 스트레스 금리를 더하여 계산해요.</p>
+                    </div>
                   </div>
                   
                   {/* DSR 선택에 따른 금융권 구분 표시 */}
-                  <div className="mt-2">
-                    <p className="text-[#868E96] text-[12px] font-normal leading-[16px] tracking-[-0.24px]">
-                      {loanOptions.dsr === 50 
-                        ? '2금융권 대출 (연소득의 50% 적용)' 
-                        : '1금융권 대출 (연소득의 40% 적용)'}
-                    </p>
+                  <div className="mt-3">
+                    <div className="bg-[#F6F7FF] rounded-xl p-3 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <div className="flex-shrink-0 w-4 h-4 bg-[#7577FF] rounded-full flex items-center justify-center mt-0.5">
+                          <span className="text-white text-xs font-bold">ℹ</span>
+                        </div>
+                        <p className="text-[#495057] text-[13px] font-medium leading-[18px] tracking-[-0.26px]">
+                          {loanOptions.dsr === 50 
+                            ? '2금융권 대출 (연소득의 50% 적용)을 가정한 결과에요.' 
+                            : '1금융권 대출 (연소득의 40% 적용)을 가정한 결과에요.'}
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-start gap-2">
+                        <div className="flex-shrink-0 w-4 h-4 bg-[#868E96] rounded-full flex items-center justify-center mt-0.5">
+                          <span className="text-white text-xs font-bold">%</span>
+                        </div>
+                        <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                          실제 금리는 평균 변동금리인 3.5%로 설정하였으며, 개인의 신용도에 따라 달라질 수 있어요.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -953,11 +974,11 @@ export default function FinalResultPage() {
                         40년 만기
                       </p>
                       <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        {formatToKorean(stressDSRResult.local.mortgageLimit)}
+                        {formatToKorean(stressDSRResult.capital.mortgageLimit)}
                       </p>
                     </div>
                     <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      스트레스 DSR 지방 기준 (4.25% 금리)
+                      스트레스 DSR 수도권 기준 (5.0% 금리)
                     </p>
                   </div>
                 </div>
@@ -973,11 +994,11 @@ export default function FinalResultPage() {
                         40년 만기
                       </p>
                       <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        {formatToKorean(stressDSRResult.local.monthlyRepayment)}
+                        {formatToKorean(stressDSRResult.capital.monthlyRepayment)}
                       </p>
                     </div>
                     <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      스트레스 DSR 지방 기준 (4.25% 금리)
+                      스트레스 DSR 수도권 기준 (5.0% 금리)
                     </p>
                   </div>
                 </div>

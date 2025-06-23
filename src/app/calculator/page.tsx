@@ -11,6 +11,7 @@ export default function CalculatorPage() {
   const [assets, setAssets] = useState('');
   const [showSpouseIncome, setShowSpouseIncome] = useState(false);
   const [spouseIncome, setSpouseIncome] = useState('');
+  const [spouseAssets, setSpouseAssets] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,6 +37,11 @@ export default function CalculatorPage() {
       
       if (calculatorData.spouseIncome) {
         setSpouseIncome(calculatorData.spouseIncome.toString());
+        setShowSpouseIncome(true);
+      }
+      
+      if (calculatorData.spouseAssets) {
+        setSpouseAssets(calculatorData.spouseAssets.toString());
         setShowSpouseIncome(true);
       }
     }
@@ -74,10 +80,17 @@ export default function CalculatorPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // 총 보유자산 계산 (내 자산 + 배우자 자산)
+    const myAssets = parseInt(assets || '0');
+    const spouseAssetsValue = showSpouseIncome ? parseInt(spouseAssets || '0') : 0;
+    const totalAssets = myAssets + spouseAssetsValue;
+    
     // 입력값 저장
     const calculatorData = {
       income: parseInt(income || '0'),
-      assets: parseInt(assets || '0'),
+      assets: totalAssets, // 총 보유자산으로 저장
+      myAssets: myAssets, // 내 자산 별도 저장
+      spouseAssets: spouseAssetsValue, // 배우자 자산 별도 저장
       spouseIncome: showSpouseIncome ? parseInt(spouseIncome || '0') : 0
     };
     
@@ -88,7 +101,7 @@ export default function CalculatorPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* 메인 컨텐츠 영역 */}
-      <div className="flex-1 px-5 pt-6" style={{ paddingBottom: showSpouseIncome ? '160px' : '120px' }}>
+      <div className="flex-1 px-5 pt-6" style={{ paddingBottom: showSpouseIncome ? '200px' : '120px' }}>
         {/* 헤더 사용 */}
         <Header backUrl="/nickname" />
 
@@ -165,16 +178,17 @@ export default function CalculatorPage() {
                 onClick={() => setShowSpouseIncome(true)}
                 className="flex px-4 py-2.5 justify-center items-center gap-2.5 rounded-[300px] border border-grey-40 text-grey-80 text-[15px] font-medium leading-[22px]"
               >
-                배우자 소득도 추가할게요
+                배우자 소득과 자산도 추가할게요
               </button>
             </div>
           ) : (
             <div className="mt-4 mb-12">
-              <label htmlFor="spouseIncome" className="block text-grey-100 text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-                배우자 연소득 (만 원)
-              </label>
-              <div className="flex items-center gap-2">
-                <div className={`flex flex-1 h-14 px-3 py-2.5 justify-between items-center rounded-lg transition-colors ${
+              {/* 배우자 연소득 입력 */}
+              <div className="mb-6">
+                <label htmlFor="spouseIncome" className="block text-grey-100 text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                  배우자 연소득 (만 원)
+                </label>
+                <div className={`flex h-14 px-3 py-2.5 justify-between items-center rounded-lg transition-colors ${
                   focusedField === 'spouseIncome' ? 'border-2 border-primary' : 'border border-grey-40'
                 }`}>
                   <input
@@ -191,27 +205,65 @@ export default function CalculatorPage() {
                   />
                   <span className="text-grey-70 text-sm font-medium leading-[18px] tracking-[-0.26px] whitespace-nowrap">만 원</span>
                 </div>
+                {spouseIncome && (
+                  <p className="text-primary text-[13px] font-medium leading-[18px] tracking-[-0.26px] mt-1">
+                    {formatToKorean(spouseIncome)}
+                  </p>
+                )}
               </div>
-              
-              {/* 파란색 금액 표시를 입력 필드 바로 아래로 이동 */}
-              {spouseIncome && (
-                <p className="text-primary text-[13px] font-medium leading-[18px] tracking-[-0.26px] mt-1">
-                  {formatToKorean(spouseIncome)}
-                </p>
+
+              {/* 배우자 보유자산 입력 */}
+              <div className="mb-6">
+                <label htmlFor="spouseAssets" className="block text-grey-100 text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                  배우자 보유자산 (만 원)
+                </label>
+                <div className={`flex h-14 px-3 py-2.5 justify-between items-center rounded-lg transition-colors ${
+                  focusedField === 'spouseAssets' ? 'border-2 border-primary' : 'border border-grey-40'
+                }`}>
+                  <input
+                    id="spouseAssets"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={spouseAssets}
+                    onChange={(e) => handleNumberInput(e, setSpouseAssets)}
+                    onFocus={() => setFocusedField('spouseAssets')}
+                    onBlur={() => setFocusedField(null)}
+                    placeholder="0"
+                    className="w-full h-full outline-none text-grey-100 text-base"
+                  />
+                  <span className="text-grey-70 text-sm font-medium leading-[18px] tracking-[-0.26px] whitespace-nowrap">만 원</span>
+                </div>
+                {spouseAssets && (
+                  <p className="text-primary text-[13px] font-medium leading-[18px] tracking-[-0.26px] mt-1">
+                    {formatToKorean(spouseAssets)}
+                  </p>
+                )}
+              </div>
+
+              {/* 총 보유자산 표시 */}
+              {(assets || spouseAssets) && (
+                <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                  <div className="text-grey-100 text-sm font-medium mb-1">총 보유자산</div>
+                  <div className="text-primary text-lg font-bold">
+                    {formatToKorean(((parseInt(assets || '0')) + (parseInt(spouseAssets || '0'))).toString())}
+                  </div>
+                </div>
               )}
               
-              {/* 배우자 소득 삭제 버튼은 제일 아래에 위치 */}
-              <div className="mt-6 flex justify-start">
+              {/* 배우자 정보 삭제 버튼 */}
+              <div className="flex justify-start">
                 <button
                   type="button"
                   onClick={() => {
                     setShowSpouseIncome(false);
                     setSpouseIncome('');
+                    setSpouseAssets('');
                   }}
                   className="flex px-3 py-2.5 justify-center items-center rounded-[300px] border border-grey-40"
                 >
                   <span className="text-grey-80 text-[13px] font-medium leading-[18px] tracking-[-0.26px]">
-                    배우자 소득 삭제
+                    배우자 정보 삭제
                   </span>
                 </button>
               </div>
