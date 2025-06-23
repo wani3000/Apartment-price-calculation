@@ -81,12 +81,20 @@ export const getHomeShareData = (): ShareData => ({
 });
 
 // 결과페이지 공유 데이터
-export const getResultShareData = (username: string, amount: string, type: '갭투자' | '실거주'): ShareData => {
+export const getResultShareData = (
+  username: string, 
+  amount: string, 
+  type: '갭투자' | '실거주',
+  income: string = '0',
+  assets: string = '0'
+): ShareData => {
   const currentUrl = new URL(window.location.origin + '/result/final'); // 항상 최종 결과 페이지로 URL 고정
   currentUrl.searchParams.set('shared', 'true');
   currentUrl.searchParams.set('username', encodeURIComponent(username));
   currentUrl.searchParams.set('amount', encodeURIComponent(amount));
   currentUrl.searchParams.set('type', type);
+  currentUrl.searchParams.set('income', income);
+  currentUrl.searchParams.set('assets', assets);
   
   return {
     title: `${username}님의 아파트 구매 가능 금액`,

@@ -7,6 +7,7 @@ import Header from '@/components/Header';
 import html2canvas from 'html2canvas';
 import { shareContent, getResultShareData } from '@/utils/share';
 import AdSense from '@/components/AdSense';
+import DynamicHead from '@/components/DynamicHead';
 
 // 카드 배경 스타일 정의
 // const CARD_BACKGROUNDS = [
@@ -646,6 +647,22 @@ export default function FinalResultPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col px-5 pt-6 pb-12 relative">
+      {/* 동적 메타데이터 설정 */}
+      {isCalculated && (
+        <DynamicHead
+          username={username}
+          maxPrice={formatToKorean(
+            activeTab === 'gap' 
+              ? calculationResult.investment.maxPropertyPrice
+              : stressDSRResult.capital.maxPropertyPrice
+          )}
+          type={activeTab as 'gap' | 'live'}
+          income={calculationResult.income.toString()}
+          assets={calculationResult.assets.toString()}
+          cardElement={cardRef.current}
+        />
+      )}
+      
       {/* 헤더 - 공유받은 링크가 아닐 때만 표시 */}
       {!isSharedLink && (
         <Header 
