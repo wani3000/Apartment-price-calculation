@@ -100,18 +100,23 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 하단 고정 버튼 영역 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5 safe-area-inset-bottom z-50">
-        <div className="w-full max-w-md mx-auto space-y-3">
+      {/* 하단 고정 버튼 영역 - 결과 페이지와 동일한 디자인 */}
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
+        <div 
+          className="flex w-full max-w-md px-5 pt-10 pb-12 gap-3 items-center"
+          style={{ 
+            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)'
+          }}
+        >
           <button
             onClick={() => router.push('/nickname')}
-            className="flex h-14 w-full justify-center items-center gap-2.5 bg-primary text-white rounded-[300px] font-semibold text-base hover:bg-indigo-600 transition"
+            className="flex-1 h-14 justify-center items-center gap-2.5 flex bg-[#7577FF] text-white rounded-[300px] font-semibold"
           >
             시작하기
           </button>
           <button
             onClick={handleShare}
-            className="flex h-14 w-full justify-center items-center gap-2.5 border border-grey-60 text-grey-100 rounded-[300px] font-medium text-base hover:bg-gray-50 transition"
+            className="flex-1 h-14 justify-center items-center gap-2.5 flex border border-[#ADB5BD] rounded-[300px] text-grey-100 font-medium"
           >
             공유하기
           </button>
