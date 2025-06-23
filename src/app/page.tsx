@@ -109,16 +109,16 @@ export default function Home() {
           }}
         >
           <button
-            onClick={() => router.push('/nickname')}
-            className="flex-1 h-14 justify-center items-center gap-2.5 flex bg-[#7577FF] text-white rounded-[300px] font-semibold"
-          >
-            시작하기
-          </button>
-          <button
             onClick={handleShare}
             className="flex-1 h-14 justify-center items-center gap-2.5 flex border border-[#ADB5BD] rounded-[300px] text-grey-100 font-medium"
           >
             공유하기
+          </button>
+          <button
+            onClick={() => router.push('/nickname')}
+            className="flex-1 h-14 justify-center items-center gap-2.5 flex bg-[#7577FF] text-white rounded-[300px] font-semibold"
+          >
+            시작하기
           </button>
         </div>
       </div>
