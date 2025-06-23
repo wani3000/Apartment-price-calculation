@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --grey-100: #212529;
+  --grey-80: #495057;
+  --grey-60: #ADB5BD;
+  --primary: #7577FF;
+}
+
+html {
+  /* 모바일 브라우저에서 스크롤 문제 해결 */
+  height: 100%;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  color: var(--grey-100);
+  background: white;
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* 모바일 브라우저에서 스크롤 문제 해결 */
+  min-height: 100%;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* iOS Safari에서 바운스 효과 방지 */
+  overscroll-behavior: none;
+}
+
+/* 모바일에서 safe area 지원 */
+@supports (padding: max(0px)) {
+  .safe-area-inset-bottom {
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* AdSense 광고 스타일 */
+.adsense-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 16px 0;
+}
+
+.adsense-container .adsbygoogle {
+  width: 100%;
+  max-width: 100%;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 모바일에서 AdSense 반응형 조정 */
+@media (max-width: 768px) {
+  .adsense-container {
+    margin: 12px 0;
+  }
+  
+  .adsense-container .adsbygoogle {
+    min-height: 80px;
+  }
+}
+
+.image-slider-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.image-slider {
+  display: flex;
+  animation: infiniteSlide 15s linear infinite;
+  align-items: center;
+  width: calc(230px * 10); /* 5개 이미지 × 2세트 × 230px - 모바일 */
+}
+
+.image-card {
+  flex-shrink: 0;
+  width: 220px; /* 모바일 기본 크기 */
+  margin-right: 10px;
+}
+
+/* 태블릿 이상에서 카드 크기 증가 */
+@media (min-width: 768px) {
+  .image-slider {
+    width: calc(330px * 10); /* 5개 이미지 × 2세트 × 330px - 태블릿/데스크탑 */
+  }
+  
+  .image-card {
+    width: 320px; /* 태블릿/데스크탑 크기 */
+  }
+}
+
+@keyframes infiniteSlide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-230px * 5)); /* 5개 이미지만큼 이동 - 모바일 */
+  }
+}
+
+/* 태블릿 이상에서 애니메이션 거리 조정 */
+@media (min-width: 768px) {
+  @keyframes infiniteSlide {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(calc(-330px * 5)); /* 5개 이미지만큼 이동 - 태블릿/데스크탑 */
+    }
+  }
+}
+
+/* Dots Loader */
+.dots-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  animation: dotPulse 1.4s ease-in-out infinite both;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+} 
