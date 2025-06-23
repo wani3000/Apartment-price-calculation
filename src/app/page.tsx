@@ -109,7 +109,7 @@ export default function Home() {
       {/* 하단 고정 버튼 영역 - 결과 페이지와 동일한 디자인 */}
       <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
         <div 
-          className="flex w-full max-w-md px-5 pt-10 pb-12 gap-3 items-center"
+          className="flex w-full max-w-md px-5 pt-10 pb-[25px] gap-3 items-center"
           style={{ 
             background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)'
           }}
