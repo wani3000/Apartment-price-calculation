@@ -121,7 +121,27 @@ export default function ResultPage() {
               <span className="text-sm font-medium leading-5 tracking-[-0.14px]">50%</span>
             </button>
             </div>
+          
+          {/* 스트레스 DSR 3단계 안내 */}
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <div className="flex-shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+                <span className="text-white text-xs font-bold">!</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-blue-800 text-sm font-bold leading-5 mb-1">
+                  스트레스 DSR 3단계 시행 안내
+                </h3>
+                <div className="text-blue-700 text-xs leading-4 space-y-1">
+                  <p><strong>시행일:</strong> 2025년 7월 1일부터</p>
+                  <p><strong>변경사항:</strong> DSR 계산 시 스트레스 금리 추가 적용</p>
+                  <p><strong>영향:</strong> 수도권 1.5%, 지방 0.75% 금리 가산으로 대출한도 감소</p>
+                  <p className="text-blue-600 text-xs">※ 실제 대출금리는 변경되지 않으며, 한도 계산시만 적용됩니다.</p>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
         </div>
       </div>
 

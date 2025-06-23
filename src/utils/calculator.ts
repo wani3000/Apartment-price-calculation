@@ -98,6 +98,72 @@ export function calculateMaxPurchaseForLiving(
 }
 
 /**
+ * 실거주 시나리오에서 최대 구매 가능 금액 계산 - 스트레스 DSR 3단계 적용 (2025년 7월 이후)
+ * @param annualIncome 연소득 (원)
+ * @param assets 보유자산 (원)
+ * @param dsrRatio DSR 비율 (%) - 40% 또는 50%
+ * @param isCapitalArea 수도권 여부 (서울·경기·인천)
+ * @param loanRate 기본 대출 이자율 (%) - 기본값 3.5%
+ * @param loanYears 대출 기간 (년) - 기본값 40
+ * @param ltv LTV 비율 (%) - 기본값 70%
+ * @returns { maxPropertyPrice, mortgageLimit, creditLoan, stressRate, effectiveRate }
+ */
+export function calculateMaxPurchaseForLivingWithStressDSR(
+  annualIncome: number,
+  assets: number,
+  dsrRatio: number,
+  isCapitalArea: boolean = true,
+  loanRate: number = 3.5,
+  loanYears: number = 40,
+  ltv: number = 70
+): { 
+  maxPropertyPrice: number, 
+  mortgageLimit: number, 
+  creditLoan: number,
+  stressRate: number,
+  effectiveRate: number
+} {
+  // 스트레스 금리 결정 (2025년 7월 1일 기준)
+  const stressRate = isCapitalArea ? 1.5 : 0.75; // 수도권 1.5%, 지방 0.75%
+  
+  // 스트레스 DSR 계산용 유효 금리
+  const effectiveRate = loanRate + stressRate;
+  
+  // 월 DSR 한도 = (연소득 × DSR비율) ÷ 12
+  const monthlyDSR = (annualIncome * dsrRatio / 100) / 12;
+  
+  // 주택담보대출 한도 계산 (스트레스 금리 적용, 원리금 균등 상환 기준)
+  const mortgageLimit = calculateLoanLimit(monthlyDSR, effectiveRate, loanYears);
+  
+  // 신용대출은 고려하지 않음
+  const creditLoan = 0;
+  
+  // 최대 구매 가능 금액 = 보유자산 + 주택담보대출 한도
+  const maxPropertyPrice = assets + mortgageLimit;
+  
+  console.log('스트레스 DSR 3단계 계산 정보:', {
+    annualIncome,
+    dsrRatio,
+    isCapitalArea,
+    stressRate: `${stressRate}%`,
+    baseRate: `${loanRate}%`,
+    effectiveRate: `${effectiveRate}%`,
+    monthlyDSR,
+    mortgageLimit,
+    assets,
+    maxPropertyPrice
+  });
+  
+  return {
+    maxPropertyPrice,
+    mortgageLimit,
+    creditLoan,
+    stressRate,
+    effectiveRate
+  };
+}
+
+/**
  * 갭투자 시나리오에서 최대 구매 가능 금액 계산 (2025 기준)
  * @param annualIncome 연소득 (원)
  * @param assets 보유자산 (원)

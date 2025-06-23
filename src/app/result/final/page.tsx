@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import { calculateMaxPurchaseForLiving, calculateMaxPurchaseForInvestment, convertManToWon, calculateMonthlyPayment, calculateMonthlyInterestOnly } from '@/utils/calculator';
+import { calculateMaxPurchaseForLiving, calculateMaxPurchaseForLivingWithStressDSR, calculateMaxPurchaseForInvestment, convertManToWon, calculateMonthlyPayment, calculateMonthlyInterestOnly } from '@/utils/calculator';
 import Header from '@/components/Header';
 import html2canvas from 'html2canvas';
 import { shareContent, getResultShareData } from '@/utils/share';
@@ -116,6 +116,28 @@ export default function FinalResultPage() {
       ltv
     );
     
+    // 스트레스 DSR 3단계 계산 (수도권)
+    const stressCapitalResult = calculateMaxPurchaseForLivingWithStressDSR(
+      totalIncome,
+      assets,
+      dsr,
+      true, // 수도권
+      3.5,
+      40,
+      ltv
+    );
+    
+    // 스트레스 DSR 3단계 계산 (지방)
+    const stressLocalResult = calculateMaxPurchaseForLivingWithStressDSR(
+      totalIncome,
+      assets,
+      dsr,
+      false, // 지방
+      3.5,
+      40,
+      ltv
+    );
+    
     // 갭투자 시나리오 계산
     const investmentResult = calculateMaxPurchaseForInvestment(
       totalIncome,
@@ -147,6 +169,25 @@ export default function FinalResultPage() {
     };
     
     setCalculationResult(newResult);
+    
+    // 스트레스 DSR 월 상환액 계산
+    const stressCapitalMonthlyRepayment = calculateMonthlyPayment(stressCapitalResult.mortgageLimit, stressCapitalResult.effectiveRate, 40);
+    const stressLocalMonthlyRepayment = calculateMonthlyPayment(stressLocalResult.mortgageLimit, stressLocalResult.effectiveRate, 40);
+
+    // 스트레스 DSR 결과 저장 (만원 단위로 변환)
+    setStressDSRResult({
+      capital: {
+        mortgageLimit: Math.round(stressCapitalResult.mortgageLimit / 10000),
+        maxPropertyPrice: Math.round(stressCapitalResult.maxPropertyPrice / 10000),
+        monthlyRepayment: Math.round(stressCapitalMonthlyRepayment / 10000)
+      },
+      local: {
+        mortgageLimit: Math.round(stressLocalResult.mortgageLimit / 10000),
+        maxPropertyPrice: Math.round(stressLocalResult.maxPropertyPrice / 10000),
+        monthlyRepayment: Math.round(stressLocalMonthlyRepayment / 10000)
+      }
+    });
+    
     setIsCalculated(true);
   };
 
@@ -170,6 +211,12 @@ export default function FinalResultPage() {
       jeonseDeposit: 0,
       monthlyRepayment: 0
     }
+  });
+  
+  // 스트레스 DSR 계산 결과 상태 추가
+  const [stressDSRResult, setStressDSRResult] = useState({
+    capital: { mortgageLimit: 0, maxPropertyPrice: 0, monthlyRepayment: 0 }, // 수도권
+    local: { mortgageLimit: 0, maxPropertyPrice: 0, monthlyRepayment: 0 }    // 지방
   });
   const [isCalculated, setIsCalculated] = useState(false);
   
@@ -278,10 +325,11 @@ export default function FinalResultPage() {
       const income = convertManToWon(calculatorData.income);
       const assets = convertManToWon(calculatorData.assets);
       const spouseIncome = convertManToWon(calculatorData.spouseIncome || 0);
+      const totalIncome = income + spouseIncome;
       
       // 실거주 시나리오 계산
       const livingResult = calculateMaxPurchaseForLiving(
-        income + spouseIncome, 
+        totalIncome, 
         assets, 
         loanOptions.dsr, 
         3.5, // 금리 3.5%
@@ -289,9 +337,31 @@ export default function FinalResultPage() {
         loanOptions.ltv
       );
       
+      // 스트레스 DSR 3단계 계산 (수도권)
+      const stressCapitalResult = calculateMaxPurchaseForLivingWithStressDSR(
+        totalIncome,
+        assets,
+        loanOptions.dsr,
+        true, // 수도권
+        3.5,
+        40,
+        loanOptions.ltv
+      );
+      
+      // 스트레스 DSR 3단계 계산 (지방)
+      const stressLocalResult = calculateMaxPurchaseForLivingWithStressDSR(
+        totalIncome,
+        assets,
+        loanOptions.dsr,
+        false, // 지방
+        3.5,
+        40,
+        loanOptions.ltv
+      );
+      
       // 갭투자 시나리오 계산
       const investmentResult = calculateMaxPurchaseForInvestment(
-        income + spouseIncome,
+        totalIncome,
         assets,
         60 // 전세가율 60%
       );
@@ -318,6 +388,26 @@ export default function FinalResultPage() {
           monthlyRepayment: Math.round(investmentMonthlyRepayment / 10000) // 만원 단위로 변환
         }
       });
+      
+      // 스트레스 DSR 월 상환액 계산
+      const stressCapitalMonthlyRepayment2 = calculateMonthlyPayment(stressCapitalResult.mortgageLimit, stressCapitalResult.effectiveRate, 40);
+      const stressLocalMonthlyRepayment2 = calculateMonthlyPayment(stressLocalResult.mortgageLimit, stressLocalResult.effectiveRate, 40);
+
+      // 스트레스 DSR 결과 저장 (만원 단위로 변환)
+      setStressDSRResult({
+        capital: {
+          mortgageLimit: Math.round(stressCapitalResult.mortgageLimit / 10000),
+          maxPropertyPrice: Math.round(stressCapitalResult.maxPropertyPrice / 10000),
+          monthlyRepayment: Math.round(stressCapitalMonthlyRepayment2 / 10000)
+        },
+        local: {
+          mortgageLimit: Math.round(stressLocalResult.mortgageLimit / 10000),
+          maxPropertyPrice: Math.round(stressLocalResult.maxPropertyPrice / 10000),
+          monthlyRepayment: Math.round(stressLocalMonthlyRepayment2 / 10000)
+        }
+      });
+      
+      setIsCalculated(true);
     }
   }, [isSharedLink, searchParams]);
 
@@ -636,7 +726,7 @@ export default function FinalResultPage() {
                 {isSharedLink && !isCalculated ? '계산 중...' : (
                   activeTab === 'gap'
                     ? formatToKorean(calculationResult.investment.maxPropertyPrice)
-                    : formatToKorean(calculationResult.living.maxPropertyPrice)
+                    : formatToKorean(stressDSRResult.local.maxPropertyPrice)
                 )}
               </p>
               
@@ -699,7 +789,7 @@ export default function FinalResultPage() {
                 최대 {formatToKorean(
                   activeTab === 'gap' 
                     ? calculationResult.investment.maxPropertyPrice 
-                    : calculationResult.living.maxPropertyPrice
+                    : stressDSRResult.local.maxPropertyPrice
                 )}
               </p>
               <p className="text-[#495057] text-sm font-normal leading-5 tracking-[-0.28px]">
@@ -791,15 +881,51 @@ export default function FinalResultPage() {
                   <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
                     <div className="flex justify-between items-center w-full">
                       <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                        {loanOptions.dsr}% 기준
+                        {loanOptions.dsr}% 기준 (스트레스 DSR 지방)
                       </p>
                       <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        최대 {formatToKorean(calculationResult.living.mortgageLimit)}
+                        최대 {formatToKorean(stressDSRResult.local.mortgageLimit)}
                       </p>
                     </div>
                     <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      주택담보대출+신용대출
+                      2025년 7월 이후 적용되는 스트레스 DSR 기준
                     </p>
+                    
+                    {/* 스트레스 DSR 3단계 계산 안내 */}
+                    <div className="mt-3 pt-3 border-t border-[#E9ECEF]">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-[10px] font-bold">!</span>
+                        </div>
+                        <p className="text-blue-700 text-[12px] font-bold leading-4">
+                          스트레스 DSR 3단계 적용 시
+                        </p>
+                      </div>
+                                             <div className="text-[11px] leading-4 space-y-1 text-[#6C757D]">
+                         <div className="flex justify-between">
+                           <span>• 기존 금리 (3.5%)</span>
+                           <span className="text-[#495057]">{formatToKorean(calculationResult.living.mortgageLimit)}</span>
+                         </div>
+                         <div className="flex justify-between">
+                           <span>• 수도권 (5.0%)</span>
+                           <span className="text-[#495057]">{formatToKorean(stressDSRResult.capital.mortgageLimit)}</span>
+                         </div>
+                         <div className="flex justify-between">
+                           <span>• 지방 (4.25%)</span>
+                           <span className="text-[#495057]">{formatToKorean(stressDSRResult.local.mortgageLimit)}</span>
+                         </div>
+                         <div className="flex justify-between text-[10px] mt-1 pt-1 border-t border-[#E9ECEF]">
+                           <span>감소율:</span>
+                           <span className="text-red-600">
+                             수도권 {calculationResult.living.mortgageLimit > 0 ? Math.round(((calculationResult.living.mortgageLimit - stressDSRResult.capital.mortgageLimit) / calculationResult.living.mortgageLimit) * 100) : 0}%, 
+                             지방 {calculationResult.living.mortgageLimit > 0 ? Math.round(((calculationResult.living.mortgageLimit - stressDSRResult.local.mortgageLimit) / calculationResult.living.mortgageLimit) * 100) : 0}%
+                           </span>
+                         </div>
+                         <p className="text-blue-600 text-[10px] mt-2">
+                           ※ 2025.7.1일부터 시행, 실제 대출금리는 변경되지 않음
+                         </p>
+                       </div>
+                    </div>
                   </div>
                 </div>
 
@@ -814,11 +940,11 @@ export default function FinalResultPage() {
                         40년 만기
                       </p>
                       <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        {formatToKorean(calculationResult.living.mortgageLimit)}
+                        {formatToKorean(stressDSRResult.local.mortgageLimit)}
                       </p>
                     </div>
                     <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      금리 3.5% 기준이에요
+                      스트레스 DSR 지방 기준 (4.25% 금리)
                     </p>
                   </div>
                 </div>
@@ -834,11 +960,11 @@ export default function FinalResultPage() {
                         40년 만기
                       </p>
                       <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        {formatToKorean(calculationResult.living.monthlyRepayment)}
+                        {formatToKorean(stressDSRResult.local.monthlyRepayment)}
                       </p>
                     </div>
                     <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      원금과 이자를 함께 갚는 원리금균등상환 기준이에요
+                      스트레스 DSR 지방 기준 (4.25% 금리)
                     </p>
                   </div>
                 </div>
