@@ -77,6 +77,12 @@ export default function Home() {
             <div>
               <p className="font-bold text-grey-100 mb-1">DSR 규제</p>
               <p>총부채원리금상환비율에 따라 대출 한도가 결정돼요.</p>
+              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-blue-700 text-xs font-medium leading-relaxed">
+                  📢 <span className="font-bold">2025.7.1일부터 스트레스 DSR 3단계 시행</span><br />
+                  수도권 1.5%, 지방 0.75% 금리 가산으로 대출한도 추가 감소
+                </p>
+              </div>
             </div>
             <div>
               <p className="font-bold text-grey-100 mb-1">LTV 한도</p>

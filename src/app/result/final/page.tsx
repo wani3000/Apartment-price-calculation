@@ -72,7 +72,7 @@ export default function FinalResultPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [username, setUsername] = useState('');
-  const [activeTab, setActiveTab] = useState('gap'); // 'gap' 또는 'live'
+  const [activeTab, setActiveTab] = useState('live'); // 'gap' 또는 'live'
   const [sharedCalculationData, setSharedCalculationData] = useState<{
     income: number;
     assets: number;
@@ -293,8 +293,10 @@ export default function FinalResultPage() {
 
     // LTV, DSR 옵션 가져오기
     const loanOptionsStr = localStorage.getItem('loanOptions');
+    let currentLoanOptions = { ltv: 70, dsr: 40 }; // 기본값
     if (loanOptionsStr) {
-      setLoanOptions(JSON.parse(loanOptionsStr));
+      currentLoanOptions = JSON.parse(loanOptionsStr);
+      setLoanOptions(currentLoanOptions);
     }
 
     // 계산 데이터 가져오기
@@ -327,36 +329,48 @@ export default function FinalResultPage() {
       const spouseIncome = convertManToWon(calculatorData.spouseIncome || 0);
       const totalIncome = income + spouseIncome;
       
-      // 실거주 시나리오 계산
+      // DSR 디버깅 로그 추가
+      console.log('DSR 디버깅 - 계산 시작:', {
+        income: calculatorData.income,
+        assets: calculatorData.assets,
+        spouseIncome: calculatorData.spouseIncome,
+        totalIncome: totalIncome,
+        dsrFromLocalStorage: currentLoanOptions.dsr,
+        ltvFromLocalStorage: currentLoanOptions.ltv,
+        dsrFromState: loanOptions.dsr,
+        ltvFromState: loanOptions.ltv
+      });
+      
+      // 실거주 시나리오 계산 (localStorage에서 직접 읽은 값 사용)
       const livingResult = calculateMaxPurchaseForLiving(
         totalIncome, 
         assets, 
-        loanOptions.dsr, 
+        currentLoanOptions.dsr, 
         3.5, // 금리 3.5%
         40,  // 대출 기간 40년
-        loanOptions.ltv
+        currentLoanOptions.ltv
       );
       
       // 스트레스 DSR 3단계 계산 (수도권)
       const stressCapitalResult = calculateMaxPurchaseForLivingWithStressDSR(
         totalIncome,
         assets,
-        loanOptions.dsr,
+        currentLoanOptions.dsr,
         true, // 수도권
         3.5,
         40,
-        loanOptions.ltv
+        currentLoanOptions.ltv
       );
       
       // 스트레스 DSR 3단계 계산 (지방)
       const stressLocalResult = calculateMaxPurchaseForLivingWithStressDSR(
         totalIncome,
         assets,
-        loanOptions.dsr,
+        currentLoanOptions.dsr,
         false, // 지방
         3.5,
         40,
-        loanOptions.ltv
+        currentLoanOptions.ltv
       );
       
       // 갭투자 시나리오 계산
@@ -656,16 +670,6 @@ export default function FinalResultPage() {
         <div className="flex border-b border-grey-40 mb-10">
           <button
             className={`flex-1 py-[10px] px-4 text-center ${
-              activeTab === 'gap' 
-                ? 'border-b-2 border-[#7577FF] text-[#7577FF] font-bold' 
-                : 'text-grey-80'
-            }`}
-            onClick={() => setActiveTab('gap')}
-          >
-            갭투자
-          </button>
-          <button
-            className={`flex-1 py-[10px] px-4 text-center ${
               activeTab === 'live' 
                 ? 'border-b-2 border-[#7577FF] text-[#7577FF] font-bold' 
                 : 'text-grey-80'
@@ -673,6 +677,16 @@ export default function FinalResultPage() {
             onClick={() => setActiveTab('live')}
           >
             실거주
+          </button>
+          <button
+            className={`flex-1 py-[10px] px-4 text-center ${
+              activeTab === 'gap' 
+                ? 'border-b-2 border-[#7577FF] text-[#7577FF] font-bold' 
+                : 'text-grey-80'
+            }`}
+            onClick={() => setActiveTab('gap')}
+          >
+            갭투자
           </button>
         </div>
 
@@ -780,6 +794,15 @@ export default function FinalResultPage() {
         
         {/* 자금계획 섹션 */}
         <div className="flex flex-col items-center">
+            {/* AdSense 광고 - 이미지 카드 바로 아래 */}
+            <div className="mb-6 w-[302px]">
+              <AdSense
+                adSlot="1234567890" // 실제 광고 슬롯 ID로 교체
+                adFormat="rectangle"
+                style={{ minHeight: '250px' }}
+                className="rounded-xl overflow-hidden bg-gray-50"
+              />
+            </div>
             {/* 최대 금액 정보 */}
             <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF] mb-6 w-[302px]">
               <h2 className="text-black text-[18px] font-bold leading-[26px] tracking-[-0.18px]">
@@ -819,16 +842,6 @@ export default function FinalResultPage() {
                       금리 3.5% 기준이에요
                     </p>
                   </div>
-                </div>
-
-                {/* AdSense 광고 - 갭투자 섹션 중간 */}
-                <div className="mb-6 w-[302px]">
-                  <AdSense
-                    adSlot="2345678901" // 실제 광고 슬롯 ID로 교체
-                    adFormat="rectangle"
-                    style={{ minHeight: '250px' }}
-                    className="rounded-xl overflow-hidden bg-gray-50"
-                  />
                 </div>
 
                 {/* 월 상환액 섹션 - 갭투자 시 */}
@@ -878,54 +891,54 @@ export default function FinalResultPage() {
                   <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                     DSR (총부채원리금상환비율)
                   </h3>
-                  <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
-                    <div className="flex justify-between items-center w-full">
-                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                        {loanOptions.dsr}% 기준 (스트레스 DSR 지방)
-                      </p>
-                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        최대 {formatToKorean(stressDSRResult.local.mortgageLimit)}
-                      </p>
-                    </div>
-                    <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      2025년 7월 이후 적용되는 스트레스 DSR 기준
-                    </p>
-                    
-                    {/* 스트레스 DSR 3단계 계산 안내 */}
-                    <div className="mt-3 pt-3 border-t border-[#E9ECEF]">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-white text-[10px] font-bold">!</span>
-                        </div>
-                        <p className="text-blue-700 text-[12px] font-bold leading-4">
-                          스트레스 DSR 3단계 적용 시
-                        </p>
+                  <div className="flex flex-col p-4 gap-3 rounded-xl bg-[#F6F7FF]">
+                    {/* 스트레스 DSR 3단계 적용 메인 내용 */}
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-bold">!</span>
                       </div>
-                                             <div className="text-[11px] leading-4 space-y-1 text-[#6C757D]">
-                         <div className="flex justify-between">
-                           <span>• 기존 금리 (3.5%)</span>
-                           <span className="text-[#495057]">{formatToKorean(calculationResult.living.mortgageLimit)}</span>
-                         </div>
-                         <div className="flex justify-between">
-                           <span>• 수도권 (5.0%)</span>
-                           <span className="text-[#495057]">{formatToKorean(stressDSRResult.capital.mortgageLimit)}</span>
-                         </div>
-                         <div className="flex justify-between">
-                           <span>• 지방 (4.25%)</span>
-                           <span className="text-[#495057]">{formatToKorean(stressDSRResult.local.mortgageLimit)}</span>
-                         </div>
-                         <div className="flex justify-between text-[10px] mt-1 pt-1 border-t border-[#E9ECEF]">
-                           <span>감소율:</span>
-                           <span className="text-red-600">
-                             수도권 {calculationResult.living.mortgageLimit > 0 ? Math.round(((calculationResult.living.mortgageLimit - stressDSRResult.capital.mortgageLimit) / calculationResult.living.mortgageLimit) * 100) : 0}%, 
-                             지방 {calculationResult.living.mortgageLimit > 0 ? Math.round(((calculationResult.living.mortgageLimit - stressDSRResult.local.mortgageLimit) / calculationResult.living.mortgageLimit) * 100) : 0}%
-                           </span>
-                         </div>
-                         <p className="text-blue-600 text-[10px] mt-2">
-                           ※ 2025.7.1일부터 시행, 실제 대출금리는 변경되지 않음
-                         </p>
-                       </div>
+                      <p className="text-blue-700 text-base font-bold leading-6">
+                        스트레스 DSR 3단계 적용 시
+                      </p>
                     </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 기존 금리 (3.5%)</span>
+                        <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(calculationResult.living.mortgageLimit)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 수도권 (5.0%)</span>
+                        <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.capital.mortgageLimit)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 지방 (4.25%)</span>
+                        <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.local.mortgageLimit)}</span>
+                      </div>
+                      
+                      <div className="pt-2 border-t border-[#E9ECEF]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[#495057] text-[14px] font-normal">감소율:</span>
+                          <span className="text-red-600 text-[14px] font-medium">
+                            수도권 {calculationResult.living.mortgageLimit > 0 ? Math.round(((calculationResult.living.mortgageLimit - stressDSRResult.capital.mortgageLimit) / calculationResult.living.mortgageLimit) * 100) : 0}%, 
+                            지방 {calculationResult.living.mortgageLimit > 0 ? Math.round(((calculationResult.living.mortgageLimit - stressDSRResult.local.mortgageLimit) / calculationResult.living.mortgageLimit) * 100) : 0}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className="text-blue-600 text-[13px] font-normal leading-[18px] tracking-[-0.26px] mt-2">
+                      ※ 2025.7.1일부터 시행, 실제 대출금리는 변경되지 않음
+                    </p>
+                  </div>
+                  
+                  {/* DSR 선택에 따른 금융권 구분 표시 */}
+                  <div className="mt-2">
+                    <p className="text-[#868E96] text-[12px] font-normal leading-[16px] tracking-[-0.24px]">
+                      {loanOptions.dsr === 50 
+                        ? '2금융권 대출 (연소득의 50% 적용)' 
+                        : '1금융권 대출 (연소득의 40% 적용)'}
+                    </p>
                   </div>
                 </div>
 
