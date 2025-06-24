@@ -594,14 +594,26 @@ export default function FinalResultClient() {
         
         {/* 자금계획 섹션 */}
         <div className="flex flex-col items-center">
-            {/* AdSense 광고 - 이미지 카드 바로 아래 */}
+            {/* AdSense 광고 - 정책 준수: 계산 완료 후에만 표시 */}
             <div className="mb-6 w-[302px]">
               <AdSense
                 adSlot="1234567890"
                 adFormat="horizontal"
                 style={{ minHeight: '100px' }}
                 className="rounded-lg overflow-hidden"
+                shouldShow={isCalculated}
+                contentReady={isCalculated}
               />
+              
+              {/* 계산 중일 때 로딩 상태 표시 */}
+              {!isCalculated && (
+                <div className="h-[100px] flex items-center justify-center bg-gray-50 rounded-lg">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-1"></div>
+                    <p className="text-grey-80 text-xs">데이터 준비 중...</p>
+                  </div>
+                </div>
+              )}
             </div>
           
           {/* 자금계획 카드 */}

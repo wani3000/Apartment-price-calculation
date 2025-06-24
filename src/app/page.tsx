@@ -67,7 +67,7 @@ export default function Home() {
 
       {/* 콘텐츠 섹션 - AdSense 정책 준수를 위한 추가 콘텐츠 */}
       <div className="w-full max-w-md px-5 my-6 mb-40">
-        <div className="bg-gray-50 rounded-xl p-6 mb-6">
+        <div className="bg-gray-50 rounded-xl p-6 mb-8">
           <h2 className="text-grey-100 text-lg font-bold mb-3">왜 아파트 가격 계산이 중요할까요?</h2>
           <div className="space-y-4 text-grey-80 text-sm leading-relaxed">
             <div>
@@ -95,14 +95,26 @@ export default function Home() {
           </div>
         </div>
         
-        {/* AdSense 광고 - 풍부한 콘텐츠 이후 배치 */}
-        <div className="bg-gray-50 rounded-xl p-6">
-          <AdSense
-            adSlot="1234567890" // 실제 광고 슬롯 ID로 교체
-            adFormat="horizontal"
-            style={{ minHeight: '100px' }}
-            className="rounded-lg overflow-hidden"
-          />
+        {/* 추가 유용한 정보 섹션 */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
+          <h3 className="text-grey-100 text-base font-bold mb-3">💡 계산기 활용 팁</h3>
+          <div className="space-y-2 text-grey-80 text-sm">
+            <p>• 배우자 소득도 함께 입력하면 더 정확한 결과를 얻을 수 있어요</p>
+            <p>• 보유자산에는 예금, 적금, 주식 등을 모두 포함해주세요</p>
+            <p>• 갭투자와 실거주 결과를 비교해서 최적의 선택을 하세요</p>
+          </div>
+        </div>
+        
+        {/* AdSense 광고 - 풍부한 콘텐츠 이후 배치 (크기 축소) */}
+        <div className="flex justify-center mb-4">
+          <div className="w-full max-w-[280px]">
+            <AdSense
+              adSlot="1234567890" // 실제 광고 슬롯 ID로 교체
+              adFormat="auto"
+              style={{ minHeight: '80px', maxHeight: '120px' }}
+              className="rounded-lg overflow-hidden border border-gray-200"
+            />
+          </div>
         </div>
       </div>
 
