@@ -18,6 +18,10 @@ declare global {
   }
 }
 
+const isDevelopment = typeof window !== 'undefined' 
+  ? window.location.hostname === 'localhost' 
+  : false;
+
 export default function AdSense({ 
   adSlot, 
   adFormat = 'auto',
@@ -33,7 +37,7 @@ export default function AdSense({
   useEffect(() => {
     try {
       // 개발 환경에서는 광고를 로드하지 않음
-      if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+      if (isDevelopment) {
         return;
       }
 
@@ -59,7 +63,7 @@ export default function AdSense({
   }
 
   // 개발 환경에서는 placeholder 표시
-  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+  if (isDevelopment) {
     return (
       <div className={`adsense-container ${className}`} style={style}>
         <div 
