@@ -20,7 +20,7 @@ export default function PrivacyPage() {
             <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700 ml-4">
               <li>아파트 가격 계산 서비스 제공</li>
               <li>서비스 이용통계 분석</li>
-              <li>광고 서비스 제공 (Google AdSense)</li>
+              <li>서비스 개선 및 최적화</li>
             </ul>
           </section>
 
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700 ml-4">
               <li>연봉 정보 (계산 목적)</li>
-              <li>쿠키 및 접속 로그 (Google AdSense)</li>
+              <li>접속 로그 (서비스 이용통계)</li>
               <li>IP 주소, 브라우저 정보 (서비스 제공 목적)</li>
             </ul>
           </section>
@@ -40,15 +40,15 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold mb-4 text-gray-800">3. 개인정보의 보유 및 이용기간</h2>
             <p className="text-gray-700 leading-relaxed">
               개인정보는 서비스 이용 중에만 보유되며, 브라우저 종료 시 삭제됩니다.
-              쿠키 정보는 Google AdSense 정책에 따라 관리됩니다.
+              접속 로그는 서비스 개선 목적으로만 사용됩니다.
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-semibold mb-4 text-gray-800">4. 제3자 제공</h2>
             <p className="text-gray-700 leading-relaxed">
-              본 서비스는 Google AdSense를 통해 광고를 제공합니다. 
-              광고 맞춤화를 위해 쿠키 정보가 Google과 공유될 수 있습니다.
+              본 서비스는 개인정보를 제3자에게 제공하지 않습니다. 
+              다만, 법적 요구가 있는 경우에는 예외적으로 제공할 수 있습니다.
             </p>
           </section>
 

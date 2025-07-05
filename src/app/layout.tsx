@@ -39,19 +39,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        {/* Google AdSense 사이트 소유권 확인용 메타 태그 */}
-        <meta name="google-adsense-account" content="ca-pub-6858835884991650" />
-        
         <link
           rel="stylesheet"
           as="style"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
-        />
-        {/* Google AdSense 스크립트 */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6858835884991650"
-          crossOrigin="anonymous"
         />
       </head>
       <body className="font-pretendard">{children}</body>

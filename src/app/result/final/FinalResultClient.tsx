@@ -6,7 +6,7 @@ import { calculateMaxPurchaseForLiving, calculateMaxPurchaseForLivingWithStressD
 import Header from '@/components/Header';
 import html2canvas from 'html2canvas';
 import { shareContent, getResultShareData } from '@/utils/share';
-import AdSense from '@/components/AdSense';
+
 
 // 가격별 이미지 및 배경 매핑
 const HOUSE_STYLES = {
@@ -594,27 +594,6 @@ export default function FinalResultClient() {
         
         {/* 자금계획 섹션 */}
         <div className="flex flex-col items-center">
-            {/* AdSense 광고 - 정책 준수: 계산 완료 후에만 표시 */}
-            <div className="mb-6 w-[302px]">
-              <AdSense
-                adSlot="1234567890"
-                adFormat="horizontal"
-                style={{ minHeight: '100px' }}
-                className="rounded-lg overflow-hidden"
-                shouldShow={isCalculated}
-                contentReady={isCalculated}
-              />
-              
-              {/* 계산 중일 때 로딩 상태 표시 */}
-              {!isCalculated && (
-                <div className="h-[100px] flex items-center justify-center bg-gray-50 rounded-lg">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-1"></div>
-                    <p className="text-grey-80 text-xs">데이터 준비 중...</p>
-                  </div>
-                </div>
-              )}
-            </div>
           
           {/* 자금계획 카드 */}
           <div className="w-[302px] p-5 bg-white border border-grey-40 rounded-xl mb-6">

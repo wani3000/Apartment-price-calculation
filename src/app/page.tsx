@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { shareContent, getHomeShareData } from '@/utils/share';
-import AdSense from '@/components/AdSense';
+import Link from 'next/link';
 
 export default function Home() {
   const router = useRouter();
@@ -65,7 +65,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 콘텐츠 섹션 - AdSense 정책 준수를 위한 추가 콘텐츠 */}
+      {/* 콘텐츠 섹션 */}
       <div className="w-full max-w-md px-5 my-6 mb-40">
         <div className="bg-gray-50 rounded-xl p-6 mb-8">
           <h2 className="text-grey-100 text-lg font-bold mb-3">왜 아파트 가격 계산이 중요할까요?</h2>
@@ -105,20 +105,50 @@ export default function Home() {
           </div>
         </div>
         
-        {/* AdSense 광고 - 풍부한 콘텐츠 이후 배치 (크기 축소) */}
-        <div className="flex justify-center mb-4">
-          <div className="w-full max-w-[280px]">
-            <AdSense
-              adSlot="1234567890" // 실제 광고 슬롯 ID로 교체
-              adFormat="auto"
-              style={{ minHeight: '80px', maxHeight: '120px' }}
-              className="rounded-lg overflow-hidden border border-gray-200"
-            />
+        {/* 콘텐츠 페이지 링크 섹션 */}
+        <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
+          <h3 className="text-grey-100 text-base font-bold mb-4">📚 더 많은 정보 보기</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Link href="/guide" className="bg-blue-50 rounded-lg p-3 text-center border border-blue-200 hover:bg-blue-100 transition-colors">
+              <div className="text-blue-600 text-lg mb-1">💡</div>
+              <div className="text-blue-700 text-xs font-semibold">구매 가이드</div>
+            </Link>
+            <Link href="/news" className="bg-green-50 rounded-lg p-3 text-center border border-green-200 hover:bg-green-100 transition-colors">
+              <div className="text-green-600 text-lg mb-1">📰</div>
+              <div className="text-green-700 text-xs font-semibold">부동산 뉴스</div>
+            </Link>
+            <Link href="/dictionary" className="bg-purple-50 rounded-lg p-3 text-center border border-purple-200 hover:bg-purple-100 transition-colors">
+              <div className="text-purple-600 text-lg mb-1">📖</div>
+              <div className="text-purple-700 text-xs font-semibold">용어 사전</div>
+            </Link>
+            <Link href="/faq" className="bg-orange-50 rounded-lg p-3 text-center border border-orange-200 hover:bg-orange-100 transition-colors">
+              <div className="text-orange-600 text-lg mb-1">❓</div>
+              <div className="text-orange-700 text-xs font-semibold">자주 묻는 질문</div>
+            </Link>
+          </div>
+        </div>
+        
+        {/* 부동산 시장 정보 섹션 */}
+        <div className="bg-gray-50 rounded-xl p-6 mb-6">
+          <h3 className="text-grey-100 text-base font-bold mb-3">📊 2025년 부동산 시장 전망</h3>
+          <div className="space-y-3 text-grey-80 text-sm">
+            <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <p className="text-grey-100 font-semibold text-xs mb-1">스트레스 DSR 도입 영향</p>
+              <p className="text-grey-80 text-xs">대출 한도 축소로 신중한 자금 계획 필요</p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <p className="text-grey-100 font-semibold text-xs mb-1">금리 안정세 전망</p>
+              <p className="text-grey-80 text-xs">기준금리 3.5% 수준에서 유지될 것으로 예상</p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <p className="text-grey-100 font-semibold text-xs mb-1">신규 공급 물량 증가</p>
+              <p className="text-grey-80 text-xs">수도권 중심으로 공급 확대 예정</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 하단 고정 버튼 영역 - 결과 페이지와 동일한 디자인 */}
+      {/* 하단 고정 버튼 영역 */}
       <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
         <div 
           className="flex w-full max-w-md px-5 pt-10 pb-[25px] gap-3 items-center"

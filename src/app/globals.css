@@ -35,37 +35,7 @@ body {
   }
 }
 
-/* AdSense 광고 스타일 */
-.adsense-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 16px 0;
-}
 
-.adsense-container .adsbygoogle {
-  width: 100%;
-  max-width: 100%;
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  min-height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 모바일에서 AdSense 반응형 조정 */
-@media (max-width: 768px) {
-  .adsense-container {
-    margin: 12px 0;
-  }
-  
-  .adsense-container .adsbygoogle {
-    min-height: 80px;
-  }
-}
 
 .image-slider-container {
   width: 100%;

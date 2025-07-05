@@ -50,8 +50,8 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold mb-4 text-gray-800">제5조 (광고 및 제휴)</h2>
             <p className="text-gray-700 leading-relaxed">
-              본 서비스는 Google AdSense를 통해 광고를 게재합니다. 
-              광고 내용에 대한 책임은 해당 광고주에게 있습니다.
+              본 서비스는 무료로 제공되며, 별도의 광고나 유료 서비스는 없습니다. 
+              서비스 운영을 위해 필요한 경우 사전 고지 후 정책을 변경할 수 있습니다.
             </p>
           </section>
 

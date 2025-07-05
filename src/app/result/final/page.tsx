@@ -6,7 +6,6 @@ import { calculateMaxPurchaseForLiving, calculateMaxPurchaseForLivingWithStressD
 import Header from '@/components/Header';
 import html2canvas from 'html2canvas';
 import { shareContent, getResultShareData } from '@/utils/share';
-import AdSense from '@/components/AdSense';
 
 // 카드 배경 스타일 정의
 // const CARD_BACKGROUNDS = [
@@ -794,27 +793,6 @@ export default function FinalResultPage() {
         
         {/* 자금계획 섹션 */}
         <div className="flex flex-col items-center">
-            {/* AdSense 광고 - 정책 준수: 계산 완료 후에만 표시 */}
-            <div className="mb-6 w-[302px]">
-              <AdSense
-                adSlot="1234567890" // 실제 광고 슬롯 ID로 교체
-                adFormat="rectangle"
-                style={{ minHeight: '250px' }}
-                className="rounded-xl overflow-hidden bg-gray-50"
-                shouldShow={isCalculated}
-                contentReady={isCalculated}
-              />
-              
-              {/* 계산 중일 때 로딩 메시지 표시 */}
-              {!isCalculated && (
-                <div className="h-[250px] flex items-center justify-center bg-gray-50 rounded-xl">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                    <p className="text-grey-80 text-sm">계산 중입니다...</p>
-                  </div>
-                </div>
-              )}
-            </div>
             
             {/* 최대 금액 정보 */}
             <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF] mb-6 w-[302px]">

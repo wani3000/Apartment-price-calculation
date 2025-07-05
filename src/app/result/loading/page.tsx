@@ -26,7 +26,7 @@ export default function LoadingPage() {
         </div>
       </div>
 
-      {/* AdSense 광고 제거 - 정책 위반 방지 */}
+
 
       {/* 타이틀 */}
       <h1 className="text-grey-100 text-[18px] font-bold leading-[26px] tracking-[-0.18px] text-center mb-4">
