@@ -51,8 +51,8 @@ export default function ResultPage() {
   }, [selectedLTV, selectedDSR]);
 
   const handleSubmit = () => {
-    // 선택된 값이 이미 저장되어 있으므로 바로 결과 페이지로 이동
-    router.push('/result/loading');
+    // 선택된 값이 이미 저장되어 있으므로 바로 최종 결과 페이지로 이동
+    router.push('/result/final');
   };
 
   return (
