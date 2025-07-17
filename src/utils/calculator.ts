@@ -195,31 +195,6 @@ export function calculateMaxPurchaseForInvestment(
 }
 
 /**
- * 숫자를 한글 금액으로 변환 (예: 1억 2,000만 원)
- * @param amount 금액 (원)
- * @returns 한글로 변환된 금액 문자열
- */
-export function formatKoreanCurrency(amount: number): string {
-  if (amount === 0) return "0원";
-  
-  const units = ["", "만", "억", "조"];
-  let result = "";
-  let unitIndex = 0;
-  
-  // 4자리씩 끊어서 처리
-  while (amount > 0) {
-    const chunk = amount % 10000;
-    if (chunk > 0) {
-      result = `${chunk.toLocaleString()}${units[unitIndex]} ${result}`;
-    }
-    amount = Math.floor(amount / 10000);
-    unitIndex++;
-  }
-  
-  return result.trim() + "원";
-}
-
-/**
  * 만 원 단위 입력값을 원 단위로 변환
  * @param value 만 원 단위 값
  * @returns 원 단위 값
@@ -229,10 +204,64 @@ export function convertManToWon(value: number): number {
 }
 
 /**
- * 원 단위 값을 만 원 단위로 변환
- * @param value 원 단위 값
- * @returns 만 원 단위 값
+ * 6.27 규제 강화 방안 계산 함수
+ * @param annualIncome 연소득 (원)
+ * @param assets 보유자산 (원)
+ * @param isCapitalArea 수도권 여부 (기본값: true)
+ * @returns 최대 구매 가능 금액, 대출 한도, 월 상환액 등
  */
-export function convertWonToMan(value: number): number {
-  return value / 10000;
-} 
+export function calculateMaxPurchaseWithNewRegulation627(
+  annualIncome: number,
+  assets: number,
+  isCapitalArea: boolean = true
+) {
+  const maxLoanAmount = 600000000; // 6억원
+  const loanYears = 30; // 30년
+  const baseRate = 3.5; // 기본 금리 3.5%
+  const stressRate = isCapitalArea ? 1.5 : 0.75; // 수도권 1.5%, 지방 0.75%
+  const effectiveRate = baseRate + stressRate; // 유효 금리 (수도권 5.0%, 지방 4.25%)
+  const dsrRatio = 40; // 40% 고정
+  
+  // 월 DSR 한도 = (연소득 × DSR비율) ÷ 12
+  const monthlyDSR = (annualIncome * dsrRatio / 100) / 12;
+  
+  // DSR 기준 주택담보대출 한도 계산 (30년, 유효 금리 기준)
+  const dsrBasedLimit = calculateLoanLimit(monthlyDSR, effectiveRate, loanYears);
+  
+  // 규제 한도(6억원)와 DSR 한도 중 작은 값 선택
+  const mortgageLimit = Math.min(dsrBasedLimit, maxLoanAmount);
+  
+  // 월 상환액 계산 (실제 선택된 대출 금액 기준)
+  const monthlyRepayment = calculateMonthlyPayment(mortgageLimit, effectiveRate, loanYears);
+  
+  // 신용대출은 고려하지 않음
+  const creditLoan = 0;
+  
+  // 최대 구매 가능 금액 = 보유자산 + 주택담보대출 한도
+  const maxPropertyPrice = assets + mortgageLimit;
+  
+  console.log('6.27 규제안 계산 정보:', {
+    annualIncome,
+    dsrRatio,
+    isCapitalArea,
+    baseRate: `${baseRate}%`,
+    stressRate: `${stressRate}%`,
+    effectiveRate: `${effectiveRate}%`,
+    monthlyDSR,
+    dsrBasedLimit,
+    maxLoanAmount,
+    mortgageLimit,
+    monthlyRepayment,
+    assets,
+    maxPropertyPrice
+  });
+  
+  return {
+    maxPropertyPrice,
+    mortgageLimit,
+    creditLoan,
+    stressRate,
+    effectiveRate,
+    monthlyRepayment
+  };
+}

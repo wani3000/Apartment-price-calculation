@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import { calculateMaxPurchaseForLiving, calculateMaxPurchaseForLivingWithStressDSR, calculateMaxPurchaseForInvestment, convertManToWon, calculateMonthlyPayment, calculateMonthlyInterestOnly } from '@/utils/calculator';
+import { calculateMaxPurchaseForLiving, calculateMaxPurchaseForLivingWithStressDSR, calculateMaxPurchaseForInvestment, calculateMaxPurchaseWithNewRegulation627, convertManToWon, calculateMonthlyPayment, calculateMonthlyInterestOnly } from '@/utils/calculator';
 import Header from '@/components/Header';
 import html2canvas from 'html2canvas';
 import { shareContent, getResultShareData } from '@/utils/share';
@@ -96,15 +96,106 @@ export default function FinalResultPage() {
   
   const [imageError, setImageError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
+  const [isNewRegulation627, setIsNewRegulation627] = useState(false);
+
   // 카드 요소에 대한 ref 추가
   const cardRef = useRef<HTMLDivElement>(null);
 
   // 계산 수행 공통 함수 (공유 링크용, 이미 원 단위로 받음)
-  const performCalculation = (data: { income: number; assets: number; spouseIncome: number; ltv: number; dsr: number }) => {
+  const performCalculation = (data: { income: number; assets: number; spouseIncome: number; ltv: number; dsr: number }, isNew627?: boolean) => {
     const { income, assets, spouseIncome, ltv, dsr } = data;
     const totalIncome = income + spouseIncome;
     
+    // 6.27 규제 확인
+    if (isNew627) {
+      // 6.27 규제 적용 계산 (실제 금리, 수도권, 지방 3가지 모두 계산)
+      // 실제 금리도 6억원 제한 적용 (DSR 기준으로 계산하되 6억원 제한)
+      const actualRateResultBase = calculateMaxPurchaseForLiving(
+        totalIncome,
+        assets,
+        40, // DSR 40%
+        3.5, // 실제 금리 3.5%
+        30, // 30년 만기
+        70 // LTV 70%
+      );
+      
+      // 6억원 제한 적용
+      const maxLoanAmount = 600000000; // 6억원
+      const actualRateResult = {
+        maxPropertyPrice: assets + Math.min(actualRateResultBase.mortgageLimit, maxLoanAmount),
+        mortgageLimit: Math.min(actualRateResultBase.mortgageLimit, maxLoanAmount),
+        creditLoan: 0
+      };
+      
+      // 수도권 기준 (6.27 규제 적용)
+      const capitalAreaResult = calculateMaxPurchaseWithNewRegulation627(
+        totalIncome,
+        assets,
+        true // 수도권 기준
+      );
+      
+      // 지방 기준 (6.27 규제 적용)
+      const localAreaResult = calculateMaxPurchaseWithNewRegulation627(
+        totalIncome,
+        assets,
+        false // 지방 기준
+      );
+      
+      // 갭투자는 6.27 규제에서 동일하게 처리
+      const investmentResult = calculateMaxPurchaseForInvestment(
+        totalIncome,
+        assets,
+        60 // 전세가율 60%
+      );
+      
+      const investmentMonthlyRepayment = calculateMonthlyInterestOnly(investmentResult.creditLoan, 3.5);
+      
+      // 계산 결과 업데이트 (만원 단위로 변환)
+      const newResult = {
+        income: Math.round(income / 10000),
+        assets: Math.round(assets / 10000),
+        spouseIncome: Math.round(spouseIncome / 10000),
+        living: {
+          maxPropertyPrice: Math.round(capitalAreaResult.maxPropertyPrice / 10000), // 수도권 기준을 기본으로 사용
+          mortgageLimit: Math.round(capitalAreaResult.mortgageLimit / 10000),
+          creditLoan: 0, // 6.27 규제에서 신용대출은 없음
+          monthlyRepayment: Math.round(capitalAreaResult.monthlyRepayment / 10000)
+        },
+        investment: {
+          maxPropertyPrice: Math.round(investmentResult.maxPropertyPrice / 10000),
+          creditLoan: Math.round(investmentResult.creditLoan / 10000),
+          jeonseDeposit: Math.round(investmentResult.jeonseDeposit / 10000),
+          monthlyRepayment: Math.round(investmentMonthlyRepayment / 10000)
+        }
+      };
+      
+      // 6.27 규제안용 3가지 금리 결과 저장
+      const actualMonthlyRepayment = calculateMonthlyPayment(actualRateResult.mortgageLimit, 3.5, 30);
+      
+      setStressDSRResult({
+        actual: { // 실제 금리
+          mortgageLimit: Math.round(actualRateResult.mortgageLimit / 10000),
+          maxPropertyPrice: Math.round(actualRateResult.maxPropertyPrice / 10000),
+          monthlyRepayment: Math.round(actualMonthlyRepayment / 10000)
+        },
+        capital: { // 수도권
+          mortgageLimit: Math.round(capitalAreaResult.mortgageLimit / 10000),
+          maxPropertyPrice: Math.round(capitalAreaResult.maxPropertyPrice / 10000),
+          monthlyRepayment: Math.round(capitalAreaResult.monthlyRepayment / 10000)
+        },
+        local: { // 지방
+          mortgageLimit: Math.round(localAreaResult.mortgageLimit / 10000),
+          maxPropertyPrice: Math.round(localAreaResult.maxPropertyPrice / 10000),
+          monthlyRepayment: Math.round(localAreaResult.monthlyRepayment / 10000)
+        }
+      });
+      
+      setCalculationResult(newResult);
+      setIsCalculated(true);
+      return;
+    }
+    
+    // 기존 규제 계산
     // 실거주 시나리오 계산
     const livingResult = calculateMaxPurchaseForLiving(
       totalIncome, 
@@ -173,8 +264,16 @@ export default function FinalResultPage() {
     const stressCapitalMonthlyRepayment = calculateMonthlyPayment(stressCapitalResult.mortgageLimit, stressCapitalResult.effectiveRate, 40);
     const stressLocalMonthlyRepayment = calculateMonthlyPayment(stressLocalResult.mortgageLimit, stressLocalResult.effectiveRate, 40);
 
+    // 실제 금리 계산 (스트레스 DSR 비교용)
+    const actualRateMonthlyRepayment = calculateMonthlyPayment(newResult.living.mortgageLimit, 3.5, 40);
+
     // 스트레스 DSR 결과 저장 (만원 단위로 변환)
     setStressDSRResult({
+      actual: {
+        mortgageLimit: Math.round(newResult.living.mortgageLimit / 10000),
+        maxPropertyPrice: Math.round(newResult.living.maxPropertyPrice / 10000),
+        monthlyRepayment: Math.round(actualRateMonthlyRepayment / 10000)
+      },
       capital: {
         mortgageLimit: Math.round(stressCapitalResult.mortgageLimit / 10000),
         maxPropertyPrice: Math.round(stressCapitalResult.maxPropertyPrice / 10000),
@@ -214,6 +313,7 @@ export default function FinalResultPage() {
   
   // 스트레스 DSR 계산 결과 상태 추가
   const [stressDSRResult, setStressDSRResult] = useState({
+    actual: { mortgageLimit: 0, maxPropertyPrice: 0, monthlyRepayment: 0 }, // 실제 금리
     capital: { mortgageLimit: 0, maxPropertyPrice: 0, monthlyRepayment: 0 }, // 수도권
     local: { mortgageLimit: 0, maxPropertyPrice: 0, monthlyRepayment: 0 }    // 지방
   });
@@ -242,10 +342,11 @@ export default function FinalResultPage() {
       setIsCalculated(false); // 계산 중 상태로 변경
       // 약간의 지연을 두어 UI 업데이트 보장
       setTimeout(() => {
-        performCalculation(sharedCalculationData);
+        const isNew627 = searchParams.get('regulation') === 'new627';
+        performCalculation(sharedCalculationData, isNew627);
       }, 50);
     }
-  }, [activeTab, sharedCalculationData, isSharedLink]);
+  }, [activeTab, sharedCalculationData, isSharedLink, searchParams]);
 
   useEffect(() => {
     // 공유된 링크인 경우 URL 파라미터에서 데이터 추출 및 계산
@@ -279,8 +380,9 @@ export default function FinalResultPage() {
         setLoanOptions({ ltv, dsr });
         
         // 계산 수행 및 결과 저장
-        performCalculation(calculationData);
-             }
+        const isNew627 = searchParams.get('regulation') === 'new627';
+        performCalculation(calculationData, isNew627);
+      }
       return; // 공유 링크인 경우 localStorage 로직을 건너뜁니다.
     }
 
@@ -289,6 +391,11 @@ export default function FinalResultPage() {
     if (savedUsername) {
       setUsername(savedUsername);
     }
+
+    // 규제 유형 확인 - URL 파라미터가 있을 때만 6.27 규제 적용
+    const regulationParam = searchParams.get('regulation');
+    const isNew627 = regulationParam === 'new627';
+    setIsNewRegulation627(isNew627);
 
     // LTV, DSR 옵션 가져오기
     const loanOptionsStr = localStorage.getItem('loanOptions');
@@ -326,101 +433,9 @@ export default function FinalResultPage() {
       const income = convertManToWon(calculatorData.income);
       const assets = convertManToWon(calculatorData.assets);
       const spouseIncome = convertManToWon(calculatorData.spouseIncome || 0);
-      const totalIncome = income + spouseIncome;
       
-      // DSR 디버깅 로그 추가
-      console.log('DSR 디버깅 - 계산 시작:', {
-        income: calculatorData.income,
-        assets: calculatorData.assets,
-        spouseIncome: calculatorData.spouseIncome,
-        totalIncome: totalIncome,
-        dsrFromLocalStorage: currentLoanOptions.dsr,
-        ltvFromLocalStorage: currentLoanOptions.ltv,
-        dsrFromState: loanOptions.dsr,
-        ltvFromState: loanOptions.ltv
-      });
-      
-      // 실거주 시나리오 계산 (localStorage에서 직접 읽은 값 사용)
-      const livingResult = calculateMaxPurchaseForLiving(
-        totalIncome, 
-        assets, 
-        currentLoanOptions.dsr, 
-        3.5, // 금리 3.5%
-        40,  // 대출 기간 40년
-        currentLoanOptions.ltv
-      );
-      
-      // 스트레스 DSR 3단계 계산 (수도권)
-      const stressCapitalResult = calculateMaxPurchaseForLivingWithStressDSR(
-        totalIncome,
-        assets,
-        currentLoanOptions.dsr,
-        true, // 수도권
-        3.5,
-        40,
-        currentLoanOptions.ltv
-      );
-      
-      // 스트레스 DSR 3단계 계산 (지방)
-      const stressLocalResult = calculateMaxPurchaseForLivingWithStressDSR(
-        totalIncome,
-        assets,
-        currentLoanOptions.dsr,
-        false, // 지방
-        3.5,
-        40,
-        currentLoanOptions.ltv
-      );
-      
-      // 갭투자 시나리오 계산
-      const investmentResult = calculateMaxPurchaseForInvestment(
-        totalIncome,
-        assets,
-        60 // 전세가율 60%
-      );
-
-      // 월 상환액 계산
-      const livingMonthlyRepayment = calculateMonthlyPayment(livingResult.mortgageLimit, 3.5, 40);
-      const investmentMonthlyRepayment = calculateMonthlyInterestOnly(investmentResult.creditLoan, 3.5);
-
-      // 계산 결과를 만원 단위로 변환해서 저장
-      setCalculationResult({
-        income: calculatorData.income,
-        assets: calculatorData.assets,
-        spouseIncome: calculatorData.spouseIncome || 0,
-        living: {
-          maxPropertyPrice: Math.round(livingResult.maxPropertyPrice / 10000), // 만원 단위로 변환
-          mortgageLimit: Math.round(livingResult.mortgageLimit / 10000),
-          creditLoan: Math.round(livingResult.creditLoan / 10000),
-          monthlyRepayment: Math.round(livingMonthlyRepayment / 10000) // 만원 단위로 변환
-        },
-        investment: {
-          maxPropertyPrice: Math.round(investmentResult.maxPropertyPrice / 10000),
-          creditLoan: Math.round(investmentResult.creditLoan / 10000),
-          jeonseDeposit: Math.round(investmentResult.jeonseDeposit / 10000),
-          monthlyRepayment: Math.round(investmentMonthlyRepayment / 10000) // 만원 단위로 변환
-        }
-      });
-      
-      // 스트레스 DSR 월 상환액 계산
-      const stressCapitalMonthlyRepayment2 = calculateMonthlyPayment(stressCapitalResult.mortgageLimit, stressCapitalResult.effectiveRate, 40);
-      const stressLocalMonthlyRepayment2 = calculateMonthlyPayment(stressLocalResult.mortgageLimit, stressLocalResult.effectiveRate, 40);
-
-      // 스트레스 DSR 결과 저장 (만원 단위로 변환)
-      setStressDSRResult({
-        capital: {
-          mortgageLimit: Math.round(stressCapitalResult.mortgageLimit / 10000),
-          maxPropertyPrice: Math.round(stressCapitalResult.maxPropertyPrice / 10000),
-          monthlyRepayment: Math.round(stressCapitalMonthlyRepayment2 / 10000)
-        },
-        local: {
-          mortgageLimit: Math.round(stressLocalResult.mortgageLimit / 10000),
-          maxPropertyPrice: Math.round(stressLocalResult.maxPropertyPrice / 10000),
-          monthlyRepayment: Math.round(stressLocalMonthlyRepayment2 / 10000)
-        }
-      });
-      
-      setIsCalculated(true);
+      // 계산 수행 및 결과 저장
+      performCalculation({ income, assets, spouseIncome, ltv: currentLoanOptions.ltv, dsr: currentLoanOptions.dsr }, isNew627);
     }
   }, [isSharedLink, searchParams]);
 
@@ -601,7 +616,7 @@ export default function FinalResultPage() {
       const amount = formatToKorean(
         activeTab === 'gap' 
           ? calculationResult.investment.maxPropertyPrice
-          : calculationResult.living.maxPropertyPrice
+          : (isNewRegulation627 ? calculationResult.living.maxPropertyPrice : stressDSRResult.capital.maxPropertyPrice)
       );
       const type = activeTab === 'gap' ? '갭투자' : '실거주';
       
@@ -609,10 +624,8 @@ export default function FinalResultPage() {
       const currentUrl = new URL(window.location.origin + '/result/final');
       currentUrl.searchParams.set('shared', 'true');
       currentUrl.searchParams.set('username', encodeURIComponent(username));
-      currentUrl.searchParams.set('amount', encodeURIComponent(amount));
-      currentUrl.searchParams.set('type', type === '갭투자' ? 'gap' : 'live');
-      
-      // 계산에 필요한 원본 데이터도 URL에 포함 (만원 단위를 원 단위로 변환)
+      currentUrl.searchParams.set('amount', amount);
+      currentUrl.searchParams.set('type', activeTab);
       currentUrl.searchParams.set('income', (calculationResult.income * 10000).toString());
       currentUrl.searchParams.set('assets', (calculationResult.assets * 10000).toString());
       currentUrl.searchParams.set('spouseIncome', (calculationResult.spouseIncome * 10000).toString());
@@ -626,6 +639,7 @@ export default function FinalResultPage() {
       };
       
       await shareContent(shareData);
+      
     } catch (error) {
       console.error('공유 오류:', error);
     }
@@ -643,12 +657,21 @@ export default function FinalResultPage() {
     window.location.href = '/';
   };
 
+  // 뒤로가기 URL 동적 설정
+  const getBackUrl = () => {
+    const regulationParam = searchParams.get('regulation');
+    if (regulationParam === 'new627') {
+      return '/result/new-regulation';
+    }
+    return '/result';
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col px-5 pt-6 pb-12 relative">
-      {/* 헤더 - 공유받은 링크가 아닐 때만 표시 */}
+      {/* 헤더 - 공유받은 링크 가 아닐 때만 표시 */}
       {!isSharedLink && (
         <Header 
-          backUrl="/result" 
+          backUrl={getBackUrl()} 
           rightAction={{
             label: "소득·자산 수정",
             onClick: handleEditIncome,
@@ -656,7 +679,7 @@ export default function FinalResultPage() {
           }}
         />
       )}
-
+      
       {/* 컨텐츠 영역 - flex-grow를 사용해 공간 확보 */}
       <div className="flex-grow flex flex-col pb-32">
         {/* 타이틀 */}
@@ -737,9 +760,9 @@ export default function FinalResultPage() {
                 }}
               >
                 {isSharedLink && !isCalculated ? '계산 중...' : (
-                  activeTab === 'gap'
+                  activeTab === 'gap' 
                     ? formatToKorean(calculationResult.investment.maxPropertyPrice)
-                    : formatToKorean(stressDSRResult.capital.maxPropertyPrice)
+                    : formatToKorean(isNewRegulation627 ? calculationResult.living.maxPropertyPrice : stressDSRResult.capital.maxPropertyPrice)
                 )}
               </p>
               
@@ -758,7 +781,7 @@ export default function FinalResultPage() {
                 {activeTab === 'gap' ? '갭투자 시 최대' : '실거주 시 최대'}
               </p>
             </div>
-            
+
             {/* 이미지 */}
             <div 
               style={{
@@ -772,7 +795,7 @@ export default function FinalResultPage() {
               }}
             >
               {!imageError ? (
-                <img 
+                <img
                   className="w-full h-full object-contain"
                   src={`/images/${activeTab === 'gap' ? gapImageName : liveImageName}`}
                   alt="아파트 이미지"
@@ -790,231 +813,293 @@ export default function FinalResultPage() {
             </div>
           </div>
         </div>
-        
+
         {/* 자금계획 섹션 */}
         <div className="flex flex-col items-center">
-            
-            {/* 최대 금액 정보 */}
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF] mb-6 w-[302px]">
-              <h2 className="text-black text-[18px] font-bold leading-[26px] tracking-[-0.18px]">
-                {activeTab === 'gap' ? '갭투자 시' : '실거주 시'}
-              </h2>
-              <p className="text-black text-[22px] font-bold leading-7 tracking-[-0.22px]">
-                최대 {formatToKorean(
-                  activeTab === 'gap' 
-                    ? calculationResult.investment.maxPropertyPrice 
-                    : stressDSRResult.capital.maxPropertyPrice
-                )}
-              </p>
-              <div className="text-[#495057] text-sm font-normal leading-5 tracking-[-0.28px]">
-                {activeTab === 'gap' 
-                  ? '세입자의 전세금을 활용해 투자해요' 
-                  : (
-                    <>
-                      • 주택 가격의 최대 70% 대출 가능<br/>
-                      • 스트레스 DSR 3단계 적용 (수도권) + 보유자산
-                    </>
-                  )}
-              </div>
+          
+          {/* 최대 금액 정보 */}
+          <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF] mb-6 w-[302px]">
+            <h2 className="text-black text-[18px] font-bold leading-[26px] tracking-[-0.18px]">
+              {activeTab === 'gap' ? '갭투자 시' : '실거주 시'}
+            </h2>
+            <p className="text-black text-[22px] font-bold leading-7 tracking-[-0.22px]">
+              최대 {formatToKorean(
+                activeTab === 'gap' 
+                  ? calculationResult.investment.maxPropertyPrice 
+                  : (isNewRegulation627 ? calculationResult.living.maxPropertyPrice : stressDSRResult.capital.maxPropertyPrice)
+              )}
+            </p>
+            <div className="text-[#495057] text-sm font-normal leading-5 tracking-[-0.28px]">
+              {activeTab === 'gap' 
+                ? '세입자의 전세금을 활용해 투자해요' 
+                : (isNewRegulation627 
+                    ? '6.27 규제안 적용: 최대 6억원 대출 한도, 30년 만기, 지역별 스트레스 금리' 
+                    : (
+                        <>
+                          • 주택 가격의 최대 70% 대출 가능<br/>
+                          • 스트레스 DSR 3단계 적용 (수도권) + 보유자산
+                        </>
+                      )
+                  )
+              }
             </div>
+          </div>
 
-            {activeTab === 'gap' ? (
-              <>
-                {/* 신용대출 섹션 - 갭투자 시 */}
-                <div className="mb-6 w-[302px]">
-                  <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-                    신용대출
-                  </h3>
-                  <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
-                    <div className="flex justify-between items-center w-full">
-                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                        연소득의 120%
-                      </p>
-                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        {formatToKorean(calculationResult.investment.creditLoan)}
-                      </p>
-                    </div>
-                    <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      금리 3.5% 기준이에요
+          {activeTab === 'gap' ? (
+            <>
+              {/* 신용대출 섹션 - 갭투자 시 */}
+              <div className="mb-6 w-[302px]">
+                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                  신용대출
+                </h3>
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
+                  <div className="flex justify-between items-center w-full">
+                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                      연소득의 120%
+                    </p>
+                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                      {formatToKorean(calculationResult.investment.creditLoan)}
                     </p>
                   </div>
+                  <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                    금리 3.5% 기준이에요
+                  </p>
                 </div>
+              </div>
 
-                {/* 월 상환액 섹션 - 갭투자 시 */}
-                <div className="mb-6 w-[302px]">
-                  <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-                    월 상환액 (이자)
-                  </h3>
-                  <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
-                    <div className="flex justify-between items-center w-full">
-                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                        1년 만기
-                      </p>
-                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        {formatToKorean(calculationResult.investment.monthlyRepayment)}
-                      </p>
-                    </div>
-                    <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      이자만 내며 매년 연장하는 만기일시상환 기준이에요
+              {/* 월 상환액 섹션 - 갭투자 시 */}
+              <div className="mb-6 w-[302px]">
+                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                  월 상환액 (이자)
+                </h3>
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
+                  <div className="flex justify-between items-center w-full">
+                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                      1년 만기
+                    </p>
+                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                      {formatToKorean(calculationResult.investment.monthlyRepayment)}
                     </p>
                   </div>
+                  <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                    이자만 내며 매년 연장하는 만기일시상환 기준이에요
+                  </p>
                 </div>
+              </div>
 
-                {/* 전세금 섹션 - 갭투자 시 */}
-                <div className="mb-6 w-[302px]">
-                  <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-                    전세금
-                  </h3>
-                  <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
-                    <div className="flex justify-between items-center w-full">
-                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                        전세가율 60%
-                      </p>
-                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        {formatToKorean(calculationResult.investment.jeonseDeposit)}
-                      </p>
-                    </div>
-                    <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      서울 아파트 평균 전세가율이에요
+              {/* 전세금 섹션 - 갭투자 시 */}
+              <div className="mb-6 w-[302px]">
+                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                  전세금
+                </h3>
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
+                  <div className="flex justify-between items-center w-full">
+                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                      전세가율 60%
+                    </p>
+                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                      {formatToKorean(calculationResult.investment.jeonseDeposit)}
                     </p>
                   </div>
+                  <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                    서울 아파트 평균 전세가율이에요
+                  </p>
                 </div>
-              </>
-            ) : (
-              <>
-                {/* DSR 섹션 - 실거주 시 */}
-                <div className="mb-6 w-[302px]">
-                  <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-                    DSR (총부채원리금상환비율)
-                  </h3>
-                  <div className="flex flex-col p-4 gap-3 rounded-xl bg-[#F6F7FF]">
-                    {/* 스트레스 DSR 3단계 적용 메인 내용 */}
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xs font-bold">!</span>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* DSR 섹션 - 실거주 시 */}
+              <div className="mb-6 w-[302px]">
+                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                  DSR (총부채원리금상환비율)
+                </h3>
+                <div className="flex flex-col p-4 gap-3 rounded-xl bg-[#F6F7FF]">
+                  {isNewRegulation627 ? (
+                    /* 6.27 규제 강화 방안 적용 시 */
+                    <>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-bold">!</span>
+                        </div>
+                        <p className="text-blue-700 text-base font-bold leading-6">
+                          6.27 가계부채 관리 강화 방안 적용
+                        </p>
                       </div>
-                      <p className="text-blue-700 text-base font-bold leading-6">
-                        스트레스 DSR 3단계 적용 시
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 실제 금리 (3.5%)</span>
-                        <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(calculationResult.living.mortgageLimit)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 수도권 (3.5% + 1.5%)</span>
-                        <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.capital.mortgageLimit)}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 지방 (3.5% + 0.75%)</span>
-                        <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.local.mortgageLimit)}</span>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 실제 금리 (3.5%)</span>
+                          <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.actual.maxPropertyPrice)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 수도권 (3.5% + 1.5%)</span>
+                          <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.capital.maxPropertyPrice)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 지방 (3.5% + 0.75%)</span>
+                          <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.local.maxPropertyPrice)}</span>
+                        </div>
                       </div>
                       
                       <div className="pt-2 border-t border-[#E9ECEF]">
                         <div className="flex justify-between items-center">
                           <span className="text-[#495057] text-[14px] font-normal">감소율:</span>
                           <span className="text-red-600 text-[14px] font-medium">
-                            수도권 {calculationResult.living.mortgageLimit > 0 ? Math.round(((calculationResult.living.mortgageLimit - stressDSRResult.capital.mortgageLimit) / calculationResult.living.mortgageLimit) * 100) : 0}%, 
-                            지방 {calculationResult.living.mortgageLimit > 0 ? Math.round(((calculationResult.living.mortgageLimit - stressDSRResult.local.mortgageLimit) / calculationResult.living.mortgageLimit) * 100) : 0}%
+                            수도권 {stressDSRResult.actual.maxPropertyPrice > 0 ? Math.round(((stressDSRResult.actual.maxPropertyPrice - stressDSRResult.capital.maxPropertyPrice) / stressDSRResult.actual.maxPropertyPrice) * 100) : 0}%, 
+                            지방 {stressDSRResult.actual.maxPropertyPrice > 0 ? Math.round(((stressDSRResult.actual.maxPropertyPrice - stressDSRResult.local.maxPropertyPrice) / stressDSRResult.actual.maxPropertyPrice) * 100) : 0}%
                           </span>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="text-blue-600 text-[13px] font-normal leading-[18px] tracking-[-0.26px] mt-2">
-                      <p>2025.7.1일부터 시행되며, 대출 한도 산정 시 실제 대출 금리에 스트레스 금리를 더하여 계산해요.</p>
-                    </div>
-                  </div>
-                  
-                  {/* DSR 선택에 따른 금융권 구분 표시 */}
-                  <div className="mt-3">
-                    <div className="bg-[#F6F7FF] rounded-xl p-3 space-y-2">
-                      <div className="flex items-start gap-2">
-                        <div className="flex-shrink-0 w-4 h-4 bg-[#7577FF] rounded-full flex items-center justify-center mt-0.5">
-                          <span className="text-white text-xs font-bold">ℹ</span>
+                      
+                      <div className="text-blue-600 text-[13px] font-normal leading-[18px] tracking-[-0.26px] mt-2">
+                        <p>2025년 6월 28일부터 시행되는 강화된 가계부채 관리 규제가 적용됩니다.</p>
+                        <p>개인별 대출 한도는 6억 원으로 제한되며, 대출 만기는 30년으로 단축됩니다.</p>
+                      </div>
+                    </>
+                  ) : (
+                    /* 기존 스트레스 DSR 3단계 적용 시 */
+                    <>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-bold">!</span>
                         </div>
-                        <p className="text-[#495057] text-[13px] font-medium leading-[18px] tracking-[-0.26px]">
-                          {loanOptions.dsr === 50 
-                            ? '2금융권 대출 (연소득의 50% 적용)을 가정한 결과에요.' 
-                            : '1금융권 대출 (연소득의 40% 적용)을 가정한 결과에요.'}
+                        <p className="text-blue-700 text-base font-bold leading-6">
+                          스트레스 DSR 3단계 적용 시
                         </p>
                       </div>
                       
-                      <div className="flex items-start gap-2">
-                        <div className="flex-shrink-0 w-4 h-4 bg-[#868E96] rounded-full flex items-center justify-center mt-0.5">
-                          <span className="text-white text-xs font-bold">%</span>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 실제 금리 (3.5%)</span>
+                          <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(calculationResult.living.mortgageLimit)}</span>
                         </div>
-                        <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                          실제 금리는 평균 변동금리인 3.5%로 설정하였으며, 개인의 신용도에 따라 달라질 수 있어요.
-                        </p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 수도권 (3.5% + 1.5%)</span>
+                          <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.capital.mortgageLimit)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 지방 (3.5% + 0.75%)</span>
+                          <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.local.mortgageLimit)}</span>
+                        </div>
+                        
+                        <div className="pt-2 border-t border-[#E9ECEF]">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#495057] text-[14px] font-normal">감소율:</span>
+                            <span className="text-red-600 text-[14px] font-medium">
+                              수도권 {calculationResult.living.mortgageLimit > 0 ? Math.round(((calculationResult.living.mortgageLimit - stressDSRResult.capital.mortgageLimit) / calculationResult.living.mortgageLimit) * 100) : 0}%, 
+                              지방 {calculationResult.living.mortgageLimit > 0 ? Math.round(((calculationResult.living.mortgageLimit - stressDSRResult.local.mortgageLimit) / calculationResult.living.mortgageLimit) * 100) : 0}%
+                            </span>
+                          </div>
+                        </div>
                       </div>
+                      
+                      <div className="text-blue-600 text-[13px] font-normal leading-[18px] tracking-[-0.26px] mt-2">
+                        <p>2025.7.1일부터 시행되며, 대출 한도 산정 시 실제 대출 금리에 스트레스 금리를 더하여 계산해요.</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                {/* DSR 선택에 따른 금융권 구분 표시 */}
+                <div className="mt-3">
+                  <div className="bg-[#F6F7FF] rounded-xl p-3 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <div className="flex-shrink-0 w-4 h-4 bg-[#7577FF] rounded-full flex items-center justify-center mt-0.5">
+                        <span className="text-white text-xs font-bold">ℹ</span>
+                      </div>
+                      <p className="text-[#495057] text-[13px] font-medium leading-[18px] tracking-[-0.26px]">
+                        {isNewRegulation627 
+                          ? '6.27 규제안에 따라 모든 금융업권에 DSR 40% 규제가 통일 적용됩니다.' 
+                          : (loanOptions.dsr === 50 
+                              ? '2금융권 대출 (연소득의 50% 적용)을 가정한 결과에요.' 
+                              : '1금융권 대출 (연소득의 40% 적용)을 가정한 결과에요.')
+                        }
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <div className="flex-shrink-0 w-4 h-4 bg-[#868E96] rounded-full flex items-center justify-center mt-0.5">
+                        <span className="text-white text-xs font-bold">%</span>
+                      </div>
+                      <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                        {isNewRegulation627 
+                          ? '실제 금리는 평균 변동금리인 3.5%로 설정하였으며, 개인의 신용도에 따라 달라질 수 있고 여기에 수도권 (3.5% + 1.5% 스트레스변동금리)를 더한 금리가 적용되어요.' 
+                          : '실제 금리는 평균 변동금리인 3.5%로 설정하였으며, 개인의 신용도에 따라 달라질 수 있어요.'
+                        }
+                      </p>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* 주택담보대출 섹션 - 실거주 시 */}
-                <div className="mb-6 w-[302px]">
-                  <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-                    주택담보대출
-                  </h3>
-                  <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
-                    <div className="flex justify-between items-center w-full">
-                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                        40년 만기
-                      </p>
-                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        {formatToKorean(stressDSRResult.capital.mortgageLimit)}
-                      </p>
-                    </div>
-                    <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      스트레스 DSR 수도권 기준 (5.0% 금리)
+              {/* 주택담보대출 섹션 - 실거주 시 */}
+              <div className="mb-6 w-[302px]">
+                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                  주택담보대출
+                </h3>
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
+                  <div className="flex justify-between items-center w-full">
+                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                      {isNewRegulation627 ? '30년 만기' : '40년 만기'}
+                    </p>
+                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                      {isNewRegulation627 ? formatToKorean(calculationResult.living.monthlyRepayment) : formatToKorean(stressDSRResult.capital.monthlyRepayment)}
                     </p>
                   </div>
+                  <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                    {isNewRegulation627 
+                      ? '6.27 규제안 기준 (5.0% 스트레스 금리, 수도권)' 
+                      : '스트레스 DSR 수도권 기준 (5.0% 금리)'
+                    }
+                  </p>
                 </div>
-
-                {/* 월 상환액 섹션 - 실거주 시 */}
-                <div className="mb-6 w-[302px]">
-                  <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-                    월 상환액 (원금+이자)
-                  </h3>
-                  <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
-                    <div className="flex justify-between items-center w-full">
-                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                        40년 만기
-                      </p>
-                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        {formatToKorean(stressDSRResult.capital.monthlyRepayment)}
-                      </p>
-                    </div>
-                    <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                      스트레스 DSR 수도권 기준 (5.0% 금리)
+              </div>
+              
+              {/* 월 상환액 섹션 - 실거주 시 */}
+              <div className="mb-6 w-[302px]">
+                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                  월 상환액 (원금+이자)
+                </h3>
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
+                  <div className="flex justify-between items-center w-full">
+                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                      {isNewRegulation627 ? '30년 만기' : '40년 만기'}
+                    </p>
+                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                      {isNewRegulation627 ? formatToKorean(calculationResult.living.monthlyRepayment) : formatToKorean(stressDSRResult.capital.monthlyRepayment)}
                     </p>
                   </div>
+                  <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                    {isNewRegulation627 
+                      ? '6.27 규제안 기준 (5.0% 스트레스 금리, 수도권)' 
+                      : '스트레스 DSR 수도권 기준 (5.0% 금리)'
+                    }
+                  </p>
                 </div>
-              </>
-            )}
+              </div>
+            </>
+          )}
 
-            {/* 보유자산 섹션 - 공통 */}
-            <div className="mb-40 w-[302px]">
-              <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-                보유자산
-              </h3>
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
-                <div className="flex justify-between items-center w-full">
-                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                    보유자산
-                  </p>
-                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                    {formatToKorean(calculationResult.assets)}
-                  </p>
-                </div>
+          {/* 보유자산 섹션 - 공통 */}
+          <div className="mb-40 w-[302px]">
+            <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+              보유자산
+            </h3>
+            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
+              <div className="flex justify-between items-center w-full">
+                <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                  보유자산
+                </p>
+                <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                  {formatToKorean(calculationResult.assets)}
+                </p>
               </div>
             </div>
           </div>
 
-        {/* 자금계획 버튼 제거 (내용을 직접 표시하므로) */}
+          {/* 자금계획 버튼 제거 (내용을 직접 표시하므로) */}
+        </div>
       </div>
 
       {/* 하단 버튼 영역 - 하단 고정 및 그라데이션 배경 적용 */}
@@ -1027,7 +1112,7 @@ export default function FinalResultPage() {
         >
           {isSharedLink ? (
             // 공유받은 링크일 때: 홈으로 이동 버튼만 표시
-            <button 
+            <button
               className="w-full h-14 justify-center items-center gap-2.5 flex bg-[#7577FF] text-white rounded-[300px] font-semibold"
               onClick={handleGoHome}
             >
@@ -1055,4 +1140,4 @@ export default function FinalResultPage() {
       </div>
     </div>
   );
-} 
+}

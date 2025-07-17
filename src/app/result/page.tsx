@@ -60,7 +60,7 @@ export default function ResultPage() {
       {/* 메인 컨텐츠 영역 */}
       <div className="flex-1 flex flex-col px-5 pt-6 pb-4">
       {/* 헤더 컴포넌트 사용 */}
-      <Header backUrl="/calculator" />
+      <Header backUrl="/regulation" />
 
       {/* 타이틀 */}
       <h1 className="text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px] mb-6">
