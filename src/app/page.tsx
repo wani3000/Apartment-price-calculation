@@ -67,6 +67,38 @@ export default function Home() {
 
       {/* 콘텐츠 섹션 */}
       <div className="w-full max-w-md px-5 my-6 mb-40">
+        {/* 6.27 가계부채 관리 강화 방안 */}
+        <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-6 mb-8 border border-red-200">
+          <div className="flex items-center mb-3">
+            <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+            <h2 className="text-red-700 text-lg font-bold">가계부채 관리 강화 방안</h2>
+          </div>
+          <div className="bg-white rounded-lg p-4 mb-4 border border-red-100">
+            <p className="text-red-600 text-sm font-semibold mb-2">2025년 6월 28일부터 시행</p>
+            <p className="text-grey-80 text-sm leading-relaxed">
+              포괄적 부채관리 강화 방안으로, 모든 금융업권에 DSR 40% 규제가 동일하게 적용됩니다.
+            </p>
+          </div>
+          <div className="space-y-3 text-sm">
+            <div className="bg-white rounded-lg p-3 border border-orange-100">
+              <p className="text-orange-700 font-semibold mb-1">📊 대출 한도 제한</p>
+              <p className="text-grey-80 text-xs">개인별 대출 한도는 6억 원으로 제한되며, 대출 만기는 30년으로 단축됩니다.</p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-orange-100">
+              <p className="text-orange-700 font-semibold mb-1">💰 적용 금리</p>
+              <p className="text-grey-80 text-xs">
+                실제 금리는 평균 변동금리인 3.5%로 설정하였으며, 개인의 신용도에 따라 달라질 수 있습니다.
+              </p>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-orange-100">
+              <p className="text-orange-700 font-semibold mb-1">📍 지역별 스트레스 금리</p>
+              <p className="text-grey-80 text-xs">
+                수도권 (3.5% + 1.5% 스트레스변동금리)를 더한 금리를 적용하여 더욱 보수적인 대출 한도가 산정됩니다.
+              </p>
+            </div>
+          </div>
+        </div>
+        
         <div className="bg-gray-50 rounded-xl p-6 mb-8">
           <h2 className="text-grey-100 text-lg font-bold mb-3">왜 아파트 가격 계산이 중요할까요?</h2>
           <div className="space-y-4 text-grey-80 text-sm leading-relaxed">
