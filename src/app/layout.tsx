@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     locale: 'ko_KR',
     images: [
       {
-        url: '/og-image.png',
+        url: '/images/img_og.png',
         width: 1200,
         height: 630,
         alt: '아파트 가격 계산기 - 내 연봉으로 살 수 있는 아파트 가격을 계산해보세요',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '내 연봉으로 살 수 있는 아파트 가격은 얼마일까?',
     description: '내 연봉으로 살 수 있는 아파트 가격을 계산해 보세요!',
-    images: ['/og-image.png'],
+    images: ['/images/img_og.png'],
   },
 };
 
