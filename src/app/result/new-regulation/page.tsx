@@ -100,9 +100,9 @@ export default function NewRegulationResultPage() {
   };
 
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* 메인 컨텐츠 영역 */}
-      <div className="flex-1 flex flex-col px-5 pt-6 pb-4">
+      <div className="flex-1 px-5 pt-6" style={{ paddingBottom: '120px' }}>
         {/* 헤더 컴포넌트 사용 */}
         <Header backUrl="/regulation" />
 

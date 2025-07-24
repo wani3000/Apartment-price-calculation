@@ -90,7 +90,7 @@ export default function RegulationPage() {
                 6.27 규제안 적용하기
               </span>
               {selectedOption === 'new' && (
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-full flex items-center justify-center flex-shrink-0" style={{ marginTop: '6px' }}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path 
                       d="M7.2 8.4L9.6 10.8L16.8 3.6" 
@@ -126,7 +126,7 @@ export default function RegulationPage() {
                 기존 LTV · DSR 적용하기
               </span>
               {selectedOption === 'existing' && (
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                <div className="w-6 h-full flex items-center justify-center flex-shrink-0" style={{ marginTop: '4px' }}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path 
                       d="M7.2 8.4L9.6 10.8L16.8 3.6" 

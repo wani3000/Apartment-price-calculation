@@ -65,6 +65,15 @@ export default function Home() {
         </div>
       </div>
 
+      {/* 수평형 광고 삽입 */}
+      <ins className="adsbygoogle"
+           style={{ display: 'block' }}
+           data-ad-client="ca-pub-6858835884991650"
+           data-ad-slot="1784608897"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script dangerouslySetInnerHTML={{ __html: "(adsbygoogle = window.adsbygoogle || []).push({});" }} />
+
       {/* 콘텐츠 섹션 */}
       <div className="w-full max-w-md px-5 my-6 mb-40">
         {/* 6.27 가계부채 관리 강화 방안 */}

@@ -667,23 +667,24 @@ export default function FinalResultPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col px-5 pt-6 pb-12 relative">
-      {/* 헤더 - 공유받은 링크 가 아닐 때만 표시 */}
-      {!isSharedLink && (
-        <Header 
-          backUrl={getBackUrl()} 
-          rightAction={{
-            label: "소득·자산 수정",
-            onClick: handleEditIncome,
-            className: "flex px-[10px] py-2 justify-center items-center gap-2.5 rounded-[4px] bg-[#F1F3F5]"
-          }}
-        />
-      )}
-      
-      {/* 컨텐츠 영역 - flex-grow를 사용해 공간 확보 */}
-      <div className="flex-grow flex flex-col pb-32">
+    <div className="min-h-screen bg-white flex flex-col">
+      <div className="flex-1 px-5 pt-6" style={{ paddingBottom: '40px' }}>
+        {/* 헤더 - 공유받은 링크가 아닐 때만 표시 */}
+        {!isSharedLink && (
+          <div style={{ marginTop: '-5px' }}>
+            <Header 
+              backUrl={getBackUrl()} 
+              rightAction={{
+                label: "소득·자산 수정",
+                onClick: handleEditIncome,
+                className: "flex px-[10px] py-2 justify-center items-center gap-2.5 rounded-[4px] bg-[#F1F3F5]"
+              }}
+            />
+          </div>
+        )}
+
         {/* 타이틀 */}
-        <h1 className="text-[24px] font-bold leading-8 tracking-[-0.24px] mb-8">
+        <h1 className="text-[24px] font-bold leading-8 tracking-[-0.24px] mb-6">
           <span className="text-[#7577FF]">{username}</span> 님의 소득과 자산,<br />
           투자와 실거주를 모두 고려했어요
         </h1>
@@ -1138,6 +1139,14 @@ export default function FinalResultPage() {
           )}
         </div>
       </div>
+      {/* 주택담보대출 섹션 바로 위에 광고 삽입 */}
+<ins className="adsbygoogle"
+     style={{ display: 'block' }}
+     data-ad-client="ca-pub-6858835884991650"
+     data-ad-slot="5915425592"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script dangerouslySetInnerHTML={{ __html: "(adsbygoogle = window.adsbygoogle || []).push({});" }} />
     </div>
   );
 }

@@ -98,10 +98,21 @@ export default function CalculatorPage() {
     router.push('/regulation');
   };
 
+  // 모바일 환경 감지 함수
+  const isMobile = () => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 768;
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* 메인 컨텐츠 영역 */}
-      <div className="flex-1 px-5 pt-6" style={{ paddingBottom: showSpouseIncome ? '200px' : '120px' }}>
+      <div
+        className="flex-1 px-5 pt-6"
+        style={{
+          paddingBottom: '80px',
+        }}
+      >
         {/* 헤더 사용 */}
         <Header backUrl="/nickname" />
 
@@ -182,7 +193,7 @@ export default function CalculatorPage() {
               </button>
             </div>
           ) : (
-            <div className="mt-4 mb-12">
+            <div className="mt-4 mb-12" style={{ paddingBottom: '120px' }}>
               {/* 배우자 연소득 입력 */}
               <div className="mb-6">
                 <label htmlFor="spouseIncome" className="block text-grey-100 text-base font-bold leading-6 tracking-[-0.16px] mb-2">
