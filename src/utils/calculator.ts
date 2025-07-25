@@ -173,7 +173,7 @@ export function calculateMaxPurchaseForLivingWithStressDSR(
 export function calculateMaxPurchaseForInvestment(
   annualIncome: number,
   assets: number,
-  jeonseRatio: number = 60
+  jeonseRatio: number = 53 // 기본값 53%로 변경
 ): { maxPropertyPrice: number, creditLoan: number, jeonseDeposit: number } {
   // 신용대출 = 연소득 × 1.2
   const creditLoan = annualIncome * 1.2;

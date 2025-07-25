@@ -930,14 +930,14 @@ export default function FinalResultPage() {
                 <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F6F7FF]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                      전세가율 60%
+                      전세가율 53%
                     </p>
                     <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
                       {formatToKorean(calculationResult.investment.jeonseDeposit)}
                     </p>
                   </div>
                   <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                    서울 아파트 평균 전세가율이에요
+                    KB국민은행 25년 6월 주택가격동향 통계에 따라 53%로 산정했어요. 고가 아파트는 전세가율이 53%보다 더 낮을 수 있어요
                   </p>
                 </div>
               </div>
