@@ -481,9 +481,8 @@ export default function FinalResultPage() {
     try {
       setIsSaving(true);
       
-      // 폰트 로딩 완료 대기
+      // 폰트 로딩 완료 대기 (html2canvas 캡처 전)
       await document.fonts.ready;
-      
       // 추가 대기 시간 (폰트 완전 로딩 보장)
       await new Promise(resolve => setTimeout(resolve, 500));
       
@@ -497,14 +496,13 @@ export default function FinalResultPage() {
         foreignObjectRendering: false,  // 폰트 렌더링 문제 해결을 위해 false로 변경
         imageTimeout: 15000,  // 이미지 로딩 대기 시간
         onclone: (clonedDoc) => {
-          // 클론된 문서의 모든 텍스트 요소에 시스템 폰트 적용
+          // 클론된 문서의 모든 텍스트 요소에 Pretendard 폰트 강제 적용
           const textElements = clonedDoc.querySelectorAll('p, span, div, h1, h2, h3, h4, h5, h6');
           textElements.forEach((element) => {
             if (element instanceof HTMLElement) {
-              element.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif';
+              element.style.fontFamily = 'Pretendard, sans-serif';
             }
           });
-          
           // 폰트 로딩 완료 대기
           clonedDoc.fonts?.ready?.then(() => {
             console.log('Cloned document fonts ready');
