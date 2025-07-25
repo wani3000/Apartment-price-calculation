@@ -2,32 +2,23 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NODE_ENV === 'production' 
-    ? 'https://your-domain.com' // 실제 도메인으로 변경 필요
-    : 'http://localhost:3000'
-  ),
-  title: '내 연봉으로 살 수 있는 아파트 가격은 얼마일까?',
-  description: '내 연봉으로 살 수 있는 아파트 가격을 계산해 보세요!',
+  title: '아파트 계산기 | aptgugu',
+  description: '내 자산과 연봉으로 살 수 있는 서울 아파트를 계산해보세요.',
   openGraph: {
-    title: '내 연봉으로 살 수 있는 아파트 가격은 얼마일까?',
-    description: '내 연봉으로 살 수 있는 아파트 가격을 계산해 보세요!',
-    type: 'website',
-    siteName: '아파트 가격 계산기',
-    locale: 'ko_KR',
+    title: '아파트 계산기 | aptgugu',
+    description: '내 자산과 연봉으로 살 수 있는 서울 아파트를 계산해보세요.',
+    url: 'https://aptgugu.com',
+    siteName: 'aptgugu',
     images: [
       {
-        url: '/images/img_og.png',
+        url: 'https://aptgugu.com/og.png',
         width: 1200,
         height: 630,
-        alt: '아파트 가격 계산기 - 내 연봉으로 살 수 있는 아파트 가격을 계산해보세요',
+        alt: 'aptgugu',
       },
     ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: '내 연봉으로 살 수 있는 아파트 가격은 얼마일까?',
-    description: '내 연봉으로 살 수 있는 아파트 가격을 계산해 보세요!',
-    images: ['/images/img_og.png'],
+    locale: 'ko_KR',
+    type: 'website',
   },
 };
 
