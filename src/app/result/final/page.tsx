@@ -630,12 +630,14 @@ export default function FinalResultPage() {
       // 2. 랜덤한 slug 생성
       const slug = Math.random().toString(36).substring(2, 8);
       
-      // 3. /api/shorten에 POST 요청으로 저장
-      const response = await fetch('/api/shorten', {
+      // 3. /api/shorten에 POST 요청으로 저장 (절대경로, credentials: 'include')
+      const apiUrl = `${window.location.origin}/api/shorten`;
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           slug,
           longUrl: sharedUrl
@@ -649,11 +651,13 @@ export default function FinalResultPage() {
       // 4. 저장 성공 시 shortUrl 생성
       const shortUrl = `https://aptgugu.com/result/${slug}`;
       
-      // 5. shortUrl을 클립보드에 복사
-      await navigator.clipboard.writeText(shortUrl);
-      
-      // 6. 토스트 메시지 표시
-      alert('공유 링크가 복사되었습니다!');
+      // 5. shortUrl을 클립보드에 복사 (모바일 대응)
+      try {
+        await navigator.clipboard.writeText(shortUrl);
+        alert('공유 링크가 복사되었습니다!');
+      } catch (err) {
+        alert(`공유 링크: ${shortUrl}\n(클립보드 복사에 실패했습니다. 직접 복사해 주세요.)`);
+      }
       
     } catch (error) {
       console.error('공유 오류:', error);
