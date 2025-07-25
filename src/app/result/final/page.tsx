@@ -613,9 +613,20 @@ export default function FinalResultPage() {
   // 공유하기 핸들러
   const handleShare = async () => {
     try {
-      // 1. 현재 URL 가져오기
-      const currentUrl = window.location.href;
-      
+      // 1. 공유용 URL 생성
+      const amount = formatToKorean(
+        activeTab === 'gap' 
+          ? calculationResult.investment.maxPropertyPrice
+          : (isNewRegulation627 ? calculationResult.living.maxPropertyPrice : stressDSRResult.capital.maxPropertyPrice)
+      );
+      const type = activeTab === 'gap' ? 'gap' : 'live';
+      const income = calculationResult.income * 10000;
+      const assets = calculationResult.assets * 10000;
+      const spouseIncome = calculationResult.spouseIncome * 10000;
+      const ltv = loanOptions.ltv;
+      const dsr = loanOptions.dsr;
+      const sharedUrl = `https://aptgugu.com/result/final?shared=true&username=${encodeURIComponent(username)}&amount=${encodeURIComponent(amount)}&type=${type}&income=${income}&assets=${assets}&spouseIncome=${spouseIncome}&ltv=${ltv}&dsr=${dsr}`;
+
       // 2. 랜덤한 slug 생성
       const slug = Math.random().toString(36).substring(2, 8);
       
@@ -627,7 +638,7 @@ export default function FinalResultPage() {
         },
         body: JSON.stringify({
           slug,
-          longUrl: currentUrl
+          longUrl: sharedUrl
         })
       });
       
