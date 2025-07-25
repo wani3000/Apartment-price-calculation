@@ -613,35 +613,40 @@ export default function FinalResultPage() {
   // 공유하기 핸들러
   const handleShare = async () => {
     try {
-      const amount = formatToKorean(
-        activeTab === 'gap' 
-          ? calculationResult.investment.maxPropertyPrice
-          : (isNewRegulation627 ? calculationResult.living.maxPropertyPrice : stressDSRResult.capital.maxPropertyPrice)
-      );
-      const type = activeTab === 'gap' ? '갭투자' : '실거주';
+      // 1. 현재 URL 가져오기
+      const currentUrl = window.location.href;
       
-      // 상세 정보 포함한 공유 데이터 생성
-      const currentUrl = new URL(window.location.origin + '/result/final');
-      currentUrl.searchParams.set('shared', 'true');
-      currentUrl.searchParams.set('username', encodeURIComponent(username));
-      currentUrl.searchParams.set('amount', amount);
-      currentUrl.searchParams.set('type', activeTab);
-      currentUrl.searchParams.set('income', (calculationResult.income * 10000).toString());
-      currentUrl.searchParams.set('assets', (calculationResult.assets * 10000).toString());
-      currentUrl.searchParams.set('spouseIncome', (calculationResult.spouseIncome * 10000).toString());
-      currentUrl.searchParams.set('ltv', loanOptions.ltv.toString());
-      currentUrl.searchParams.set('dsr', loanOptions.dsr.toString());
+      // 2. 랜덤한 slug 생성
+      const slug = Math.random().toString(36).substring(2, 8);
       
-      const shareData = {
-        title: `${username}님의 아파트 구매 가능 금액`,
-        text: `${username}님이 ${type} 시 살 수 있는 아파트: ${amount}`,
-        url: currentUrl.toString()
-      };
+      // 3. /api/shorten에 POST 요청으로 저장
+      const response = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          slug,
+          longUrl: currentUrl
+        })
+      });
       
-      await shareContent(shareData);
+      if (!response.ok) {
+        throw new Error('단축 URL 생성 실패');
+      }
+      
+      // 4. 저장 성공 시 shortUrl 생성
+      const shortUrl = `https://aptgugu.com/result/${slug}`;
+      
+      // 5. shortUrl을 클립보드에 복사
+      await navigator.clipboard.writeText(shortUrl);
+      
+      // 6. 토스트 메시지 표시
+      alert('공유 링크가 복사되었습니다!');
       
     } catch (error) {
       console.error('공유 오류:', error);
+      alert('공유 링크 생성에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
