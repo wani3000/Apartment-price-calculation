@@ -28,5 +28,11 @@ export default function ResultRedirectPage({ params }: { params: { slug: string 
     redirect();
   }, [params.slug, router]);
 
-  return <p>🔗 잠시만 기다려주세요. 리다이렉트 중입니다...</p>;
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ textAlign: 'center', fontSize: '18px', color: '#212529', lineHeight: '1.6' }}>
+        소득과 자산, 투자와 실거주를 고려한 아파트 가격을 계산중이에요!
+      </p>
+    </div>
+  );
 } 
