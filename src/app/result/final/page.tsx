@@ -652,11 +652,12 @@ export default function FinalResultPage() {
       const shortUrl = `https://aptgugu.com/result/${slug}`;
       
       // 5. 모바일: navigator.share 지원 시 공유 시트, 아니면 클립보드 복사 fallback
+      const shareText = username ? `${username} 님이 살 수 있는 아파트 가격이에요!` : '이 링크에서 내 결과를 확인할 수 있어요!';
       if (navigator.share) {
         try {
           await navigator.share({
             title: '아파트 분석 결과',
-            text: '이 링크에서 내 결과를 확인할 수 있어요!',
+            text: shareText,
             url: shortUrl,
           });
         } catch (err) {
