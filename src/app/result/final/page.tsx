@@ -651,12 +651,25 @@ export default function FinalResultPage() {
       // 4. 저장 성공 시 shortUrl 생성
       const shortUrl = `https://aptgugu.com/result/${slug}`;
       
-      // 5. shortUrl을 클립보드에 복사 (모바일 대응)
-      try {
-        await navigator.clipboard.writeText(shortUrl);
-        alert('공유 링크가 복사되었습니다!');
-      } catch (err) {
-        alert(`공유 링크: ${shortUrl}\n(클립보드 복사에 실패했습니다. 직접 복사해 주세요.)`);
+      // 5. 모바일: navigator.share 지원 시 공유 시트, 아니면 클립보드 복사 fallback
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: '아파트 분석 결과',
+            text: '이 링크에서 내 결과를 확인할 수 있어요!',
+            url: shortUrl,
+          });
+        } catch (err) {
+          // 공유 시트에서 사용자가 취소한 경우 등
+          console.warn('공유 실패', err);
+        }
+      } else {
+        try {
+          await navigator.clipboard.writeText(shortUrl);
+          alert('공유 링크가 복사되었습니다!');
+        } catch (err) {
+          alert(`공유 링크: ${shortUrl}\n(클립보드 복사에 실패했습니다. 직접 복사해 주세요.)`);
+        }
       }
       
     } catch (error) {
