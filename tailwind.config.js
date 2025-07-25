@@ -6,10 +6,10 @@ module.exports = {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    fontFamily: {
+      sans: ['Pretendard', 'sans-serif'],
+    },
     extend: {
-      fontFamily: {
-        pretendard: ['Pretendard Variable', 'Pretendard', 'sans-serif'],
-      },
       colors: {
         'grey-100': '#212529',
         'grey-80': '#495057',
