@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { shareContent, getHomeShareData } from '@/utils/share';
 import Link from 'next/link';
 
@@ -16,6 +16,34 @@ export default function Home() {
     'home-image-02.png',
     'home-image-04.png'
   ]);
+
+  // 배포 후 Google sitemap ping 자동 전송
+  useEffect(() => {
+    const sendSitemapPing = async () => {
+      try {
+        // 프로덕션 환경에서만 실행
+        if (process.env.NODE_ENV === 'production') {
+          const response = await fetch('https://www.google.com/ping?sitemap=https://aptgugu.com/sitemap.xml', {
+            method: 'GET',
+            headers: {
+              'User-Agent': 'AptGugu-Sitemap-Ping/1.0',
+            },
+          });
+          
+          if (response.ok) {
+            console.log('✅ Google sitemap ping sent successfully');
+          } else {
+            console.log('❌ Google sitemap ping failed:', response.status);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error sending Google sitemap ping:', error);
+      }
+    };
+
+    // 페이지 로드 시 한 번만 실행
+    sendSitemapPing();
+  }, []);
 
   // 공유하기 핸들러
   const handleShare = async () => {
