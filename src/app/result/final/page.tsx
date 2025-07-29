@@ -714,7 +714,7 @@ export default function FinalResultPage() {
         <meta name="twitter:description" content="내 자산과 대출로 가능한 서울 아파트 리스트를 추천해드립니다." />
         <meta name="twitter:image" content="https://aptgugu.com/og.png" />
       </Head>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-white">
         <div className="flex-1 px-5 pt-6" style={{ paddingBottom: '40px' }}>
           {/* 헤더 - 공유받은 링크가 아닐 때만 표시 */}
           {!isSharedLink && (
