@@ -1,13 +1,9 @@
+# *
 User-agent: *
 Allow: /
 
-User-agent: Googlebot
-Allow: /
+# Host
+Host: https://aptgugu.com
 
-User-agent: Googlebot-Image
-Allow: /
-
-User-agent: Mediapartners-Google
-Allow: /
-
-Sitemap: https://your-domain.com/sitemap.xml 
+# Sitemaps
+Sitemap: https://aptgugu.com/sitemap.xml

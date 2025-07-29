@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NODE_ENV === 'production' 
-    ? 'https://your-domain.com' // 실제 도메인으로 변경 필요
+    ? 'https://aptgugu.com' // 실제 도메인으로 변경 완료
     : 'http://localhost:3000'
 
   return [
