@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     siteName: 'AptGugu',
     images: [
       {
-        url: 'https://aptgugu.com/og-image.png',
+        url: 'https://aptgugu.com/og.png',
         width: 1200,
         height: 630,
         alt: '아파트 구구 - 아파트 구매 대출 계산기',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '아파트 구구 - 아파트 구매 대출 계산기',
     description: '연봉과 자산을 입력하면, 갭투자 또는 실거주에 적합한 아파트 매수 가능 금액을 계산해드립니다.',
-    images: ['https://aptgugu.com/og-image.png'],
+    images: ['https://aptgugu.com/og.png'],
   },
   robots: {
     index: true,
