@@ -77,7 +77,7 @@ export default function Home() {
         <meta name="twitter:description" content="연봉과 자산을 입력하면, 전세 활용 or 실거주 대출로 내게 맞는 아파트 금액을 계산해줍니다." />
         <meta name="twitter:image" content="https://aptgugu.com/og.png" />
       </Head>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-white flex flex-col items-center py-12 pb-32">
       {/* 상단 텍스트 */}
       <div className="w-full max-w-md text-center px-5">
         <h1 className="text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px] mb-2">
