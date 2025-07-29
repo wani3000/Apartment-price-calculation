@@ -4,10 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { shareContent, getHomeShareData } from '@/utils/share';
 import Link from 'next/link';
+import Head from 'next/head';
 
 export default function Home() {
   const router = useRouter();
-  
+  const [username, setUsername] = useState('');
+  const [isShared, setIsShared] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+
   // 지정된 순서로 이미지 배열 설정 (1>3>5>2>4)
   const [orderedImages] = useState<string[]>([
     'home-image-01.png',
@@ -17,32 +21,35 @@ export default function Home() {
     'home-image-04.png'
   ]);
 
-  // 배포 후 Google sitemap ping 자동 전송
   useEffect(() => {
-    const sendSitemapPing = async () => {
-      try {
-        // 프로덕션 환경에서만 실행
-        if (process.env.NODE_ENV === 'production') {
-          const response = await fetch('https://www.google.com/ping?sitemap=https://aptgugu.com/sitemap.xml', {
-            method: 'GET',
-            headers: {
-              'User-Agent': 'AptGugu-Sitemap-Ping/1.0',
-            },
-          });
-          
+    // 로컬 스토리지에서 사용자 이름 가져오기
+    const savedUsername = localStorage.getItem('username');
+    if (savedUsername) {
+      setUsername(savedUsername);
+    }
+
+    // 공유 링크인지 확인
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedParam = urlParams.get('shared');
+    if (sharedParam === 'true') {
+      setIsShared(true);
+      setShareUrl(window.location.href);
+    }
+
+    // Google sitemap ping (프로덕션에서만)
+    if (process.env.NODE_ENV === 'production') {
+      fetch('https://www.google.com/ping?sitemap=https://aptgugu.com/sitemap.xml')
+        .then(response => {
           if (response.ok) {
-            console.log('✅ Google sitemap ping sent successfully');
+            console.log('✅ Google sitemap ping successful');
           } else {
             console.log('❌ Google sitemap ping failed:', response.status);
           }
-        }
-      } catch (error) {
-        console.error('❌ Error sending Google sitemap ping:', error);
-      }
-    };
-
-    // 페이지 로드 시 한 번만 실행
-    sendSitemapPing();
+        })
+        .catch(error => {
+          console.error('❌ Error sending Google sitemap ping:', error);
+        });
+    }
   }, []);
 
   // 공유하기 핸들러
@@ -56,7 +63,21 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center py-12 pb-32">
+    <>
+      <Head>
+        <title>아파트 대출 계산기 - 내 자산으로 가능한 아파트 확인!</title>
+        <meta name="description" content="연봉과 자산을 입력하면, 전세 활용 or 실거주 대출로 내게 맞는 아파트 금액을 계산해줍니다." />
+        <meta name="keywords" content="아파트 대출 계산기, 아파트 구매 계산기, 서울 아파트 대출, 갭투자 계산기, 실거주 계산, 부동산 계산기, 아파트담보대출 계산, 내 집 마련 계산기" />
+        <meta property="og:title" content="아파트 대출 계산기 - 내 자산으로 가능한 아파트 확인!" />
+        <meta property="og:description" content="연봉과 자산을 입력하면, 전세 활용 or 실거주 대출로 내게 맞는 아파트 금액을 계산해줍니다." />
+        <meta property="og:image" content="https://aptgugu.com/og.png" />
+        <meta property="og:url" content="https://aptgugu.com" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="아파트 대출 계산기 - 내 자산으로 가능한 아파트 확인!" />
+        <meta name="twitter:description" content="연봉과 자산을 입력하면, 전세 활용 or 실거주 대출로 내게 맞는 아파트 금액을 계산해줍니다." />
+        <meta name="twitter:image" content="https://aptgugu.com/og.png" />
+      </Head>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* 상단 텍스트 */}
       <div className="w-full max-w-md text-center px-5">
         <h1 className="text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px] mb-2">
@@ -240,5 +261,6 @@ export default function Home() {
         </div>
       </div>
     </div>
+    </>
   );
 } 

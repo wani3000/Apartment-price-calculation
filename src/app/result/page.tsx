@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
+import Head from 'next/head';
 
 export default function ResultPage() {
   const router = useRouter();
@@ -56,7 +57,21 @@ export default function ResultPage() {
   };
 
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden">
+    <>
+      <Head>
+        <title>계산 결과 - 내 아파트 구매 가능 금액은?</title>
+        <meta name="description" content="입력한 정보로 계산된 서울 아파트 매수 가능 금액을 확인하세요." />
+        <meta name="keywords" content="아파트 대출 계산기, 아파트 구매 계산기, 서울 아파트 대출, 갭투자 계산기, 실거주 계산, 부동산 계산기, 아파트담보대출 계산, 내 집 마련 계산기" />
+        <meta property="og:title" content="계산 결과 - 내 아파트 구매 가능 금액은?" />
+        <meta property="og:description" content="입력한 정보로 계산된 서울 아파트 매수 가능 금액을 확인하세요." />
+        <meta property="og:image" content="https://aptgugu.com/og.png" />
+        <meta property="og:url" content="https://aptgugu.com/result" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="계산 결과 - 내 아파트 구매 가능 금액은?" />
+        <meta name="twitter:description" content="입력한 정보로 계산된 서울 아파트 매수 가능 금액을 확인하세요." />
+        <meta name="twitter:image" content="https://aptgugu.com/og.png" />
+      </Head>
+      <div className="h-screen bg-white flex flex-col overflow-hidden">
       {/* 메인 컨텐츠 영역 */}
       <div className="flex-1 flex flex-col px-5 pt-6 pb-4">
       {/* 헤더 컴포넌트 사용 */}
@@ -155,5 +170,6 @@ export default function ResultPage() {
         </button>
       </div>
     </div>
+    </>
   );
 } 

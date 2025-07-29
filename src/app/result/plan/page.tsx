@@ -10,6 +10,7 @@ import {
   calculateMonthlyInterestOnly 
 } from '@/utils/calculator';
 import Header from '@/components/Header';
+import Head from 'next/head';
 
 export default function PlanPage() {
   const router = useRouter();
@@ -129,196 +130,211 @@ export default function PlanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col px-5 pt-6 pb-12">
-      {/* 헤더 사용 */}
-      <Header backUrl="/result/final" />
+    <>
+      <Head>
+        <title>구매 자금 계획표 - 실거주 or 갭투자 전략</title>
+        <meta name="description" content="내 자금 구성에 따라 어떤 방식으로 아파트를 매수할 수 있는지 계획표로 정리해드립니다." />
+        <meta name="keywords" content="아파트 대출 계산기, 아파트 구매 계산기, 서울 아파트 대출, 갭투자 계산기, 실거주 계산, 부동산 계산기, 아파트담보대출 계산, 내 집 마련 계산기" />
+        <meta property="og:title" content="구매 자금 계획표 - 실거주 or 갭투자 전략" />
+        <meta property="og:description" content="내 자금 구성에 따라 어떤 방식으로 아파트를 매수할 수 있는지 계획표로 정리해드립니다." />
+        <meta property="og:image" content="https://aptgugu.com/og.png" />
+        <meta property="og:url" content="https://aptgugu.com/result/plan" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="구매 자금 계획표 - 실거주 or 갭투자 전략" />
+        <meta name="twitter:description" content="내 자금 구성에 따라 어떤 방식으로 아파트를 매수할 수 있는지 계획표로 정리해드립니다." />
+        <meta name="twitter:image" content="https://aptgugu.com/og.png" />
+      </Head>
+      <div className="min-h-screen bg-white flex flex-col px-5 pt-6 pb-12">
+        {/* 헤더 사용 */}
+        <Header backUrl="/result/final" />
 
-      {/* 타이틀 */}
-      <h1 className="text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px] mb-6">
-        {username}님의 자금계획
-      </h1>
+        {/* 타이틀 */}
+        <h1 className="text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px] mb-6">
+          {username}님의 자금계획
+        </h1>
 
-      {/* 최대 금액 정보 */}
-      <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-6">
-        <h2 className="text-black text-[18px] font-bold leading-[26px] tracking-[-0.18px]">
-          {mode === 'gap' ? '갭투자 시' : '실거주 시'}
-        </h2>
-        <p className="text-black text-[22px] font-bold leading-7 tracking-[-0.22px]">
-          최대 {formatToKorean(
-            mode === 'gap' 
-              ? calculationResult.investment.maxPropertyPrice 
-              : calculationResult.living.maxPropertyPrice
-          )}
-        </p>
-        <p className="text-[#495057] text-sm font-normal leading-5 tracking-[-0.28px]">
-          {mode === 'gap' 
-            ? '세입자의 전세금을 활용해 투자해요' 
-            : '주택 가격의 70%까지 대출받을 수 있어요'}
-        </p>
-      </div>
+        {/* 최대 금액 정보 */}
+        <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-6">
+          <h2 className="text-black text-[18px] font-bold leading-[26px] tracking-[-0.18px]">
+            {mode === 'gap' ? '갭투자 시' : '실거주 시'}
+          </h2>
+          <p className="text-black text-[22px] font-bold leading-7 tracking-[-0.22px]">
+            최대 {formatToKorean(
+              mode === 'gap' 
+                ? calculationResult.investment.maxPropertyPrice 
+                : calculationResult.living.maxPropertyPrice
+            )}
+          </p>
+          <p className="text-[#495057] text-sm font-normal leading-5 tracking-[-0.28px]">
+            {mode === 'gap' 
+              ? '세입자의 전세금을 활용해 투자해요' 
+              : '주택 가격의 70%까지 대출받을 수 있어요'}
+          </p>
+        </div>
 
-      {mode === 'gap' ? (
-        <>
-          {/* 신용대출 섹션 - 갭투자 시 */}
-          <div className="mb-6">
-            <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-              신용대출
-            </h3>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
-              <div className="flex justify-between items-center w-full">
-                <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                  연소득의 120%
-                </p>
-                <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                  {formatToKorean(calculationResult.income * 1.2)}
+        {mode === 'gap' ? (
+          <>
+            {/* 신용대출 섹션 - 갭투자 시 */}
+            <div className="mb-6">
+              <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                신용대출
+              </h3>
+              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    연소득의 120%
+                  </p>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    {formatToKorean(calculationResult.income * 1.2)}
+                  </p>
+                </div>
+                <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                  금리 3.5% 기준이에요
                 </p>
               </div>
-              <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                금리 3.5% 기준이에요
-              </p>
             </div>
-          </div>
 
-          {/* 월 상환액 섹션 - 갭투자 시 */}
-          <div className="mb-6">
-            <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-              월 상환액 (이자)
-            </h3>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
-              <div className="flex justify-between items-center w-full">
-                <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                  1년 만기
-                </p>
-                <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                  {formatToKorean(calculationResult.investment.monthlyRepayment)}
+            {/* 월 상환액 섹션 - 갭투자 시 */}
+            <div className="mb-6">
+              <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                월 상환액 (이자)
+              </h3>
+              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    1년 만기
+                  </p>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    {formatToKorean(calculationResult.investment.monthlyRepayment)}
+                  </p>
+                </div>
+                <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                  이자만 내며 매년 연장하는 만기일시상환 기준이에요
                 </p>
               </div>
-              <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                이자만 내며 매년 연장하는 만기일시상환 기준이에요
-              </p>
             </div>
-          </div>
 
-          {/* 전세금 섹션 - 갭투자 시 */}
-          <div className="mb-6">
-            <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-              전세금
-            </h3>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
-              <div className="flex justify-between items-center w-full">
-                <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                  전세가율 53%
-                </p>
-                <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                  {formatToKorean(calculationResult.investment.jeonseDeposit)}
+            {/* 전세금 섹션 - 갭투자 시 */}
+            <div className="mb-6">
+              <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                전세금
+              </h3>
+              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    전세가율 53%
+                  </p>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    {formatToKorean(calculationResult.investment.jeonseDeposit)}
+                  </p>
+                </div>
+                <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                  KB국민은행 25년 6월 주택가격동향 통계에 따라 53%로 산정했어요. 고가 아파트는 전세가율이 53%보다 더 낮을 수 있어요
                 </p>
               </div>
-              <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                KB국민은행 25년 6월 주택가격동향 통계에 따라 53%로 산정했어요. 고가 아파트는 전세가율이 53%보다 더 낮을 수 있어요
-              </p>
             </div>
-          </div>
-        </>
-      ) : (
-        <>
-          {/* DSR 섹션 - 실거주 시 */}
-          <div className="mb-6">
-            <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-              DSR (총부채원리금상환비율)
-            </h3>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
-              <div className="flex justify-between items-center w-full">
-                <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                  {loanOptions.dsr}% 기준
-                </p>
-                <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                  최대 {formatToKorean(calculationResult.living.mortgageLimit)}
+          </>
+        ) : (
+          <>
+            {/* DSR 섹션 - 실거주 시 */}
+            <div className="mb-6">
+              <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                DSR (총부채원리금상환비율)
+              </h3>
+              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    {loanOptions.dsr}% 기준
+                  </p>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    최대 {formatToKorean(calculationResult.living.mortgageLimit)}
+                  </p>
+                </div>
+                <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                  주택담보대출+신용대출
                 </p>
               </div>
-              <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                주택담보대출+신용대출
-              </p>
             </div>
-          </div>
 
-          {/* 주택담보대출 섹션 - 실거주 시 */}
-          <div className="mb-6">
-            <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-              주택담보대출
-            </h3>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
-              <div className="flex justify-between items-center w-full">
-                <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                  40년 만기
-                </p>
-                <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                  {formatToKorean(calculationResult.living.mortgageLimit)}
+            {/* 주택담보대출 섹션 - 실거주 시 */}
+            <div className="mb-6">
+              <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                주택담보대출
+              </h3>
+              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    40년 만기
+                  </p>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    {formatToKorean(calculationResult.living.mortgageLimit)}
+                  </p>
+                </div>
+                <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                  금리 3.5% 기준이에요
                 </p>
               </div>
-              <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                금리 3.5% 기준이에요
-              </p>
             </div>
-          </div>
 
-          {/* 신용대출 섹션 - 실거주 시 */}
-          <div className="mb-6">
-            <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-              신용대출
-            </h3>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
-              <div className="flex justify-between items-center w-full">
-                <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                  연소득의 120%
-                </p>
-                <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                  {formatToKorean(calculationResult.living.creditLoan)}
+            {/* 신용대출 섹션 - 실거주 시 */}
+            <div className="mb-6">
+              <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                신용대출
+              </h3>
+              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    연소득의 120%
+                  </p>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    {formatToKorean(calculationResult.living.creditLoan)}
+                  </p>
+                </div>
+                <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                  금리 3.5% 기준이에요
                 </p>
               </div>
-              <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                금리 3.5% 기준이에요
-              </p>
             </div>
-          </div>
 
-          {/* 월 상환액 섹션 - 실거주 시 */}
-          <div className="mb-6">
-            <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-              월 상환액 (원금+이자)
-            </h3>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
-              <div className="flex justify-between items-center w-full">
-                <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                  40년 만기
-                </p>
-                <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                  {formatToKorean(calculationResult.living.monthlyRepayment)}
+            {/* 월 상환액 섹션 - 실거주 시 */}
+            <div className="mb-6">
+              <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                월 상환액 (원금+이자)
+              </h3>
+              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    40년 만기
+                  </p>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    {formatToKorean(calculationResult.living.monthlyRepayment)}
+                  </p>
+                </div>
+                <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                  원금과 이자를 함께 갚는 원리금균등상환 기준이에요
                 </p>
               </div>
-              <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                원금과 이자를 함께 갚는 원리금균등상환 기준이에요
+            </div>
+          </>
+        )}
+
+        {/* 보유자산 섹션 - 공통 */}
+        <div className="mb-6">
+          <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+            보유자산
+          </h3>
+          <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+            <div className="flex justify-between items-center w-full">
+              <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                보유자산
+              </p>
+              <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                {formatToKorean(calculationResult.assets)}
               </p>
             </div>
-          </div>
-        </>
-      )}
-
-      {/* 보유자산 섹션 - 공통 */}
-      <div className="mb-6">
-        <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-          보유자산
-        </h3>
-        <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
-          <div className="flex justify-between items-center w-full">
-            <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-              보유자산
-            </p>
-            <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-              {formatToKorean(calculationResult.assets)}
-            </p>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 } 
