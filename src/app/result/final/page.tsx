@@ -1092,7 +1092,7 @@ export default function FinalResultPage() {
                         {isNewRegulation627 ? '30년 만기' : '40년 만기'}
                       </p>
                       <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                        {isNewRegulation627 ? formatToKorean(calculationResult.living.monthlyRepayment) : formatToKorean(stressDSRResult.capital.monthlyRepayment)}
+                        {isNewRegulation627 ? formatToKorean(calculationResult.living.mortgageLimit) : formatToKorean(stressDSRResult.capital.mortgageLimit)}
                       </p>
                     </div>
                     <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
