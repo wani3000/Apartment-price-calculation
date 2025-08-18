@@ -624,7 +624,8 @@ export default function FinalResultPage() {
       const spouseIncome = calculationResult.spouseIncome * 10000;
       const ltv = loanOptions.ltv;
       const dsr = loanOptions.dsr;
-      const sharedUrl = `https://aptgugu.com/result/final?shared=true&username=${encodeURIComponent(username)}&amount=${encodeURIComponent(amount)}&type=${type}&income=${income}&assets=${assets}&spouseIncome=${spouseIncome}&ltv=${ltv}&dsr=${dsr}`;
+      const regulationParam = isNewRegulation627 ? '&regulation=new627' : '';
+      const sharedUrl = `https://aptgugu.com/result/final?shared=true&username=${encodeURIComponent(username)}&amount=${encodeURIComponent(amount)}&type=${type}&income=${income}&assets=${assets}&spouseIncome=${spouseIncome}&ltv=${ltv}&dsr=${dsr}${regulationParam}`;
 
       // 2. 랜덤한 slug 생성
       const slug = Math.random().toString(36).substring(2, 8);
