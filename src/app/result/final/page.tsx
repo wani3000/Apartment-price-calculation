@@ -978,15 +978,15 @@ export default function FinalResultPage() {
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
                             <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 실제 금리 (3.5%)</span>
-                            <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.actual.maxPropertyPrice)}</span>
+                            <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.actual.mortgageLimit)}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 수도권 (3.5% + 1.5%)</span>
-                            <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.capital.maxPropertyPrice)}</span>
+                            <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.capital.mortgageLimit)}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-[#495057] text-[15px] font-normal leading-[22px]">• 지방 (3.5% + 0.75%)</span>
-                            <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.local.maxPropertyPrice)}</span>
+                            <span className="text-[#212529] text-[15px] font-medium leading-[22px]">{formatToKorean(stressDSRResult.local.mortgageLimit)}</span>
                           </div>
                         </div>
                         
@@ -994,8 +994,8 @@ export default function FinalResultPage() {
                           <div className="flex justify-between items-center">
                             <span className="text-[#495057] text-[14px] font-normal">감소율:</span>
                             <span className="text-red-600 text-[14px] font-medium">
-                              수도권 {stressDSRResult.actual.maxPropertyPrice > 0 ? Math.round(((stressDSRResult.actual.maxPropertyPrice - stressDSRResult.capital.maxPropertyPrice) / stressDSRResult.actual.maxPropertyPrice) * 100) : 0}%, 
-                              지방 {stressDSRResult.actual.maxPropertyPrice > 0 ? Math.round(((stressDSRResult.actual.maxPropertyPrice - stressDSRResult.local.maxPropertyPrice) / stressDSRResult.actual.maxPropertyPrice) * 100) : 0}%
+                              수도권 {stressDSRResult.actual.mortgageLimit > 0 ? Math.round(((stressDSRResult.actual.mortgageLimit - stressDSRResult.capital.mortgageLimit) / stressDSRResult.actual.mortgageLimit) * 100) : 0}%, 
+                              지방 {stressDSRResult.actual.mortgageLimit > 0 ? Math.round(((stressDSRResult.actual.mortgageLimit - stressDSRResult.local.mortgageLimit) / stressDSRResult.actual.mortgageLimit) * 100) : 0}%
                             </span>
                           </div>
                         </div>
@@ -1003,6 +1003,7 @@ export default function FinalResultPage() {
                         <div className="text-blue-600 text-[13px] font-normal leading-[18px] tracking-[-0.26px] mt-2">
                           <p>2025년 6월 28일부터 시행되는 강화된 가계부채 관리 규제가 적용됩니다.</p>
                           <p>개인별 대출 한도는 6억 원으로 제한되며, 대출 만기는 30년으로 단축됩니다.</p>
+                          <p>수도권 외 지역(비규제)은 6억 원 제한이 없으며, LTV는 최대 80%까지 적용 가능합니다.</p>
                         </div>
                       </>
                     ) : (

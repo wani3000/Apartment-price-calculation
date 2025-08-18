@@ -32,7 +32,10 @@ export default function CalculatorPage() {
         setIncome(calculatorData.income.toString());
       }
       
-      if (calculatorData.assets) {
+      // myAssets가 있으면 개별 자산 사용, 없으면 기존 assets 사용 (하위 호환성)
+      if (calculatorData.myAssets !== undefined) {
+        setAssets(calculatorData.myAssets.toString());
+      } else if (calculatorData.assets) {
         setAssets(calculatorData.assets.toString());
       }
       

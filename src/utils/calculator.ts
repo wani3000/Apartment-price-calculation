@@ -215,12 +215,13 @@ export function calculateMaxPurchaseWithNewRegulation627(
   assets: number,
   isCapitalArea: boolean = true
 ) {
-  const maxLoanAmount = 600000000; // 6억원
+  const maxLoanAmount = isCapitalArea ? 600000000 : null; // 수도권: 6억원 제한, 지방: 제한 없음
   const loanYears = 30; // 30년
   const baseRate = 3.5; // 기본 금리 3.5%
   const stressRate = isCapitalArea ? 1.5 : 0.75; // 수도권 1.5%, 지방 0.75%
   const effectiveRate = baseRate + stressRate; // 유효 금리 (수도권 5.0%, 지방 4.25%)
   const dsrRatio = 40; // 40% 고정
+  const ltv = isCapitalArea ? 70 : 80; // 수도권 70%, 지방 80%
   
   // 월 DSR 한도 = (연소득 × DSR비율) ÷ 12
   const monthlyDSR = (annualIncome * dsrRatio / 100) / 12;
@@ -228,8 +229,15 @@ export function calculateMaxPurchaseWithNewRegulation627(
   // DSR 기준 주택담보대출 한도 계산 (30년, 유효 금리 기준)
   const dsrBasedLimit = calculateLoanLimit(monthlyDSR, effectiveRate, loanYears);
   
-  // 규제 한도(6억원)와 DSR 한도 중 작은 값 선택
-  const mortgageLimit = Math.min(dsrBasedLimit, maxLoanAmount);
+  // 대출 한도 결정
+  let mortgageLimit;
+  if (isCapitalArea) {
+    // 수도권: 6억원 제한과 DSR 한도 중 작은 값
+    mortgageLimit = Math.min(dsrBasedLimit, maxLoanAmount!);
+  } else {
+    // 지방: DSR 한도만 적용 (6억원 제한 없음)
+    mortgageLimit = dsrBasedLimit;
+  }
   
   // 월 상환액 계산 (실제 선택된 대출 금액 기준)
   const monthlyRepayment = calculateMonthlyPayment(mortgageLimit, effectiveRate, loanYears);
@@ -247,9 +255,10 @@ export function calculateMaxPurchaseWithNewRegulation627(
     baseRate: `${baseRate}%`,
     stressRate: `${stressRate}%`,
     effectiveRate: `${effectiveRate}%`,
+    ltv: `${ltv}%`,
     monthlyDSR,
     dsrBasedLimit,
-    maxLoanAmount,
+    maxLoanAmount: isCapitalArea ? `${maxLoanAmount!.toLocaleString()}원` : '제한 없음',
     mortgageLimit,
     monthlyRepayment,
     assets,
