@@ -274,3 +274,219 @@ export function calculateMaxPurchaseWithNewRegulation627(
     monthlyRepayment
   };
 }
+
+/**
+ * 2025.10.15 주택시장 안정화 대책 - 지역 정책 플래그 판정
+ */
+export interface PolicyFlags {
+  isCapitalArea: boolean;
+  isRegulatedArea: boolean;
+  isTojiPermitArea: boolean;
+  tojiPermitStart?: string;
+  tojiPermitEnd?: string;
+}
+
+/**
+ * 지역명을 기반으로 정책 플래그 결정 (2025.10.15 기준)
+ * @param siDo 시도 (예: "서울", "경기")
+ * @param siGunGu 시군구 (예: "강남구", "성남시", "수원시")
+ * @param gu 구 (예: "분당구", "영통구") - 선택사항
+ * @returns PolicyFlags 객체
+ */
+export function determinePolicyFlags(siDo: string, siGunGu: string, gu?: string): PolicyFlags {
+  const flags: PolicyFlags = {
+    isCapitalArea: false,
+    isRegulatedArea: false,
+    isTojiPermitArea: false,
+  };
+
+  // 수도권 판정 (서울, 경기, 인천)
+  if (['서울', '경기', '인천'].includes(siDo)) {
+    flags.isCapitalArea = true;
+  }
+
+  // 2025.10.15 규제지역 및 토지거래허가구역 판정
+  if (siDo === '서울') {
+    // 서울 전체 25개구
+    flags.isRegulatedArea = true;
+    flags.isTojiPermitArea = true;
+  } else if (siDo === '경기') {
+    // 경기 12개 지역
+    const regulatedAreas = [
+      '과천시', '광명시', '의왕시', '하남시'
+    ];
+
+    const regulatedCities = [
+      { city: '성남시', districts: ['분당구', '수정구', '중원구'] },
+      { city: '수원시', districts: ['영통구', '장안구', '팔달구'] },
+      { city: '안양시', districts: ['동안구'] },
+      { city: '용인시', districts: ['수지구'] }
+    ];
+
+    // 단일 시 체크
+    if (regulatedAreas.includes(siGunGu)) {
+      flags.isRegulatedArea = true;
+      flags.isTojiPermitArea = true;
+    }
+
+    // 구가 있는 시 체크
+    const cityMatch = regulatedCities.find(item => siGunGu.includes(item.city));
+    if (cityMatch && gu && cityMatch.districts.includes(gu)) {
+      flags.isRegulatedArea = true;
+      flags.isTojiPermitArea = true;
+    }
+  }
+
+  // 토지거래허가구역 기간 설정
+  if (flags.isTojiPermitArea) {
+    flags.tojiPermitStart = '2025-10-20';
+    flags.tojiPermitEnd = '2026-12-31';
+  }
+
+  return flags;
+}
+
+/**
+ * 주택가격 구간별 주담대 최대한도 캡 계산 (2025.10.15 기준)
+ * @param priceAsking 호가 (원)
+ * @returns 주담대 최대한도 (원)
+ */
+export function calculateMortgageCapByPrice(priceAsking: number): number {
+  if (priceAsking <= 1_500_000_000) return 600_000_000; // 15억 이하 → 6억
+  if (priceAsking <= 2_500_000_000) return 400_000_000; // 15억~25억 → 4억
+  return 200_000_000; // 25억 초과 → 2억
+}
+
+/**
+ * 전세대출 월 이자 계산
+ * @param principal 전세대출 원금 (원)
+ * @param rate 연이율 (%)
+ * @returns 월 이자액 (원)
+ */
+export function calculateJeonseLoanInterestMonthly(principal: number, rate: number): number {
+  return (principal * rate / 100) / 12;
+}
+
+/**
+ * 2025.10.15 주택시장 안정화 대책이 반영된 실거주 최대 구매가능 금액 계산
+ * @param annualIncome 연소득 (원)
+ * @param assets 보유자산 (원)
+ * @param priceAsking 호가 (원)
+ * @param policyFlags 정책 플래그
+ * @param dsrRatio DSR 비율 (%) - 40% 또는 50%
+ * @param userFlags 사용자 플래그 (주택 보유수, 전세대출 정보 등)
+ * @param loanRate 기본 대출 이자율 (%) - 기본값 3.5%
+ * @param loanYears 대출 기간 (년) - 기본값 40
+ * @returns 계산 결과 및 적용된 정책 정보
+ */
+export function calculateMaxPurchaseWithPolicy20251015(
+  annualIncome: number,
+  assets: number,
+  priceAsking: number,
+  policyFlags: PolicyFlags,
+  dsrRatio: number,
+  userFlags?: {
+    homeOwnerCount?: number;
+    isTenant?: boolean;
+    hasJeonseLoan?: boolean;
+    jeonseLoanPrincipal?: number;
+    jeonseLoanRate?: number;
+  },
+  loanRate: number = 3.5,
+  loanYears: number = 40
+): {
+  maxPropertyPrice: number;
+  mortgageLimit: number;
+  mortgageByLtv: number;
+  mortgageByDsr: number;
+  monthlyRepayment: number;
+  effectiveRateForDSR: number;
+  policyNotes: string[];
+  policyApplied: {
+    mortgageCapApplied: boolean;
+    stressRateApplied: boolean;
+    jeonseInterestInDsr: boolean;
+    mortgageCapAmount?: number;
+  };
+} {
+  const policyNotes: string[] = [];
+  const policyApplied = {
+    mortgageCapApplied: false,
+    stressRateApplied: false,
+    jeonseInterestInDsr: false,
+    mortgageCapAmount: undefined as number | undefined,
+  };
+
+  // 1. 스트레스 DSR 적용
+  let effectiveRateForDSR = loanRate;
+  if (policyFlags.isCapitalArea || policyFlags.isRegulatedArea) {
+    effectiveRateForDSR = loanRate + 3.0; // 기존 1.5% → 3.0%로 상향
+    policyApplied.stressRateApplied = true;
+    policyNotes.push("스트레스 DSR 3.0% 적용 (규제지역)");
+  }
+
+  // 2. 1주택자 전세대출 DSR 반영
+  let adjustedMonthlyDSR = (annualIncome * dsrRatio / 100) / 12;
+
+  const shouldApplyJeonse =
+    userFlags?.homeOwnerCount === 1 &&
+    userFlags?.isTenant === true &&
+    userFlags?.hasJeonseLoan === true &&
+    (policyFlags.isCapitalArea || policyFlags.isRegulatedArea) &&
+    userFlags?.jeonseLoanPrincipal &&
+    userFlags?.jeonseLoanRate;
+
+  if (shouldApplyJeonse) {
+    const jeonseInterestMonthly = calculateJeonseLoanInterestMonthly(
+      userFlags!.jeonseLoanPrincipal!,
+      userFlags!.jeonseLoanRate!
+    );
+    adjustedMonthlyDSR = Math.max(0, adjustedMonthlyDSR - jeonseInterestMonthly);
+    policyApplied.jeonseInterestInDsr = true;
+    policyNotes.push("1주택자 전세대출 이자 DSR 차감 적용");
+  }
+
+  // 3. 기본 계산 (LTV/DSR)
+  const ltv = 0.7;
+  const mortgageByLtv = priceAsking * ltv;
+  const mortgageByDsr = calculateLoanLimit(adjustedMonthlyDSR, effectiveRateForDSR, loanYears);
+
+  // 4. 주담대 구간별 최대한도 캡 적용
+  let mortgageLimit = Math.min(mortgageByLtv, mortgageByDsr);
+
+  if (policyFlags.isCapitalArea || policyFlags.isRegulatedArea) {
+    const mortgageCap = calculateMortgageCapByPrice(priceAsking);
+    if (mortgageLimit > mortgageCap) {
+      mortgageLimit = mortgageCap;
+      policyApplied.mortgageCapApplied = true;
+      policyApplied.mortgageCapAmount = mortgageCap;
+      policyNotes.push(`주담대 한도 캡 적용: ${(mortgageCap / 100000000).toFixed(1)}억원`);
+    }
+  }
+
+  // 5. 최종 계산
+  const maxPropertyPrice = assets + mortgageLimit;
+  const monthlyRepayment = calculateMonthlyPayment(mortgageLimit, loanRate, loanYears);
+
+  // 6. 토지거래허가구역 안내
+  if (policyFlags.isTojiPermitArea) {
+    policyNotes.push("토지거래허가구역: 2년 실거주 의무");
+    policyNotes.push(`지정기간: ${policyFlags.tojiPermitStart} ~ ${policyFlags.tojiPermitEnd}`);
+  }
+
+  // 호가를 시가 대용 사용 안내
+  if (policyFlags.isCapitalArea || policyFlags.isRegulatedArea) {
+    policyNotes.push("호가를 시가 대용으로 사용하여 계산됨");
+  }
+
+  return {
+    maxPropertyPrice,
+    mortgageLimit,
+    mortgageByLtv,
+    mortgageByDsr,
+    monthlyRepayment,
+    effectiveRateForDSR,
+    policyNotes,
+    policyApplied
+  };
+}

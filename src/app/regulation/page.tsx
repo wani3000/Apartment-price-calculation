@@ -22,7 +22,7 @@ export default function RegulationPage() {
     if (savedRegulationOption) {
       setSelectedOption(savedRegulationOption);
     } else {
-      setSelectedOption('new'); // 기본값은 6.27 규제안
+      setSelectedOption('latest'); // 기본값은 10.15 최신 정책
     }
     
     setIsLoading(false);
@@ -36,9 +36,12 @@ export default function RegulationPage() {
     if (selectedOption === 'existing') {
       // 기존 LTV · DSR 적용하기 선택 시 기존 결과 페이지로
       router.push('/result');
-    } else {
-      // 6.27 규제안 적용하기 선택 시 새로운 규제 페이지로
+    } else if (selectedOption === 'new') {
+      // 6.27 규제안 적용하기 선택 시 6.27 규제 페이지로
       router.push('/result/new-regulation');
+    } else if (selectedOption === 'latest') {
+      // 10.15 최신 정책 적용하기 선택 시 최신 정책 페이지로
+      router.push('/result/latest-policy');
     }
   };
 
@@ -52,23 +55,69 @@ export default function RegulationPage() {
         {/* 타이틀 */}
         <div className="mb-6">
           <h1 className="text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px]">
-            2025년 6월 27일<br />가계부채 관리 강화 방안 안내
+            어떤 부동산 정책을<br />적용하여 계산할까요?
           </h1>
         </div>
 
         {/* 설명 */}
         <div className="mb-8">
           <p className="text-grey-80 text-sm font-normal leading-5 tracking-[-0.28px]">
-            2025년 6월 28일부터는 수도권 및 규제지역을 중심으로 주택담보대출의 여신 한도를 최대 6억 원으로 제한하고, 대출 만기는 최대 30년까지만 허용해요.
+            2025년 10월 15일 발표된 최신 주택시장 안정화 대책이 시행되고 있어요.
             <br /><br />
-            또한, LTV 및 DSR 규제를 강화하고, 생활안정자금 목적의 대출도 제한했어요.
+            새로운 정책에는 규제지역 확대, 주담대 한도 제한 강화, 스트레스 DSR 상향 등이 포함되어 있어요.
             <br /><br />
-            이와 함께, 전세대출에 대한 규제도 강화되어, 보다 엄격한 가계부채 관리 기준이 적용돼요.
+            가장 정확한 계산을 위해 최신 정책 적용을 권장해요.
           </p>
         </div>
 
         {/* 선택 옵션들 */}
         <div className="space-y-5">
+          {/* 10.15 최신 정책 적용하기 (권장) */}
+          <button
+            onClick={() => !isLoading && setSelectedOption('latest')}
+            disabled={isLoading}
+            className={`w-full px-3 py-4 flex items-center justify-center rounded-lg border transition-colors relative ${
+              isLoading
+                ? 'border-[#868E96] bg-white opacity-50'
+                : selectedOption === 'latest'
+                ? 'border-[#7577FF] bg-gradient-to-r from-blue-50 to-indigo-50'
+                : 'border-[#868E96] bg-white'
+            }`}
+          >
+            {/* 추천 배지 */}
+            <div className="absolute -top-2 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
+              최신
+            </div>
+
+            <div className="flex justify-between items-center w-full">
+              <div className="flex flex-col items-start">
+                <span
+                  className={`text-base font-bold leading-none tracking-[-0.16px] ${
+                    selectedOption === 'latest' ? 'text-[#7577FF]' : 'text-[#868E96]'
+                  }`}
+                >
+                  10.15 최신 정책 적용하기
+                </span>
+                <span className="text-xs text-grey-70 mt-1">
+                  규제지역 확대, 주담대 한도 제한 등 반영
+                </span>
+              </div>
+              {selectedOption === 'latest' && (
+                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M7.2 8.4L9.6 10.8L16.8 3.6"
+                      stroke="#7577FF"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+          </button>
+
           {/* 6.27 규제안 적용하기 */}
           <button
             onClick={() => !isLoading && setSelectedOption('new')}

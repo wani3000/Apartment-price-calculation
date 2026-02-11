@@ -10,6 +10,9 @@
     "postbuild": "next-sitemap"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.0.2",
+    "@capacitor/core": "^8.0.2",
+    "@capacitor/ios": "^8.0.2",
     "firebase": "^12.0.0",
     "html2canvas": "^1.4.1",
     "next": "14.0.4",
