@@ -45,20 +45,18 @@ export default function DictionaryPage() {
         }}
       >
         <div className="px-5">
-                y1="24"
-                x2="36"
-                y2="24"
-                stroke="#4285F4"
-                strokeWidth="2"
-              />
-              <line
-                x1="20"
-                y1="30"
-                x2="30"
-                y2="30"
-                stroke="#4285F4"
-                strokeWidth="2"
-              />
+          <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 48 48"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect x="10" y="8" width="28" height="32" rx="4" fill="#E7F1FF" />
+              <line x1="16" y1="18" x2="32" y2="18" stroke="#4285F4" strokeWidth="2" />
+              <line x1="16" y1="24" x2="36" y2="24" stroke="#4285F4" strokeWidth="2" />
+              <line x1="16" y1="30" x2="30" y2="30" stroke="#4285F4" strokeWidth="2" />
             </svg>
           </div>
 

@@ -387,7 +387,7 @@ export default function RegionPage() {
       </div>
 
       {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5 safe-area-inset-bottom">
         <button
           onClick={handleSubmit}
           className="flex h-14 w-full justify-center items-center rounded-[300px] bg-primary text-white font-semibold text-base"

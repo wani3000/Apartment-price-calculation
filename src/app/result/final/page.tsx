@@ -110,10 +110,16 @@ export default function FinalResultPage() {
           jeonseLoanPrincipal: policyInput.jeonseLoanPrincipal,
           jeonseLoanRate: policyInput.jeonseLoanRate,
         },
+        3.5,
+        30,
       );
 
       // 갭투자 계산 (기존 방식 유지)
-      const investmentResult = calculateMaxPurchaseForInvestment(totalIncome, assets, 60);
+      const investmentResult = calculateMaxPurchaseForInvestment(
+        totalIncome,
+        assets,
+        60,
+      );
       const investmentMonthlyRepayment = calculateMonthlyInterestOnly(
         investmentResult.creditLoan,
         3.5,
@@ -380,7 +386,7 @@ export default function FinalResultPage() {
 
     // 실제 금리 계산 (스트레스 DSR 비교용)
     const actualRateMonthlyRepayment = calculateMonthlyPayment(
-      newResult.living.mortgageLimit,
+      livingResult.mortgageLimit,
       3.5,
       40,
     );
@@ -388,8 +394,8 @@ export default function FinalResultPage() {
     // 스트레스 DSR 결과 저장 (만원 단위로 변환)
     setStressDSRResult({
       actual: {
-        mortgageLimit: Math.round(newResult.living.mortgageLimit / 10000),
-        maxPropertyPrice: Math.round(newResult.living.maxPropertyPrice / 10000),
+        mortgageLimit: newResult.living.mortgageLimit,
+        maxPropertyPrice: newResult.living.maxPropertyPrice,
         monthlyRepayment: Math.round(actualRateMonthlyRepayment / 10000),
       },
       capital: {
@@ -486,7 +492,13 @@ export default function FinalResultPage() {
         );
       }, 50);
     }
-  }, [activeTab, sharedCalculationData, sharedPolicyData, isSharedLink, searchParams]);
+  }, [
+    activeTab,
+    sharedCalculationData,
+    sharedPolicyData,
+    isSharedLink,
+    searchParams,
+  ]);
 
   useEffect(() => {
     // 공유된 링크인 경우 URL 파라미터에서 데이터 추출 및 계산
@@ -579,7 +591,9 @@ export default function FinalResultPage() {
     if (calculatorDataStr) {
       const calculatorData = JSON.parse(calculatorDataStr);
       const selectedRegion = localStorage.getItem("selectedRegion");
-      const policyRegionDetailsStr = localStorage.getItem("policyRegionDetails");
+      const policyRegionDetailsStr = localStorage.getItem(
+        "policyRegionDetails",
+      );
       const policyRegionDetails = policyRegionDetailsStr
         ? JSON.parse(policyRegionDetailsStr)
         : {};
@@ -906,9 +920,10 @@ export default function FinalResultPage() {
       isLatestPolicy || isNewRegulation627
         ? calculationResult.living.mortgageLimit
         : stressDSRResult.capital.mortgageLimit;
-    const appliedRate = isLatestPolicy ? 6.5 : 5.0;
+    const appliedRate = 3.5;
+    const appliedYears = isLatestPolicy || isNewRegulation627 ? 30 : 40;
     router.push(
-      `/result/schedule?principal=${principalMan * 10000}&rate=${appliedRate}&years=30`,
+      `/result/schedule?principal=${principalMan * 10000}&rate=${appliedRate}&years=${appliedYears}`,
     );
   };
 
@@ -1278,7 +1293,7 @@ export default function FinalResultPage() {
                           </div>
                           <div className="flex justify-end mt-1">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
-                              30년 만기, 금리 6.5%
+                              30년 만기, 월상환 실제금리 3.5%
                             </span>
                           </div>
                         </div>
@@ -1286,7 +1301,7 @@ export default function FinalResultPage() {
                         <div>
                           <div className="flex justify-between items-center">
                             <span className="text-[#495057] text-[15px] font-normal leading-[22px]">
-                              • 금리
+                              • 한도 산정 금리
                             </span>
                             <span className="text-[#212529] text-[17px] font-bold leading-[22px]">
                               6.5%
@@ -1295,6 +1310,22 @@ export default function FinalResultPage() {
                           <div className="flex justify-end mt-1">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               기준금리 3.5% + 스트레스 금리 3.0% = 6.5%
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#495057] text-[15px] font-normal leading-[22px]">
+                              • 월상환 실제금리
+                            </span>
+                            <span className="text-[#212529] text-[17px] font-bold leading-[22px]">
+                              3.5%
+                            </span>
+                          </div>
+                          <div className="flex justify-end mt-1">
+                            <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
+                              스트레스 금리는 한도 산정에만 적용
                             </span>
                           </div>
                         </div>
@@ -1379,7 +1410,23 @@ export default function FinalResultPage() {
                         <div>
                           <div className="flex justify-between items-center">
                             <span className="text-[#495057] text-[15px] font-normal leading-[22px]">
-                              • 금리
+                              • 한도 산정 금리 (수도권)
+                            </span>
+                            <span className="text-[#212529] text-[17px] font-bold leading-[22px]">
+                              5.0%
+                            </span>
+                          </div>
+                          <div className="flex justify-end mt-1">
+                            <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
+                              기준금리 3.5% + 스트레스 금리 1.5% (지방 4.25%)
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#495057] text-[15px] font-normal leading-[22px]">
+                              • 월상환 실제금리
                             </span>
                             <span className="text-[#212529] text-[17px] font-bold leading-[22px]">
                               3.5%
@@ -1387,7 +1434,7 @@ export default function FinalResultPage() {
                           </div>
                           <div className="flex justify-end mt-1">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
-                              기준금리 3.5% + 스트레스 금리 1.5% = 5.0% (지방 4.25%)
+                              스트레스 금리는 한도 산정에만 적용
                             </span>
                           </div>
                         </div>
@@ -1490,7 +1537,23 @@ export default function FinalResultPage() {
                         <div>
                           <div className="flex justify-between items-center">
                             <span className="text-[#495057] text-[15px] font-normal leading-[22px]">
-                              • 금리
+                              • 한도 산정 금리 (수도권)
+                            </span>
+                            <span className="text-[#212529] text-[17px] font-bold leading-[22px]">
+                              5.0%
+                            </span>
+                          </div>
+                          <div className="flex justify-end mt-1">
+                            <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
+                              기준금리 3.5% + 스트레스 금리 1.5% (지방 4.25%)
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#495057] text-[15px] font-normal leading-[22px]">
+                              • 월상환 실제금리
                             </span>
                             <span className="text-[#212529] text-[17px] font-bold leading-[22px]">
                               3.5%
@@ -1498,7 +1561,7 @@ export default function FinalResultPage() {
                           </div>
                           <div className="flex justify-end mt-1">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
-                              기준금리 3.5% + 스트레스 금리 1.5% = 5.0% (지방 4.25%)
+                              스트레스 금리는 한도 산정에만 적용
                             </span>
                           </div>
                         </div>
@@ -1552,7 +1615,7 @@ export default function FinalResultPage() {
                       </div>
                       <p className="text-[#495057] text-[13px] font-medium leading-[18px] tracking-[-0.26px]">
                         {isLatestPolicy
-                          ? "2025.10.15 최신 정책에 따라 강화된 DSR 규제가 적용됩니다. 스트레스 DSR이 3.0%로 상향 조정되었습니다."
+                          ? "2025.10.15 최신 정책에서는 한도 산정 시 스트레스 DSR 3.0%를 적용하고, 월 상환액은 실제 금리(3.5%) 기준으로 별도 표시합니다."
                           : isNewRegulation627
                             ? "6.27 규제안에 따라 모든 금융업권에 DSR 40% 규제가 통일 적용됩니다."
                             : loanOptions.dsr === 50
@@ -1601,7 +1664,7 @@ export default function FinalResultPage() {
                     {isLatestPolicy
                       ? "2025.10.15 최신 정책 (스트레스 DSR 3.0%, 가격별 한도 제한)"
                       : isNewRegulation627
-                        ? "6.27 규제안 기준 (5.0% 스트레스 금리, 수도권)"
+                        ? "6.27 규제안 기준 (한도 산정 금리: 수도권 5.0%, 지방 4.25%)"
                         : "스트레스 DSR 수도권 기준 (5.0% 금리)"}
                   </p>
                   <button
@@ -1628,21 +1691,11 @@ export default function FinalResultPage() {
                           : "40년 만기"}
                     </p>
                     <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                      {isLatestPolicy || isNewRegulation627
-                        ? formatToKorean(
-                            calculationResult.living.monthlyRepayment,
-                          )
-                        : formatToKorean(
-                            stressDSRResult.capital.monthlyRepayment,
-                          )}
+                      {formatToKorean(stressDSRResult.actual.monthlyRepayment)}
                     </p>
                   </div>
                   <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                    {isLatestPolicy
-                      ? "2025.10.15 최신 정책 (스트레스 DSR 3.0%, 가격별 한도 제한)"
-                      : isNewRegulation627
-                        ? "6.27 규제안 기준 (5.0% 스트레스 금리, 수도권)"
-                        : "스트레스 DSR 수도권 기준 (5.0% 금리)"}
+                    월 상환액은 월상환 실제금리 3.5% 기준으로 계산합니다.
                   </p>
                 </div>
               </div>

@@ -45,17 +45,36 @@ export default function NewsPage() {
         }}
       >
         <div className="px-5">
-                y1="28"
-                x2="40"
-                y2="28"
+          <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 48 48"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <rect x="8" y="12" width="32" height="24" rx="4" fill="#E7F1FF" />
+              <line
+                x1="14"
+                y1="20"
+                x2="34"
+                y2="20"
                 stroke="#4285F4"
                 strokeWidth="2"
               />
               <line
-                x1="16"
-                y1="34"
-                x2="32"
-                y2="34"
+                x1="14"
+                y1="26"
+                x2="38"
+                y2="26"
+                stroke="#4285F4"
+                strokeWidth="2"
+              />
+              <line
+                x1="14"
+                y1="32"
+                x2="30"
+                y2="32"
                 stroke="#4285F4"
                 strokeWidth="2"
               />
@@ -274,8 +293,8 @@ export default function NewsPage() {
                       전문가 의견
                     </p>
                     <p className="text-[14px] text-grey-80 leading-[20px]">
-                      "급격한 금리 변동은 없을 것으로 보이나, 글로벌 경제 상황에
-                      따라 유동적일 수 있습니다."
+                      &quot;급격한 금리 변동은 없을 것으로 보이나, 글로벌 경제
+                      상황에 따라 유동적일 수 있습니다.&quot;
                     </p>
                   </div>
                 </div>

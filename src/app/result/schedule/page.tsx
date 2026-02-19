@@ -89,21 +89,24 @@ export default function SchedulePage() {
         <Header backUrl="/result/final" />
 
         <h1 className="text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px] mb-4">
-          30년 만기 상환 스케줄표
+          {years}년 만기 상환 스케줄표
         </h1>
 
         <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-4">
           <p className="text-[#495057] text-sm font-medium leading-5">
-            대출원금: <span className="text-[#212529]">{formatWon(principal)}</span>
+            대출원금:{" "}
+            <span className="text-[#212529]">{formatWon(principal)}</span>
           </p>
           <p className="text-[#495057] text-sm font-medium leading-5">
             적용금리: <span className="text-[#212529]">{rate.toFixed(2)}%</span>
           </p>
           <p className="text-[#495057] text-sm font-medium leading-5">
-            총 납입액: <span className="text-[#212529]">{formatWon(totalPayment)}</span>
+            총 납입액:{" "}
+            <span className="text-[#212529]">{formatWon(totalPayment)}</span>
           </p>
           <p className="text-[#495057] text-sm font-medium leading-5">
-            총 이자액: <span className="text-[#212529]">{formatWon(totalInterest)}</span>
+            총 이자액:{" "}
+            <span className="text-[#212529]">{formatWon(totalInterest)}</span>
           </p>
         </div>
 
@@ -122,10 +125,18 @@ export default function SchedulePage() {
                 className="grid grid-cols-5 border-t border-grey-40 text-[12px] text-[#495057]"
               >
                 <div className="px-2 py-2 text-center">{row.month}</div>
-                <div className="px-2 py-2 text-right">{formatWon(row.payment)}</div>
-                <div className="px-2 py-2 text-right">{formatWon(row.principal)}</div>
-                <div className="px-2 py-2 text-right">{formatWon(row.interest)}</div>
-                <div className="px-2 py-2 text-right">{formatWon(row.balance)}</div>
+                <div className="px-2 py-2 text-right">
+                  {formatWon(row.payment)}
+                </div>
+                <div className="px-2 py-2 text-right">
+                  {formatWon(row.principal)}
+                </div>
+                <div className="px-2 py-2 text-right">
+                  {formatWon(row.interest)}
+                </div>
+                <div className="px-2 py-2 text-right">
+                  {formatWon(row.balance)}
+                </div>
               </div>
             ))}
           </div>
