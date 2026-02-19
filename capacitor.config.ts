@@ -7,6 +7,12 @@ const config: CapacitorConfig = {
   ios: {
     contentInset: "automatic",
   },
+  plugins: {
+    StatusBar: {
+      style: "light",
+      backgroundColor: "#ffffff",
+    },
+  },
 };
 
 export default config;

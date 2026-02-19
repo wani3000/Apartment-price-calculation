@@ -16,7 +16,7 @@ module.exports = {
         'grey-70': '#868E96',
         'grey-60': '#ADB5BD',
         'grey-40': '#DEE2E6',
-        'primary': '#7577FF',
+        'primary': '#000000',
       },
       animation: {
         'slide-left': 'slideLeft 15s linear infinite',

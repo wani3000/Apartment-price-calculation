@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>2025.10 주택시장 안정화 대책 계산 검증 레퍼런스</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --card: #ffffff;
+        --line: #dbe3ef;
+        --text: #111827;
+        --muted: #6b7280;
+        --accent: #1d4ed8;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.58;
+      }
+      .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 14px;
+      }
+      h1, h2, h3 { margin: 0 0 12px 0; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 20px; }
+      h3 { font-size: 16px; }
+      p { margin: 0 0 8px 0; }
+      ul, ol { margin: 0; padding-left: 20px; }
+      li { margin: 0 0 6px 0; }
+      code {
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 13px;
+      }
+      pre {
+        margin: 0;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 14px;
+        border-radius: 10px;
+        overflow-x: auto;
+        font-size: 13px;
+      }
+      table { width: 100%; border-collapse: collapse; }
+      th, td {
+        border: 1px solid var(--line);
+        padding: 10px;
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+      }
+      th { background: #f8fafc; }
+      .muted { color: var(--muted); }
+      .note {
+        border-left: 4px solid var(--accent);
+        background: #eff6ff;
+        padding: 10px 12px;
+        border-radius: 8px;
+      }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card">
+        <h1>2025.10 주택시장 안정화 대책 계산 검증 레퍼런스</h1>
+        <p class="muted">용도: 여러 에이전트가 동일 기준으로 계산공식/정책 반영 여부를 검증하기 위한 내부 기준 문서</p>
+        <p>작성일: 2026-02-13</p>
+      </section>
+
+      <section class="card">
+        <h2>1) 기준 문서 식별 정보</h2>
+        <table>
+          <tr>
+            <th>항목</th>
+            <th>값</th>
+          </tr>
+          <tr>
+            <td>원본 파일</td>
+            <td><code>/Users/chulwan/Downloads/251015(석간)(안건)_주택시장_안정화_대책(주택정책과).pdf</code></td>
+          </tr>
+          <tr>
+            <td>SHA-256</td>
+            <td><code>e80fd00186118e7235e0c52552ad9b442ff88e97f490e3e96fbf2832e964d0fe</code></td>
+          </tr>
+          <tr>
+            <td>크기 / 시각</td>
+            <td><code>1,160,479 bytes</code>, <code>2026-02-13 08:35:40</code></td>
+          </tr>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>2) 정책 핵심 항목 (계산 반영 관점)</h2>
+        <ol>
+          <li>규제지역 확대(서울 전역 + 경기 일부) 여부를 대출 규칙 분기의 입력값으로 사용</li>
+          <li>주담대 가격구간별 한도 캡 적용
+            <p class="muted">15억 이하 6억, 15억 초과~25억 이하 4억, 25억 초과 2억</p>
+          </li>
+          <li>스트레스 DSR 가산 강화
+            <p class="muted">규제지역/수도권에서 유효금리 산정 시 가산금리 반영(앱 구현: +3.0%)</p>
+          </li>
+          <li>1주택자 전세대출 이자 DSR 반영
+            <p class="muted">조건 충족 시 월 DSR 여력에서 전세대출 월 이자 차감</p>
+          </li>
+          <li>토지거래허가구역 실거주 의무(정책 안내용 플래그)
+            <p class="muted">대출한도 공식보다는 결과 설명/경고 문구에 사용</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="card">
+        <h2>3) 계산 공식 표준</h2>
+        <h3>입력</h3>
+        <ul>
+          <li><code>annualIncome</code>: 연소득(원)</li>
+          <li><code>assets</code>: 보유자산(원)</li>
+          <li><code>dsrRatio</code>: DSR 비율(%)</li>
+          <li><code>loanRate</code>: 기본 대출금리(%)</li>
+          <li><code>loanYears</code>: 만기(년)</li>
+          <li><code>priceAsking</code>: 대상 주택가격(원, 직접 입력형일 때)</li>
+          <li><code>policyFlags</code>: 지역/규제/토지허가 플래그</li>
+          <li><code>userFlags</code>: 주택보유, 임차, 전세대출 정보</li>
+        </ul>
+
+        <h3>핵심식</h3>
+        <pre><code>monthlyDSR = (annualIncome * dsrRatio / 100) / 12
+
+jeonseInterestMonthly = (jeonseLoanPrincipal * jeonseLoanRate / 100) / 12
+adjustedMonthlyDSR = max(0, monthlyDSR - jeonseInterestMonthly)   // 조건 충족 시
+
+effectiveRateForDSR = loanRate + stressRate
+  stressRate = 3.0 (규제지역/수도권 구현 기준), 아니면 0
+
+loanLimit(monthlyBudget, rate, years) =
+  monthlyBudget * ((1 - (1 + r)^(-n)) / r)
+  where r = rate / 100 / 12, n = years * 12
+
+mortgageByDsr = loanLimit(adjustedMonthlyDSR, effectiveRateForDSR, loanYears)
+mortgageByLtv = priceAsking * LTV
+  LTV 구현 기준: 70% (0.7)
+
+mortgageCapByPrice(priceAsking):
+  if priceAsking <= 1.5e9: 6e8
+  else if priceAsking <= 2.5e9: 4e8
+  else: 2e8
+
+mortgageLimit = min(mortgageByLtv, mortgageByDsr, mortgageCapByPrice)
+maxPropertyPrice = assets + mortgageLimit
+
+monthlyRepayment(principal, rate, years) =
+  principal * (r * (1+r)^n) / ((1+r)^n - 1)</code></pre>
+
+        <h3>가격 미입력(현재 앱)일 때 표준 계산</h3>
+        <pre><code>fixed-point equation:
+P = assets + min(0.7*P, mortgageByDsr, cap(P))
+
+where
+cap(P) =
+  6e8  if P <= 1.5e9
+  4e8  if 1.5e9 &lt; P <= 2.5e9
+  2e8  if P &gt; 2.5e9
+
+iterative solver:
+P0 = assets
+Pk+1 = assets + min(0.7*Pk, mortgageByDsr, cap(Pk))
+stop when |Pk+1 - Pk| &lt; 1 (won)</code></pre>
+      </section>
+
+      <section class="card">
+        <h2>4) 구현 대조 체크리스트 (현재 코드 기준)</h2>
+        <table>
+          <tr>
+            <th>검증 포인트</th>
+            <th>확인 파일</th>
+            <th>판정 기준</th>
+          </tr>
+          <tr>
+            <td>정책 플래그 판정</td>
+            <td><code>src/utils/calculator.ts</code> / <code>determinePolicyFlags</code></td>
+            <td>서울/경기 일부가 규제/토지허가 플래그로 일관되게 판정되는지</td>
+          </tr>
+          <tr>
+            <td>가격구간 캡</td>
+            <td><code>src/utils/calculator.ts</code> / <code>calculateMortgageCapByPrice</code></td>
+            <td>15억/25억 경계값 처리(이하/초과)가 정책 기준과 동일한지</td>
+          </tr>
+          <tr>
+            <td>전세대출 이자 DSR 차감 조건</td>
+            <td><code>src/utils/calculator.ts</code> / <code>calculateMaxPurchaseWithPolicy20251015</code></td>
+            <td>1주택+임차+전세대출+규제지역 조건 동시 충족 시에만 차감되는지</td>
+          </tr>
+          <tr>
+            <td>최신정책 입력 연계</td>
+            <td><code>src/app/result/final/page.tsx</code></td>
+            <td><code>selectedRegion/homeOwnerCount/isTenant/hasJeonseLoan</code>가 실제 계산 함수 인자로 전달되는지</td>
+          </tr>
+          <tr>
+            <td>가격 미입력 시 최대구매가 산출</td>
+            <td><code>src/utils/calculator.ts</code> / <code>calculateMaxPurchaseWithPolicy20251015ByCapacity</code></td>
+            <td>고정점 반복식으로 DSR/LTV/가격캡을 동시에 만족하는지</td>
+          </tr>
+          <tr>
+            <td>공유 링크 재현성</td>
+            <td><code>src/app/result/final/page.tsx</code></td>
+            <td>정책 입력이 URL 파라미터에 포함되고 다시 로드될 때 동일 계산이 재현되는지</td>
+          </tr>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>5) 최소 테스트 케이스</h2>
+        <ol>
+          <li>규제지역 + 1주택 + 전세대출 있음 vs 없음: <code>mortgageByDsr</code> 감소 확인</li>
+          <li>동일 소득/자산에서 15억, 20억, 30억 호가 입력: 캡 6억/4억/2억 단계 변경 확인</li>
+          <li>규제지역 vs 비규제지역: 스트레스 가산/캡 적용 여부 차이 확인</li>
+          <li>경계값: 금리 0, 상환기간 0, DSR 여력 0일 때 NaN/Infinity 없이 0 또는 안전값 반환 확인</li>
+        </ol>
+      </section>
+
+      <section class="card note">
+        <h2>6) 출처 및 검증 주의</h2>
+        <p>
+          이 문서는 첨부 PDF 식별정보를 기준으로 작성했으며, 자동 텍스트 추출 제한이 있어 계산 기준은
+          코드 구현 및 공개된 동일 정책 요약과 교차검증해 정리했습니다.
+          릴리즈 직전에는 반드시 원문 PDF와 항목별 대조(숫자, 경계조건, 적용대상)를 1회 수행하세요.
+        </p>
+        <p>참고 링크:</p>
+        <ul>
+          <li><a href="https://www.fsc.go.kr/po020201/84825?curPage=2&srchBeginDt=&srchCtgry=&srchEndDt=&srchKey=&srchText=" target="_blank" rel="noopener noreferrer">금융위원회 가계대출 관리 강화 방안 FAQ(6.27) - 공식</a></li>
+          <li><a href="https://www.acrc.go.kr/board.es?act=view&bid=4&list_no=90988&mid=a10606010000&nPage=1205&tag=&utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer">유관기관 게시판 내 동일 정책 문서 안내 페이지</a></li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

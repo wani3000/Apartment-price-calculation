@@ -3,193 +3,220 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-Thin.woff2') format('woff2');
-  font-weight: 100;
-  font-style: normal;
-  font-display: swap;
+    font-family: "Pretendard";
+    src: url("/fonts/Pretendard-Thin.woff2") format("woff2");
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
 }
 @font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-ExtraLight.woff2') format('woff2');
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
+    font-family: "Pretendard";
+    src: url("/fonts/Pretendard-ExtraLight.woff2") format("woff2");
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
 }
 @font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-Light.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
+    font-family: "Pretendard";
+    src: url("/fonts/Pretendard-Light.woff2") format("woff2");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
 }
 @font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
+    font-family: "Pretendard";
+    src: url("/fonts/Pretendard-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
 }
 @font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
+    font-family: "Pretendard";
+    src: url("/fonts/Pretendard-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
 }
 @font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-SemiBold.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
+    font-family: "Pretendard";
+    src: url("/fonts/Pretendard-SemiBold.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
 }
 @font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
+    font-family: "Pretendard";
+    src: url("/fonts/Pretendard-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
 }
 @font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-ExtraBold.woff2') format('woff2');
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
+    font-family: "Pretendard";
+    src: url("/fonts/Pretendard-ExtraBold.woff2") format("woff2");
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
 }
 @font-face {
-  font-family: 'Pretendard';
-  src: url('/fonts/Pretendard-Black.woff2') format('woff2');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
+    font-family: "Pretendard";
+    src: url("/fonts/Pretendard-Black.woff2") format("woff2");
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
 }
 
 :root {
-  --grey-100: #212529;
-  --grey-80: #495057;
-  --grey-60: #ADB5BD;
-  --primary: #7577FF;
+    --grey-100: #212529;
+    --grey-80: #495057;
+    --grey-60: #adb5bd;
+    --primary: #000000;
+    --page-header-offset: 76px;
+    --page-bottom-cta-offset: 90px;
 }
 
-html, body {
-  font-family: 'Pretendard';
+html,
+body {
+    font-family: "Pretendard";
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 html {
-  /* 모바일 브라우저에서 스크롤 문제 해결 */
-  height: 100%;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+    /* 모바일 브라우저에서 스크롤 문제 해결 */
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    /* 불필요한 세로 스크롤 방지 */
+    overflow-y: auto;
 }
 
 body {
-  color: var(--grey-100);
-  background: white;
-  /* 모바일 브라우저에서 스크롤 문제 해결 */
-  min-height: 100%;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  /* iOS Safari에서 바운스 효과 방지 */
-  overscroll-behavior: none;
+    color: var(--grey-100);
+    background: white;
+    /* 모바일 브라우저에서 스크롤 문제 해결 */
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    /* iOS Safari에서 바운스 효과 방지 */
+    overscroll-behavior: none;
+    /* 최소 높이를 뷰포트로 설정 */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+}
+
+/* iOS에서 상단 스테이터스바 영역 배경색 */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    background-color: white;
+    z-index: 9999;
 }
 
 /* 모바일에서 safe area 지원 */
 @supports (padding: max(0px)) {
-  .safe-area-inset-bottom {
-    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
-  }
+    .safe-area-inset-bottom {
+        padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    }
 }
 
-
-
 .image-slider-container {
-  width: 100%;
-  overflow: hidden;
-  position: relative;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
 }
 
 .image-slider {
-  display: flex;
-  animation: infiniteSlide 15s linear infinite;
-  align-items: center;
-  width: calc(230px * 10); /* 5개 이미지 × 2세트 × 230px - 모바일 */
+    display: flex;
+    animation: infiniteSlide 15s linear infinite;
+    align-items: center;
+    width: calc(250px * 10); /* 5개 이미지 × 2세트 × 250px - 모바일 */
 }
 
 .image-card {
-  flex-shrink: 0;
-  width: 220px; /* 모바일 기본 크기 */
-  margin-right: 10px;
+    flex-shrink: 0;
+    width: 240px; /* 모바일 기본 크기 (220px + 20px) */
+    margin-right: 10px;
 }
 
 /* 태블릿 이상에서 카드 크기 증가 */
 @media (min-width: 768px) {
-  .image-slider {
-    width: calc(330px * 10); /* 5개 이미지 × 2세트 × 330px - 태블릿/데스크탑 */
-  }
-  
-  .image-card {
-    width: 320px; /* 태블릿/데스크탑 크기 */
-  }
+    .image-slider {
+        width: calc(
+            330px * 10
+        ); /* 5개 이미지 × 2세트 × 330px - 태블릿/데스크탑 */
+    }
+
+    .image-card {
+        width: 320px; /* 태블릿/데스크탑 크기 */
+    }
 }
 
 @keyframes infiniteSlide {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(calc(-230px * 5)); /* 5개 이미지만큼 이동 - 모바일 */
-  }
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(
+            calc(-250px * 5)
+        ); /* 5개 이미지만큼 이동 - 모바일 (240px + 10px margin) */
+    }
 }
 
 /* 태블릿 이상에서 애니메이션 거리 조정 */
 @media (min-width: 768px) {
-  @keyframes infiniteSlide {
-    0% {
-      transform: translateX(0);
+    @keyframes infiniteSlide {
+        0% {
+            transform: translateX(0);
+        }
+        100% {
+            transform: translateX(
+                calc(-330px * 5)
+            ); /* 5개 이미지만큼 이동 - 태블릿/데스크탑 */
+        }
     }
-    100% {
-      transform: translateX(calc(-330px * 5)); /* 5개 이미지만큼 이동 - 태블릿/데스크탑 */
-    }
-  }
 }
 
 /* Dots Loader */
 .dots-loader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: var(--primary);
-  animation: dotPulse 1.4s ease-in-out infinite both;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    animation: dotPulse 1.4s ease-in-out infinite both;
 }
 
 .dot:nth-child(1) {
-  animation-delay: -0.32s;
+    animation-delay: -0.32s;
 }
 
 .dot:nth-child(2) {
-  animation-delay: -0.16s;
+    animation-delay: -0.16s;
 }
 
 .dot:nth-child(3) {
-  animation-delay: 0s;
+    animation-delay: 0s;
 }
 
 @keyframes dotPulse {
-  0%, 80%, 100% {
-    transform: scale(0.6);
-    opacity: 0.5;
-  }
-  40% {
-    transform: scale(1);
-    opacity: 1;
-  }
-} 
+    0%,
+    80%,
+    100% {
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

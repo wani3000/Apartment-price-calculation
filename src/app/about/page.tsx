@@ -39,9 +39,9 @@ export default function AboutPage() {
                     생애최초 특별공급, 신혼부부 특례 등 실거주자 혜택을 반영합니다.
                   </p>
                 </div>
-                <div className="bg-purple-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-bold text-purple-800 mb-3">갭투자 계산</h3>
-                  <p className="text-purple-700 text-sm leading-relaxed">
+                <div className="bg-gray-100 p-6 rounded-lg">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">갭투자 계산</h3>
+                  <p className="text-gray-800 text-sm leading-relaxed">
                     투자 목적으로 아파트를 구매할 때의 조건을 계산합니다. 
                     연소득 대비 신용대출 한도(120%)와 투자용 주택 대출 규제를 반영합니다.
                   </p>
@@ -102,7 +102,7 @@ export default function AboutPage() {
                 </div>
                 
                 <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                  <div className="flex-shrink-0 w-2 h-2 bg-black rounded-full mt-2"></div>
                   <div>
                     <h4 className="font-semibold text-gray-800">비교 분석</h4>
                     <p className="text-gray-600 text-sm">실거주와 갭투자 결과를 비교하여 최적의 선택을 도와드립니다.</p>

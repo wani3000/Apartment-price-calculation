@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:ios": "next build && npx cap sync ios",
     "start": "next start",
     "lint": "next lint",
     "postbuild": "next-sitemap"
@@ -13,6 +14,7 @@
     "@capacitor/cli": "^8.0.2",
     "@capacitor/core": "^8.0.2",
     "@capacitor/ios": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.0",
     "firebase": "^12.0.0",
     "html2canvas": "^1.4.1",
     "next": "14.0.4",

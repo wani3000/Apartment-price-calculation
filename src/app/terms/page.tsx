@@ -22,8 +22,8 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold mb-4 text-gray-800">제2조 (정의)</h2>
             <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-              <li>"서비스"란 아파트 가격 계산 및 관련 정보 제공 서비스를 의미합니다.</li>
-              <li>"이용자"란 본 약관에 따라 서비스를 이용하는 자를 말합니다.</li>
+              <li>&quot;서비스&quot;란 아파트 가격 계산 및 관련 정보 제공 서비스를 의미합니다.</li>
+              <li>&quot;이용자&quot;란 본 약관에 따라 서비스를 이용하는 자를 말합니다.</li>
             </ul>
           </section>
 

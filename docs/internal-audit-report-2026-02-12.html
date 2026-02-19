@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AptGugu 내부 구조/정책/계산 검수 보고서 (2026-02-12)</title>
+    <style>
+      :root {
+        --bg: #f6f8fb;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --line: #e5e7eb;
+        --ok: #0f766e;
+        --warn: #b45309;
+        --risk: #b91c1c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      h1, h2, h3 {
+        margin: 0 0 12px 0;
+      }
+      h1 {
+        font-size: 26px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+      h3 {
+        font-size: 16px;
+      }
+      p, li {
+        margin: 0 0 8px 0;
+      }
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 6px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 13px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid var(--line);
+        padding: 10px;
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+      }
+      th {
+        background: #f9fafb;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .sev-high {
+        color: var(--risk);
+        font-weight: 700;
+      }
+      .sev-mid {
+        color: var(--warn);
+        font-weight: 700;
+      }
+      .sev-low {
+        color: var(--ok);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card">
+        <h1>AptGugu 내부 구조/정책/계산 검수 보고서</h1>
+        <p class="muted">작성일: 2026-02-12</p>
+        <p>대상 리포지토리: <code>/Users/chulwan/Documents/GitHub/Apartment-price-calculation</code></p>
+      </section>
+
+      <section class="card">
+        <h2>1) 앱 구조 요약</h2>
+        <ul>
+          <li>프레임워크: Next.js 14 App Router + React 18 + TypeScript + Tailwind + Capacitor iOS</li>
+          <li>주요 사용자 플로우: <code>/</code> → <code>/nickname</code> → <code>/calculator</code> → <code>/region</code> → <code>/regulation</code> → 결과 페이지</li>
+          <li>결과 페이지 분기:
+            <ul>
+              <li>기존 정책: <code>/result</code> → <code>/result/final</code></li>
+              <li>6.27 정책: <code>/result/new-regulation</code> → <code>/result/final?regulation=new627</code></li>
+              <li>10.15 정책: <code>/result/final?regulation=latest</code></li>
+            </ul>
+          </li>
+          <li>데이터 저장 방식: 대부분 <code>localStorage</code> 기반 상태 전달</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>2) 계산 로직 및 정책 반영 현황</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th>핵심 함수/경로</th>
+              <th>확인 내용</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>원리금 계산</td>
+              <td><code>src/utils/calculator.ts</code></td>
+              <td><code>calculateMonthlyPayment</code>, <code>calculateLoanLimit</code>, <code>calculateMonthlyInterestOnly</code> 공식 구현 확인</td>
+            </tr>
+            <tr>
+              <td>기존 정책</td>
+              <td><code>calculateMaxPurchaseForLiving</code>, <code>calculateMaxPurchaseForInvestment</code></td>
+              <td>실거주/갭투자 2개 시나리오 계산 분기 확인</td>
+            </tr>
+            <tr>
+              <td>6.27 정책</td>
+              <td><code>calculateMaxPurchaseWithNewRegulation627</code></td>
+              <td>30년, DSR 40%, 수도권 6억 상한, 스트레스 금리 분기 확인</td>
+            </tr>
+            <tr>
+              <td>10.15 정책</td>
+              <td><code>determinePolicyFlags</code>, <code>calculateMaxPurchaseWithPolicy20251015</code></td>
+              <td>규제지역 플래그, 주담대 캡(15/25억 구간), 스트레스 3.0%, 전세대출 이자 차감 로직 존재</td>
+            </tr>
+            <tr>
+              <td>정책 설명 페이지</td>
+              <td><code>src/app/policy/page.tsx</code>, <code>src/app/regulation/page.tsx</code></td>
+              <td>정책 소개 문구 존재하나 실제 계산 입력과 일부 불일치 발견 (아래 이슈 참조)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>3) 주요 이상점/리스크</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>심각도</th>
+              <th>이슈</th>
+              <th>근거</th>
+              <th>영향</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="sev-high">HIGH</td>
+              <td>공유 단축 링크 경로 미구현 가능성</td>
+              <td>
+                <code>src/app/result/final/page.tsx</code>에서 <code>/api/shorten</code> POST 및 <code>/result/{slug}</code> 링크 생성.
+                현재 <code>src/app</code> 내 API 라우트/동적 slug 라우트 확인되지 않음.
+              </td>
+              <td>공유 기능 실패 또는 404 가능성</td>
+            </tr>
+            <tr>
+              <td class="sev-high">HIGH</td>
+              <td>지역 선택(<code>/region</code>)이 계산에 반영되지 않음</td>
+              <td>
+                <code>selectedRegion</code>는 <code>src/app/region/page.tsx</code>에서 저장만 하고,
+                다른 페이지에서 참조되지 않음.
+              </td>
+              <td>사용자 선택과 결과 불일치. 정책 신뢰도 저하</td>
+            </tr>
+            <tr>
+              <td class="sev-high">HIGH</td>
+              <td>10.15 계산이 사용자 입력 일부를 무시하고 하드코딩 사용</td>
+              <td>
+                <code>src/app/result/final/page.tsx</code>에서
+                <code>determinePolicyFlags("서울","강남구")</code>,
+                <code>mockPriceAsking=10억</code>,
+                <code>homeOwnerCount:1</code> 등 고정값 사용.
+              </td>
+              <td>실제 입력값과 다른 계산 결과 제공 가능</td>
+            </tr>
+            <tr>
+              <td class="sev-mid">MEDIUM</td>
+              <td>LTV 파라미터가 일부 함수에서 실질 미사용</td>
+              <td>
+                <code>calculateMaxPurchaseForLiving</code>,
+                <code>calculateMaxPurchaseForLivingWithStressDSR</code> 시그니처에 <code>ltv</code> 있으나 계산에 직접 반영되지 않음.
+              </td>
+              <td>UI에서 LTV를 선택해도 체감 반영이 약하거나 없음</td>
+            </tr>
+            <tr>
+              <td class="sev-mid">MEDIUM</td>
+              <td>정적 Export 설정과 서버형 공유 단축 기능 충돌 위험</td>
+              <td>
+                <code>next.config.js</code>에서 <code>output: "export"</code> 설정.
+                일반적으로 런타임 API 라우트와 양립 어려움.
+              </td>
+              <td>배포 환경에서 공유 단축 기능 불능 가능성</td>
+            </tr>
+            <tr>
+              <td class="sev-low">LOW</td>
+              <td>법적 문서 페이지의 최종수정일 동적 표기</td>
+              <td>
+                <code>src/app/terms/page.tsx</code>, <code>src/app/privacy/page.tsx</code>에서
+                <code>new Date().toLocaleDateString</code> 사용.
+              </td>
+              <td>실제 개정일과 화면 표기가 불일치할 가능성</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>4) 계산 정책 검증 메모</h2>
+        <ul>
+          <li>원리금/대출한도 공식 자체는 일반적인 금융 수식 형태로 구현되어 있음.</li>
+          <li>다만 0% 금리, 0년 기간 같은 경계값 방어 로직이 없어 입력 확장 시 <code>Infinity/NaN</code> 위험 존재.</li>
+          <li>10.15 정책의 핵심은 존재하나, 실제 사용자 입력/지역 컨텍스트 연결이 약해 정책 정확도보다 "데모형 계산"에 가까움.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>5) 실행 검증 결과</h2>
+        <ul>
+          <li><code>npm run build</code>: 성공</li>
+          <li>빌드 경고: <code>/result/final</code>, <code>/result/plan</code>는 client-side rendering deopt 경고</li>
+          <li><code>npm run lint</code>: ESLint 초기 설정 인터랙티브 프롬프트로 자동 점검 미완료</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>6) 우선 개선 권장 순서</h2>
+        <ol>
+          <li>공유 링크 체계 정상화: <code>/api/shorten</code> 및 <code>/result/[slug]</code> 구현 또는 정적배포 구조에 맞는 대체안 적용</li>
+          <li><code>selectedRegion</code>, 주택보유/전세대출 입력값을 10.15 계산 함수에 실제 연결</li>
+          <li><code>mockPriceAsking</code> 및 하드코딩 플래그 제거, 사용자 입력/지역 데이터 기반 계산으로 전환</li>
+          <li>LTV 파라미터 실반영 또는 UI/문구 정합화</li>
+          <li>법적 문서의 "최종수정일"을 고정된 실제 개정일로 관리</li>
+        </ol>
+      </section>
+    </main>
+  </body>
+</html>

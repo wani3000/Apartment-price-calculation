@@ -34,9 +34,9 @@ export default function HelpPage() {
                   </div>
                 </div>
                 
-                <div className="bg-purple-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-bold text-purple-800 mb-3">3단계: 결과 확인</h3>
-                  <div className="space-y-2 text-purple-700 text-sm">
+                <div className="bg-gray-100 p-6 rounded-lg">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">3단계: 결과 확인</h3>
+                  <div className="space-y-2 text-gray-800 text-sm">
                     <p>• 구매 가능한 최대 아파트 가격</p>
                     <p>• 필요한 자기자본 (계약금 + 중도금)</p>
                     <p>• 월 상환액 예상치</p>

@@ -10,11 +10,16 @@
  * @returns 월 상환액
  */
 export function calculateMonthlyPayment(principal: number, rate: number, years: number): number {
+  if (principal <= 0 || years <= 0) return 0;
+
   // 월이자율 변환
   const monthlyRate = rate / 100 / 12;
   // 총 납입 횟수
   const payments = years * 12;
-  
+
+  // 무이자(0%) 예외 처리
+  if (monthlyRate === 0) return principal / payments;
+
   // 월납입액 = 원금 × 월이자율 × (1 + 월이자율)^총개월수 ÷ (1 + 월이자율)^총개월수 − 1
   return principal * (monthlyRate * Math.pow(1 + monthlyRate, payments)) / (Math.pow(1 + monthlyRate, payments) - 1);
 }
@@ -26,6 +31,8 @@ export function calculateMonthlyPayment(principal: number, rate: number, years: 
  * @returns 월 이자액
  */
 export function calculateMonthlyInterestOnly(principal: number, rate: number): number {
+  if (principal <= 0 || rate <= 0) return 0;
+
   // 월이자율 변환
   const monthlyRate = rate / 100 / 12;
   
@@ -41,11 +48,16 @@ export function calculateMonthlyInterestOnly(principal: number, rate: number): n
  * @returns 대출 한도 (원)
  */
 export function calculateLoanLimit(monthlyDSR: number, rate: number, years: number): number {
+  if (monthlyDSR <= 0 || years <= 0) return 0;
+
   // 월이자율 변환
   const monthlyRate = rate / 100 / 12;
   // 총 납입 횟수
   const payments = years * 12;
-  
+
+  // 무이자(0%) 예외 처리
+  if (monthlyRate === 0) return monthlyDSR * payments;
+
   // 대출한도 = 월납입액 × (1 - (1 + 월이자율)^-총개월수) ÷ 월이자율
   return monthlyDSR * ((1 - Math.pow(1 + monthlyRate, -payments)) / monthlyRate);
 }
@@ -66,7 +78,7 @@ export function calculateMaxPurchaseForLiving(
   dsrRatio: number,
   loanRate: number = 3.5,
   loanYears: number = 40,
-  ltv: number = 70
+  _ltv: number = 70
 ): { maxPropertyPrice: number, mortgageLimit: number, creditLoan: number } {
   // 월 DSR 한도 = (연소득 × DSR비율) ÷ 12
   const monthlyDSR = (annualIncome * dsrRatio / 100) / 12;
@@ -80,15 +92,6 @@ export function calculateMaxPurchaseForLiving(
   // 최대 구매 가능 금액 = 보유자산 + 주택담보대출 한도
   // DSR이 높을수록 대출 한도가 높아지고, 최대 구매 가능 금액도 커짐
   const maxPropertyPrice = assets + mortgageLimit;
-  
-  console.log('계산 정보:', {
-    annualIncome,
-    dsrRatio,
-    monthlyDSR,
-    mortgageLimit,
-    assets,
-    maxPropertyPrice
-  });
   
   return {
     maxPropertyPrice,
@@ -115,7 +118,7 @@ export function calculateMaxPurchaseForLivingWithStressDSR(
   isCapitalArea: boolean = true,
   loanRate: number = 3.5,
   loanYears: number = 40,
-  ltv: number = 70
+  _ltv: number = 70
 ): { 
   maxPropertyPrice: number, 
   mortgageLimit: number, 
@@ -140,19 +143,6 @@ export function calculateMaxPurchaseForLivingWithStressDSR(
   
   // 최대 구매 가능 금액 = 보유자산 + 주택담보대출 한도
   const maxPropertyPrice = assets + mortgageLimit;
-  
-  console.log('스트레스 DSR 3단계 계산 정보:', {
-    annualIncome,
-    dsrRatio,
-    isCapitalArea,
-    stressRate: `${stressRate}%`,
-    baseRate: `${loanRate}%`,
-    effectiveRate: `${effectiveRate}%`,
-    monthlyDSR,
-    mortgageLimit,
-    assets,
-    maxPropertyPrice
-  });
   
   return {
     maxPropertyPrice,
@@ -221,7 +211,6 @@ export function calculateMaxPurchaseWithNewRegulation627(
   const stressRate = isCapitalArea ? 1.5 : 0.75; // 수도권 1.5%, 지방 0.75%
   const effectiveRate = baseRate + stressRate; // 유효 금리 (수도권 5.0%, 지방 4.25%)
   const dsrRatio = 40; // 40% 고정
-  const ltv = isCapitalArea ? 70 : 80; // 수도권 70%, 지방 80%
   
   // 월 DSR 한도 = (연소득 × DSR비율) ÷ 12
   const monthlyDSR = (annualIncome * dsrRatio / 100) / 12;
@@ -248,23 +237,6 @@ export function calculateMaxPurchaseWithNewRegulation627(
   // 최대 구매 가능 금액 = 보유자산 + 주택담보대출 한도
   const maxPropertyPrice = assets + mortgageLimit;
   
-  console.log('6.27 규제안 계산 정보:', {
-    annualIncome,
-    dsrRatio,
-    isCapitalArea,
-    baseRate: `${baseRate}%`,
-    stressRate: `${stressRate}%`,
-    effectiveRate: `${effectiveRate}%`,
-    ltv: `${ltv}%`,
-    monthlyDSR,
-    dsrBasedLimit,
-    maxLoanAmount: isCapitalArea ? `${maxLoanAmount!.toLocaleString()}원` : '제한 없음',
-    mortgageLimit,
-    monthlyRepayment,
-    assets,
-    maxPropertyPrice
-  });
-  
   return {
     maxPropertyPrice,
     mortgageLimit,
@@ -284,6 +256,33 @@ export interface PolicyFlags {
   isTojiPermitArea: boolean;
   tojiPermitStart?: string;
   tojiPermitEnd?: string;
+}
+
+export type RegionSelection = "regulated" | "non-regulated";
+
+/**
+ * UI의 단순 지역 선택값을 정책 플래그로 변환
+ * - regulated: 규제지역(보수적으로 수도권/규제/토지허가 플래그 적용)
+ * - non-regulated: 비규제지역
+ */
+export function mapRegionSelectionToPolicyFlags(
+  selectedRegion: RegionSelection,
+): PolicyFlags {
+  if (selectedRegion === "regulated") {
+    return {
+      isCapitalArea: true,
+      isRegulatedArea: true,
+      isTojiPermitArea: true,
+      tojiPermitStart: "2025-10-20",
+      tojiPermitEnd: "2026-12-31",
+    };
+  }
+
+  return {
+    isCapitalArea: false,
+    isRegulatedArea: false,
+    isTojiPermitArea: false,
+  };
 }
 
 /**
@@ -488,5 +487,100 @@ export function calculateMaxPurchaseWithPolicy20251015(
     effectiveRateForDSR,
     policyNotes,
     policyApplied
+  };
+}
+
+/**
+ * 2025.10.15 정책의 제약(DSR/LTV/가격구간별 캡)을 동시에 만족하는
+ * 최대 구매가능가를 수치 반복으로 계산
+ */
+export function calculateMaxPurchaseWithPolicy20251015ByCapacity(
+  annualIncome: number,
+  assets: number,
+  policyFlags: PolicyFlags,
+  dsrRatio: number,
+  userFlags?: {
+    homeOwnerCount?: number;
+    isTenant?: boolean;
+    hasJeonseLoan?: boolean;
+    jeonseLoanPrincipal?: number;
+    jeonseLoanRate?: number;
+  },
+  loanRate: number = 3.5,
+  loanYears: number = 40
+): {
+  maxPropertyPrice: number;
+  mortgageLimit: number;
+  mortgageByLtv: number;
+  mortgageByDsr: number;
+  monthlyRepayment: number;
+  effectiveRateForDSR: number;
+  policyNotes: string[];
+  policyApplied: {
+    mortgageCapApplied: boolean;
+    stressRateApplied: boolean;
+    jeonseInterestInDsr: boolean;
+    mortgageCapAmount?: number;
+  };
+  derivedPriceAsking: number;
+} {
+  let effectiveRateForDSR = loanRate;
+  if (policyFlags.isCapitalArea || policyFlags.isRegulatedArea) {
+    effectiveRateForDSR = loanRate + 3.0;
+  }
+
+  let adjustedMonthlyDSR = (annualIncome * dsrRatio / 100) / 12;
+  const shouldApplyJeonse =
+    userFlags?.homeOwnerCount === 1 &&
+    userFlags?.isTenant === true &&
+    userFlags?.hasJeonseLoan === true &&
+    (policyFlags.isCapitalArea || policyFlags.isRegulatedArea) &&
+    userFlags?.jeonseLoanPrincipal &&
+    userFlags?.jeonseLoanRate;
+
+  if (shouldApplyJeonse) {
+    const jeonseInterestMonthly = calculateJeonseLoanInterestMonthly(
+      userFlags!.jeonseLoanPrincipal!,
+      userFlags!.jeonseLoanRate!,
+    );
+    adjustedMonthlyDSR = Math.max(0, adjustedMonthlyDSR - jeonseInterestMonthly);
+  }
+
+  const mortgageByDsr = calculateLoanLimit(
+    adjustedMonthlyDSR,
+    effectiveRateForDSR,
+    loanYears,
+  );
+
+  // P = assets + min(0.7P, DSR한도, 정책캡(P)) 고정점 반복
+  let price = Math.max(0, assets);
+  for (let i = 0; i < 64; i += 1) {
+    const cap =
+      policyFlags.isCapitalArea || policyFlags.isRegulatedArea
+        ? calculateMortgageCapByPrice(price)
+        : Number.POSITIVE_INFINITY;
+    const mortgage = Math.min(price * 0.7, mortgageByDsr, cap);
+    const next = assets + mortgage;
+    if (Math.abs(next - price) < 1) {
+      price = next;
+      break;
+    }
+    price = next;
+  }
+
+  const baseResult = calculateMaxPurchaseWithPolicy20251015(
+    annualIncome,
+    assets,
+    Math.max(100000000, Math.round(price)),
+    policyFlags,
+    dsrRatio,
+    userFlags,
+    loanRate,
+    loanYears,
+  );
+
+  return {
+    ...baseResult,
+    derivedPriceAsking: Math.max(100000000, Math.round(price)),
   };
 }

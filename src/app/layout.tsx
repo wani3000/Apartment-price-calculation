@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import StatusBarConfig from "@/components/StatusBarConfig";
 
 export const metadata: Metadata = {
   title: "아파트 구구 - 아파트 구매 대출 계산기",
@@ -76,7 +77,10 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.png" />
         {/* Google AdSense는 정적 빌드 시 제외됨 - iOS 앱에서는 표시 안 됨 */}
       </head>
-      <body className="font-pretendard">{children}</body>
+      <body className="font-pretendard">
+        <StatusBarConfig />
+        {children}
+      </body>
     </html>
   );
 }

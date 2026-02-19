@@ -51,9 +51,9 @@ export default function ContactPage() {
                   </p>
                 </div>
                 
-                <div className="border-l-4 border-purple-400 bg-purple-50 p-4 rounded-r-lg">
-                  <h3 className="font-bold text-purple-800 mb-2">Q. 서비스 이용료가 있나요?</h3>
-                  <p className="text-purple-700 text-sm">
+                <div className="border-l-4 border-gray-500 bg-gray-100 p-4 rounded-r-lg">
+                  <h3 className="font-bold text-gray-900 mb-2">Q. 서비스 이용료가 있나요?</h3>
+                  <p className="text-gray-800 text-sm">
                     아파트 가격 계산기는 완전 무료 서비스입니다. 
                     모든 계산 기능을 제한 없이 무료로 이용하실 수 있습니다.
                   </p>
