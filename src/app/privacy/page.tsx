@@ -1,77 +1,98 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: '개인정보처리방침 - 아파트 가격 계산기',
-  description: '아파트 가격 계산기 개인정보처리방침',
+  title: "개인정보처리방침 - 아파트 가격 계산기",
+  description: "아파트 가격 계산기 개인정보처리방침",
 };
+
+const EFFECTIVE_DATE = "2026-02-19";
 
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8 text-gray-900">개인정보처리방침</h1>
-        
+        <h1 className="text-3xl font-bold mb-8 text-gray-900">
+          개인정보처리방침
+        </h1>
+
         <div className="bg-white rounded-lg shadow-sm p-8 space-y-6">
           <section>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">1. 개인정보의 처리목적</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              1. 수집하는 정보
+            </h2>
             <p className="text-gray-700 leading-relaxed">
-              아파트 가격 계산기는 다음의 목적을 위하여 개인정보를 처리합니다:
-            </p>
-            <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700 ml-4">
-              <li>아파트 가격 계산 서비스 제공</li>
-              <li>서비스 이용통계 분석</li>
-              <li>서비스 개선 및 최적화</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">2. 처리하는 개인정보의 항목</h2>
-            <p className="text-gray-700 leading-relaxed">
-              본 서비스는 다음과 같은 정보를 수집합니다:
-            </p>
-            <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700 ml-4">
-              <li>연봉 정보 (계산 목적)</li>
-              <li>접속 로그 (서비스 이용통계)</li>
-              <li>IP 주소, 브라우저 정보 (서비스 제공 목적)</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">3. 개인정보의 보유 및 이용기간</h2>
-            <p className="text-gray-700 leading-relaxed">
-              개인정보는 서비스 이용 중에만 보유되며, 브라우저 종료 시 삭제됩니다.
-              접속 로그는 서비스 개선 목적으로만 사용됩니다.
+              서비스는 회원가입/로그인 기능이 없으며 이름, 이메일, 전화번호 등
+              이용자를 식별하는 개인정보를 수집하지 않습니다.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">4. 제3자 제공</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              2. 입력 데이터 처리
+            </h2>
             <p className="text-gray-700 leading-relaxed">
-              본 서비스는 개인정보를 제3자에게 제공하지 않습니다. 
-              다만, 법적 요구가 있는 경우에는 예외적으로 제공할 수 있습니다.
+              계산 입력값(예: 연소득, 자산, 기존대출 월 상환액)은 계산 및 화면
+              표시를 위해 기기 내 로컬 저장소(localStorage)에 저장될 수 있으며,
+              서버로 전송하지 않습니다.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">5. 정보주체의 권리·의무</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              3. 제3자 제공 및 추적
+            </h2>
             <p className="text-gray-700 leading-relaxed">
-              이용자는 개인정보 처리에 대한 동의를 거부할 권리가 있습니다.
-              다만, 동의 거부 시 서비스 이용에 제한이 있을 수 있습니다.
+              개인정보 제3자 제공/위탁을 하지 않으며, 광고 식별자 기반 추적을
+              수행하지 않습니다.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">6. 연락처</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              4. 보관 및 삭제
+            </h2>
             <p className="text-gray-700 leading-relaxed">
-              개인정보처리방침에 관한 문의사항이 있으시면 언제든지 연락 주시기 바랍니다.
+              로컬 저장 데이터는 이용자가 앱을 삭제하거나 기기 설정에서 앱
+              데이터를 삭제하면 제거됩니다.
             </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              5. 문의
+            </h2>
+            <p className="text-gray-700 leading-relaxed">
+              정책 관련 문의는 GitHub Issues를 통해 접수할 수 있습니다.
+            </p>
+            <a
+              href="https://github.com/wani3000/Apartment-price-calculation/issues"
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 underline"
+            >
+              https://github.com/wani3000/Apartment-price-calculation/issues
+            </a>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              6. 원문 문서
+            </h2>
+            <a
+              href="https://github.com/wani3000/Apartment-price-calculation/blob/main/docs/PRIVACY_POLICY.md"
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 underline"
+            >
+              GitHub 개인정보처리방침 문서 바로가기
+            </a>
           </section>
 
           <div className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500">
-            최종 수정일: {new Date().toLocaleDateString('ko-KR')}
+            시행일: {EFFECTIVE_DATE}
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}
