@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "고객지원 - 아파트 구구",
@@ -7,7 +8,14 @@ export const metadata: Metadata = {
 
 export default function SupportPage() {
   return (
-    <div className="min-h-[100dvh] bg-gray-50 py-8">
+    <div
+      className="min-h-[100dvh] bg-gray-50"
+      style={{
+        paddingTop: "calc(var(--page-header-offset) + env(safe-area-inset-top) + 16px)",
+        paddingBottom: "32px",
+      }}
+    >
+      <Header showMenu={false} />
       <div className="max-w-2xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h1 className="text-3xl font-bold mb-8 text-gray-900">고객지원</h1>
@@ -62,4 +70,3 @@ export default function SupportPage() {
     </div>
   );
 }
-

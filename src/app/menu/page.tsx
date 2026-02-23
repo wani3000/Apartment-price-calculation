@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import Header from "@/components/Header";
 
 export default function MenuPage() {
   const router = useRouter();
@@ -73,29 +74,7 @@ export default function MenuPage() {
 
   return (
     <div className="bg-white flex flex-col h-[100dvh] overflow-hidden">
-      {/* 상단 네비게이션 */}
-      <div
-        className="fixed top-0 left-0 right-0 z-50 bg-white flex items-center px-5 py-4"
-        style={{ paddingTop: "max(16px, env(safe-area-inset-top))" }}
-      >
-        <button onClick={handleBack} className="text-grey-100 mr-4">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M15 19L8 12L15 5"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
+      <Header onBackClick={handleBack} showMenu={false} />
 
       {/* 메인 컨텐츠 */}
       <div

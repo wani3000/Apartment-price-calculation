@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "개인정보처리방침 - 아파트 가격 계산기",
@@ -9,7 +10,14 @@ const EFFECTIVE_DATE = "2026-02-19";
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-[100dvh] bg-gray-50 py-8">
+    <div
+      className="min-h-[100dvh] bg-gray-50"
+      style={{
+        paddingTop: "calc(var(--page-header-offset) + env(safe-area-inset-top) + 16px)",
+        paddingBottom: "32px",
+      }}
+    >
+      <Header showMenu={false} />
       <div className="max-w-4xl mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8 text-gray-900">
           개인정보처리방침

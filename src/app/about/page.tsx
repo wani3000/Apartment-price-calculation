@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: '서비스 소개 - 아파트 가격 계산기',
@@ -14,7 +15,14 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-[100dvh] bg-gray-50 py-8">
+    <div
+      className="min-h-[100dvh] bg-gray-50"
+      style={{
+        paddingTop: "calc(var(--page-header-offset) + env(safe-area-inset-top) + 16px)",
+        paddingBottom: "32px",
+      }}
+    >
+      <Header showMenu={false} />
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h1 className="text-3xl font-bold mb-8 text-gray-900">아파트 가격 계산기 소개</h1>

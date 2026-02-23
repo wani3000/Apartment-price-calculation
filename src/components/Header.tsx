@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface HeaderProps {
   backUrl?: string;
+  onBackClick?: () => void;
   title?: string | ReactNode;
   rightAction?: {
     label: string;
@@ -20,6 +21,7 @@ interface HeaderProps {
 
 export default function Header({
   backUrl,
+  onBackClick,
   title,
   rightAction,
   showMenu = true,
@@ -32,6 +34,10 @@ export default function Header({
   const searchParams = useSearchParams();
 
   const handleBack = () => {
+    if (onBackClick) {
+      onBackClick();
+      return;
+    }
     if (backUrl) {
       router.push(backUrl);
     } else {
