@@ -6,11 +6,13 @@
 
 ## 1. 필수 URL
 - Privacy Policy URL
-  - https://github.com/wani3000/Apartment-price-calculation/blob/main/docs/PRIVACY_POLICY.md
+  - https://aptgugu.com/privacy
 - Support URL
-  - https://github.com/wani3000/Apartment-price-calculation/blob/main/docs/SUPPORT.md
+  - https://aptgugu.com/support
 - Terms of Use(선택/필요 시)
-  - https://github.com/wani3000/Apartment-price-calculation/blob/main/docs/TERMS_OF_USE.md
+  - https://aptgugu.com/terms
+- Data Deletion URL(권장)
+  - https://aptgugu.com/data-deletion
 
 ## 2. Export Compliance
 - Info.plist 설정

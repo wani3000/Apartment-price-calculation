@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.aptgugu.calculator",
-  appName: "aptgugu",
+  appName: "아파트구구-대출계산기",
   webDir: "out",
   ios: {
     contentInset: "automatic",
