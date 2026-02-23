@@ -1069,13 +1069,13 @@ export default function FinalResultPage() {
                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif',
                   fontSize: "20px",
                   fontStyle: "normal",
-                  fontWeight: "700",
+                  fontWeight: "800",
                   lineHeight: "28px",
                   letterSpacing: "-0.2px",
                   marginBottom: "8px",
                 }}
               >
-                <span style={{ fontWeight: "700" }}>{username}</span> 님이
+                <span style={{ fontWeight: "800" }}>{username}</span> 님이
                 <br />살 수 있는 아파트는
               </p>
 
