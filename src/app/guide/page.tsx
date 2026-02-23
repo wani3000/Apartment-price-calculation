@@ -10,7 +10,7 @@ export default function GuidePage() {
   const tabs = ["DSR·LTV", "갭투자", "대출상품"];
 
   return (
-    <div className="bg-white flex flex-col h-screen overflow-hidden">
+    <div className="bg-white flex flex-col h-[100dvh] overflow-hidden">
       {/* 헤더 */}
       <div
         className="fixed top-0 left-0 right-0 z-50 bg-white flex items-center px-5 py-4"
@@ -42,7 +42,6 @@ export default function GuidePage() {
           paddingTop: "calc(56px + env(safe-area-inset-top))",
           paddingBottom: "calc(120px + env(safe-area-inset-bottom))",
           WebkitOverflowScrolling: "touch",
-          overscrollBehaviorY: "contain",
         }}
       >
         <div className="px-5">

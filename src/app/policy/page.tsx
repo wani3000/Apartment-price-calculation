@@ -10,7 +10,7 @@ export default function PolicyPage() {
   const tabs = ["청년", "신혼부부", "다자녀"];
 
   return (
-    <div className="bg-white flex flex-col h-screen overflow-hidden">
+    <div className="bg-white flex flex-col h-[100dvh] overflow-hidden">
       {/* 헤더 */}
       <div
         className="fixed top-0 left-0 right-0 z-50 bg-white flex items-center px-5 py-4"

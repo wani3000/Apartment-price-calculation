@@ -7,7 +7,7 @@ export default function YouthPolicyPage() {
   const router = useRouter();
 
   return (
-    <div className="bg-white flex flex-col h-screen overflow-hidden">
+    <div className="bg-white flex flex-col h-[100dvh] overflow-hidden">
       {/* 헤더 */}
       <div
         className="fixed top-0 left-0 right-0 z-50 bg-white flex items-center px-5 py-4"
@@ -39,7 +39,6 @@ export default function YouthPolicyPage() {
           paddingTop: "calc(56px + env(safe-area-inset-top))",
           paddingBottom: "calc(120px + env(safe-area-inset-bottom))",
           WebkitOverflowScrolling: "touch",
-          overscrollBehaviorY: "contain",
         }}
       >
         <div className="px-5">

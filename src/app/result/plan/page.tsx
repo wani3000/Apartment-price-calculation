@@ -172,7 +172,7 @@ export default function PlanPage() {
         <meta name="twitter:image" content="https://aptgugu.com/og.png" />
       </Head>
       <div
-        className="h-screen bg-white flex flex-col overflow-hidden px-5"
+        className="h-[100dvh] bg-white flex flex-col overflow-hidden px-5"
         style={{
           paddingTop:
             "calc(var(--page-header-offset) + env(safe-area-inset-top))",

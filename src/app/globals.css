@@ -97,8 +97,6 @@ body {
     /* 모바일 브라우저에서 스크롤 문제 해결 */
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    /* iOS Safari에서 바운스 효과 방지 */
-    overscroll-behavior: none;
     /* 최소 높이를 뷰포트로 설정 */
     min-height: 100vh;
     min-height: -webkit-fill-available;
@@ -219,4 +217,44 @@ body::before {
         transform: scale(1);
         opacity: 1;
     }
+}
+
+/* Bottom CTA Standard (single-button pages) */
+div.fixed.bottom-0.left-0.right-0.bg-white {
+    display: flex;
+    justify-content: center;
+    z-index: 50;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    padding-top: 40px !important;
+    padding-bottom: calc(25px + env(safe-area-inset-bottom)) !important;
+    border-top: 0 !important;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0) 0%,
+        #fff 31.25%
+    ) !important;
+}
+
+div.fixed.bottom-0.left-0.right-0.bg-white > button {
+    display: flex;
+    width: min(100%, 28rem) !important;
+    height: 56px !important;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    border-radius: 300px !important;
+    margin: 0 !important;
+    border: 0;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    line-height: 1.5;
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+div.fixed.bottom-0.left-0.right-0.bg-white > button:disabled {
+    background: #e5e7eb !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
 }

@@ -76,7 +76,7 @@ export default function SchedulePage() {
   );
 
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-white flex flex-col overflow-hidden">
       <div
         className="flex-1 px-5 overflow-y-auto"
         style={{
@@ -110,35 +110,55 @@ export default function SchedulePage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-grey-40 overflow-hidden mb-8">
-          <div className="grid grid-cols-5 bg-[#F8F9FA] text-xs font-bold text-[#495057]">
-            <div className="px-2 py-3 text-center">회차</div>
-            <div className="px-2 py-3 text-right">월 납입액</div>
-            <div className="px-2 py-3 text-right">원금</div>
-            <div className="px-2 py-3 text-right">이자</div>
-            <div className="px-2 py-3 text-right">잔액</div>
-          </div>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {schedule.map((row) => (
-              <div
-                key={row.month}
-                className="grid grid-cols-5 border-t border-grey-40 text-[12px] text-[#495057]"
-              >
-                <div className="px-2 py-2 text-center">{row.month}</div>
-                <div className="px-2 py-2 text-right">
-                  {formatWon(row.payment)}
-                </div>
-                <div className="px-2 py-2 text-right">
-                  {formatWon(row.principal)}
-                </div>
-                <div className="px-2 py-2 text-right">
-                  {formatWon(row.interest)}
-                </div>
-                <div className="px-2 py-2 text-right">
-                  {formatWon(row.balance)}
-                </div>
-              </div>
-            ))}
+        <div className="mb-2">
+          <h2 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+            월별 상세 상환 내역
+          </h2>
+          <p className="text-[#868E96] text-[13px] leading-[18px] tracking-[-0.26px] mb-3">
+            표는 좌우로만 스크롤되고, 세로 스크롤은 페이지 전체에서 한 번에
+            이동해요.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-grey-40 bg-white overflow-hidden mb-8">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px] border-collapse">
+              <thead className="bg-[#F8F9FA]">
+                <tr>
+                  <th className="px-3 py-3 text-center text-xs font-bold text-[#495057]">
+                    회차
+                  </th>
+                  <th className="px-3 py-3 text-right text-xs font-bold text-[#495057]">
+                    월 납입액
+                  </th>
+                  <th className="px-3 py-3 text-right text-xs font-bold text-[#495057]">
+                    원금
+                  </th>
+                  <th className="px-3 py-3 text-right text-xs font-bold text-[#495057]">
+                    이자
+                  </th>
+                  <th className="px-3 py-3 text-right text-xs font-bold text-[#495057]">
+                    잔액
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((row) => (
+                  <tr
+                    key={row.month}
+                    className="border-t border-grey-40 text-[12px] text-[#495057] even:bg-[#FCFCFD]"
+                  >
+                    <td className="px-3 py-2 text-center">{row.month}</td>
+                    <td className="px-3 py-2 text-right">{formatWon(row.payment)}</td>
+                    <td className="px-3 py-2 text-right">
+                      {formatWon(row.principal)}
+                    </td>
+                    <td className="px-3 py-2 text-right">{formatWon(row.interest)}</td>
+                    <td className="px-3 py-2 text-right">{formatWon(row.balance)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

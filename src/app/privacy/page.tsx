@@ -9,7 +9,7 @@ const EFFECTIVE_DATE = "2026-02-19";
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-[100dvh] bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8 text-gray-900">
           개인정보처리방침

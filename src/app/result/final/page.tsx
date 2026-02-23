@@ -936,7 +936,7 @@ export default function FinalResultPage() {
   }, [activeTab]);
 
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-white flex flex-col overflow-hidden">
       <div
         className="flex-1 px-5 overflow-y-auto"
         style={{
@@ -950,6 +950,7 @@ export default function FinalResultPage() {
         {!isSharedLink && (
           <div>
             <Header
+              backUrl="/regulation"
               rightAction={{
                 label: "소득·자산 수정",
                 onClick: handleEditIncome,

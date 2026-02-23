@@ -60,7 +60,7 @@ export default function Home() {
 
   return (
     <div
-      className="h-screen bg-white flex flex-col items-center"
+      className="h-[100dvh] bg-white flex flex-col items-center"
       style={{
         paddingTop: "48px",
         paddingBottom: "env(safe-area-inset-bottom)",

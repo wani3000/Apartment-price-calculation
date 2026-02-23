@@ -88,7 +88,7 @@ export default function NewRegulationResultPage() {
   };
 
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-white flex flex-col overflow-hidden">
       {/* 메인 컨텐츠 영역 */}
       <div
         className="flex-1 px-5"

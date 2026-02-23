@@ -46,7 +46,7 @@ export default function RegulationPage() {
   };
 
   return (
-    <div className="bg-white flex flex-col h-screen overflow-hidden">
+    <div className="bg-white flex flex-col h-[100dvh] overflow-hidden">
       {/* 헤더 */}
       <Header backUrl="/region" />
 

@@ -573,9 +573,21 @@ export function calculateMaxPurchaseWithPolicy20251015ByCapacity(
   };
   derivedPriceAsking: number;
 } {
+  const policyNotes: string[] = [];
+  const policyApplied = {
+    mortgageCapApplied: false,
+    stressRateApplied: false,
+    jeonseInterestInDsr: false,
+    mortgageCapAmount: undefined as number | undefined,
+  };
+  const isRegulatedByPolicy =
+    policyFlags.isCapitalArea || policyFlags.isRegulatedArea;
+
   let effectiveRateForDSR = loanRate;
-  if (policyFlags.isCapitalArea || policyFlags.isRegulatedArea) {
+  if (isRegulatedByPolicy) {
     effectiveRateForDSR = loanRate + 3.0;
+    policyApplied.stressRateApplied = true;
+    policyNotes.push("스트레스 DSR 3.0% 적용 (규제지역)");
   }
 
   let adjustedMonthlyDSR = (annualIncome * dsrRatio / 100) / 12;
@@ -583,7 +595,7 @@ export function calculateMaxPurchaseWithPolicy20251015ByCapacity(
     userFlags?.homeOwnerCount === 1 &&
     userFlags?.isTenant === true &&
     userFlags?.hasJeonseLoan === true &&
-    (policyFlags.isCapitalArea || policyFlags.isRegulatedArea) &&
+    isRegulatedByPolicy &&
     userFlags?.jeonseLoanPrincipal &&
     userFlags?.jeonseLoanRate;
 
@@ -593,6 +605,8 @@ export function calculateMaxPurchaseWithPolicy20251015ByCapacity(
       userFlags!.jeonseLoanRate!,
     );
     adjustedMonthlyDSR = Math.max(0, adjustedMonthlyDSR - jeonseInterestMonthly);
+    policyApplied.jeonseInterestInDsr = true;
+    policyNotes.push("1주택자 전세대출 이자 DSR 차감 적용");
   }
 
   const mortgageByDsr = calculateLoanLimit(
@@ -608,7 +622,7 @@ export function calculateMaxPurchaseWithPolicy20251015ByCapacity(
   const maxByLtv = assets > 0 ? assets / (1 - 0.7) : 0;
   let price = 0;
 
-  if (policyFlags.isCapitalArea || policyFlags.isRegulatedArea) {
+  if (isRegulatedByPolicy) {
     const segments = [
       { min: 0, max: 1_500_000_000, cap: 600_000_000, strictMin: false },
       {
@@ -639,19 +653,44 @@ export function calculateMaxPurchaseWithPolicy20251015ByCapacity(
     price = Math.min(maxByLtv, assets + mortgageByDsr);
   }
 
-  const baseResult = calculateMaxPurchaseWithPolicy20251015(
-    annualIncome,
-    assets,
-    Math.max(0, Math.round(price)),
-    policyFlags,
-    dsrRatio,
-    userFlags,
-    loanRate,
-    loanYears,
+  // 결과 일관성 보장: 최종 매수가와 사용 대출이 동일 제약식에서 파생되도록 계산
+  const derivedPriceAsking = Math.max(0, Math.round(price));
+  const mortgageByLtv = derivedPriceAsking * 0.7;
+  const mortgageCap = isRegulatedByPolicy
+    ? calculateMortgageCapByPrice(derivedPriceAsking)
+    : Number.POSITIVE_INFINITY;
+  const maxAllowedMortgage = Math.min(mortgageByLtv, mortgageByDsr, mortgageCap);
+  const mortgageLimit = Math.max(
+    0,
+    Math.min(Math.round(derivedPriceAsking - assets), Math.round(maxAllowedMortgage)),
   );
+  const maxPropertyPrice = Math.max(0, Math.round(assets + mortgageLimit));
+  const monthlyRepayment = calculateMonthlyPayment(mortgageLimit, loanRate, loanYears);
+
+  if (isRegulatedByPolicy && maxAllowedMortgage === mortgageCap) {
+    policyApplied.mortgageCapApplied = true;
+    policyApplied.mortgageCapAmount = mortgageCap;
+    policyNotes.push(`주담대 한도 캡 적용: ${(mortgageCap / 100000000).toFixed(1)}억원`);
+  }
+
+  if (policyFlags.isTojiPermitArea) {
+    policyNotes.push("토지거래허가구역: 2년 실거주 의무");
+    policyNotes.push(`지정기간: ${policyFlags.tojiPermitStart} ~ ${policyFlags.tojiPermitEnd}`);
+  }
+
+  if (isRegulatedByPolicy) {
+    policyNotes.push("호가를 시가 대용으로 사용하여 계산됨");
+  }
 
   return {
-    ...baseResult,
-    derivedPriceAsking: Math.max(0, Math.round(price)),
+    maxPropertyPrice,
+    mortgageLimit,
+    mortgageByLtv,
+    mortgageByDsr,
+    monthlyRepayment,
+    effectiveRateForDSR,
+    policyNotes,
+    policyApplied,
+    derivedPriceAsking,
   };
 }

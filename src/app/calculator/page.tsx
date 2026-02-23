@@ -30,30 +30,34 @@ export default function CalculatorPage() {
     if (calculatorDataStr) {
       const calculatorData = JSON.parse(calculatorDataStr);
 
-      // 저장된 값이 있으면 폼에 채우기
-      if (calculatorData.income) {
+      // 저장된 값이 있으면 폼에 채우기 (0 포함)
+      if (calculatorData.income !== undefined) {
         setIncome(calculatorData.income.toString());
       }
 
       // myAssets가 있으면 개별 자산 사용, 없으면 기존 assets 사용 (하위 호환성)
       if (calculatorData.myAssets !== undefined) {
         setAssets(calculatorData.myAssets.toString());
-      } else if (calculatorData.assets) {
+      } else if (calculatorData.assets !== undefined) {
         setAssets(calculatorData.assets.toString());
       }
 
-      if (calculatorData.spouseIncome) {
-        setSpouseIncome(calculatorData.spouseIncome.toString());
-        setShowSpouseIncome(true);
-      }
+      // 배우자 정보 표시 여부는 명시 플래그 우선, 없으면 값으로 추론(하위 호환성)
+      const hasSpouseInfo =
+        calculatorData.hasSpouseInfo === true ||
+        Number(calculatorData.spouseIncome || 0) > 0 ||
+        Number(calculatorData.spouseAssets || 0) > 0 ||
+        Number(calculatorData.spouseHomeOwnerCount || 0) > 0;
 
-      if (calculatorData.spouseAssets) {
-        setSpouseAssets(calculatorData.spouseAssets.toString());
-        setShowSpouseIncome(true);
-      }
-      if (calculatorData.spouseHomeOwnerCount !== undefined) {
-        setSpouseHomeOwnerCount(calculatorData.spouseHomeOwnerCount);
-        setShowSpouseIncome(true);
+      setShowSpouseIncome(hasSpouseInfo);
+      if (hasSpouseInfo) {
+        setSpouseIncome((calculatorData.spouseIncome ?? 0).toString());
+        setSpouseAssets((calculatorData.spouseAssets ?? 0).toString());
+        setSpouseHomeOwnerCount(calculatorData.spouseHomeOwnerCount ?? 0);
+      } else {
+        setSpouseIncome("");
+        setSpouseAssets("");
+        setSpouseHomeOwnerCount(0);
       }
 
       // 새로운 정책 관련 필드들 로드
@@ -111,6 +115,7 @@ export default function CalculatorPage() {
       income: parseInt(income || "0"),
       assets: totalAssets, // 총 보유자산으로 저장
       myAssets: myAssets, // 내 자산 별도 저장
+      hasSpouseInfo: showSpouseIncome, // 배우자 섹션 표시 상태 저장
       spouseAssets: spouseAssetsValue, // 배우자 자산 별도 저장
       spouseIncome: showSpouseIncome ? parseInt(spouseIncome || "0") : 0,
       spouseHomeOwnerCount: showSpouseIncome ? spouseHomeOwnerCount : 0,
@@ -133,7 +138,7 @@ export default function CalculatorPage() {
   };
 
   return (
-    <div className="bg-white flex flex-col h-screen overflow-hidden">
+    <div className="bg-white flex flex-col h-[100dvh] overflow-hidden">
       {/* 헤더 */}
       <Header backUrl="/nickname" />
 
