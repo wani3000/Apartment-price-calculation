@@ -76,10 +76,10 @@ export default function Header({
             <Image
               src="/images/aptgugu_logo.svg"
               alt="aptgugu"
-              width={120}
+              width={118}
               height={24}
               className="h-6 w-auto"
-              priority
+              unoptimized
             />
           </button>
         ) : showBack ? (
