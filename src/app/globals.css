@@ -131,26 +131,13 @@ body::before {
     display: flex;
     animation: infiniteSlide 15s linear infinite;
     align-items: center;
-    width: calc(250px * 10); /* 5개 이미지 × 2세트 × 250px - 모바일 */
+    width: calc(270px * 10); /* 5개 이미지 × 2세트 × (260px + 10px 간격) */
 }
 
 .image-card {
     flex-shrink: 0;
-    width: 240px; /* 모바일 기본 크기 (220px + 20px) */
+    width: 260px; /* 카드 너비 고정 */
     margin-right: 10px;
-}
-
-/* 태블릿 이상에서 카드 크기 증가 */
-@media (min-width: 768px) {
-    .image-slider {
-        width: calc(
-            330px * 10
-        ); /* 5개 이미지 × 2세트 × 330px - 태블릿/데스크탑 */
-    }
-
-    .image-card {
-        width: 320px; /* 태블릿/데스크탑 크기 */
-    }
 }
 
 @keyframes infiniteSlide {
@@ -158,23 +145,7 @@ body::before {
         transform: translateX(0);
     }
     100% {
-        transform: translateX(
-            calc(-250px * 5)
-        ); /* 5개 이미지만큼 이동 - 모바일 (240px + 10px margin) */
-    }
-}
-
-/* 태블릿 이상에서 애니메이션 거리 조정 */
-@media (min-width: 768px) {
-    @keyframes infiniteSlide {
-        0% {
-            transform: translateX(0);
-        }
-        100% {
-            transform: translateX(
-                calc(-330px * 5)
-            ); /* 5개 이미지만큼 이동 - 태블릿/데스크탑 */
-        }
+        transform: translateX(calc(-270px * 5)); /* 5개 이미지만큼 이동 */
     }
 }
 
