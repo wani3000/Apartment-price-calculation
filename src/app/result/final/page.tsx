@@ -14,6 +14,7 @@ import {
   convertManToWon,
   calculateMonthlyPayment,
   calculateMonthlyInterestOnly,
+  calculateMaxAffordableByLtv,
 } from "@/utils/calculator";
 import Header from "@/components/Header";
 import html2canvas from "html2canvas";
@@ -188,13 +189,14 @@ export default function FinalResultPage() {
 
       // 6억원 제한 적용
       const maxLoanAmount = 600000000; // 6억원
+      const actualAffordable = calculateMaxAffordableByLtv(
+        assets,
+        Math.min(actualRateResultBase.mortgageLimit, maxLoanAmount),
+        70,
+      );
       const actualRateResult = {
-        maxPropertyPrice:
-          assets + Math.min(actualRateResultBase.mortgageLimit, maxLoanAmount),
-        mortgageLimit: Math.min(
-          actualRateResultBase.mortgageLimit,
-          maxLoanAmount,
-        ),
+        maxPropertyPrice: actualAffordable.maxPropertyPrice,
+        mortgageLimit: actualAffordable.usedLoan,
         creditLoan: 0,
       };
 

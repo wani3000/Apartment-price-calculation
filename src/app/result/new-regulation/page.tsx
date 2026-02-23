@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import {
   convertManToWon,
-  calculateLoanLimit,
-  calculateMonthlyPayment,
+  calculateMaxPurchaseWithNewRegulation627,
 } from "@/utils/calculator";
 
 export default function NewRegulationResultPage() {
@@ -44,43 +43,12 @@ export default function NewRegulationResultPage() {
       );
       const totalAssets = convertManToWon(data.assets);
 
-      // 6.27 규제 적용 계산
-      const maxLoanAmount = 600000000; // 6억원
-      const loanYears = 30; // 30년
-      const baseRate = 3.5; // 기본 금리 3.5%
-      const stressRate = 1.5; // 수도권 스트레스 금리 1.5%
-      const effectiveRate = baseRate + stressRate; // 5.0%
-      const dsrRatio = 40; // 40% 고정
-
-      // 월 DSR 한도 = (연소득 × DSR비율) ÷ 12
-      const monthlyDSR = (totalIncome * dsrRatio) / 100 / 12;
-
-      // DSR 기준 주택담보대출 한도 계산 (30년, 5.0% 기준)
-      const dsrBasedLimit = calculateLoanLimit(
-        monthlyDSR,
-        effectiveRate,
-        loanYears,
+      // 6.27 규제 적용 계산 (수도권 기준)
+      const result = calculateMaxPurchaseWithNewRegulation627(
+        totalIncome,
+        totalAssets,
+        true,
       );
-
-      // 규제 한도(6억원)와 DSR 한도 중 작은 값 선택
-      const mortgageLimit = Math.min(dsrBasedLimit, maxLoanAmount);
-
-      // 월 상환액 계산 (실제 선택된 대출 금액 기준)
-      const monthlyRepayment = calculateMonthlyPayment(
-        mortgageLimit,
-        effectiveRate,
-        loanYears,
-      );
-
-      // 최대 구매 가능 금액 = 보유자산 + 주택담보대출 한도
-      const maxPropertyPrice = totalAssets + mortgageLimit;
-
-      const result = {
-        maxPropertyPrice,
-        mortgageLimit,
-        monthlyRepayment,
-        effectiveRate,
-      };
 
       // 결과를 만원 단위로 변환
       const calculationResult = {

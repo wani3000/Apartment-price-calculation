@@ -15,12 +15,8 @@ export default function CalculatorPage() {
   const [spouseHomeOwnerCount, setSpouseHomeOwnerCount] = useState<number>(0);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // 2025.10.15 정책 관련 새로운 상태들
+  // 정책 관련 상태
   const [homeOwnerCount, setHomeOwnerCount] = useState<number>(0);
-  const [isTenant, setIsTenant] = useState<boolean>(false);
-  const [hasJeonseLoan, setHasJeonseLoan] = useState<boolean>(false);
-  const [jeonseLoanPrincipal, setJeonseLoanPrincipal] = useState("");
-  const [jeonseLoanRate, setJeonseLoanRate] = useState("");
 
   useEffect(() => {
     // 로컬 스토리지에서 사용자 이름 가져오기
@@ -63,18 +59,6 @@ export default function CalculatorPage() {
       // 새로운 정책 관련 필드들 로드
       if (calculatorData.homeOwnerCount !== undefined) {
         setHomeOwnerCount(calculatorData.homeOwnerCount);
-      }
-      if (calculatorData.isTenant !== undefined) {
-        setIsTenant(calculatorData.isTenant);
-      }
-      if (calculatorData.hasJeonseLoan !== undefined) {
-        setHasJeonseLoan(calculatorData.hasJeonseLoan);
-      }
-      if (calculatorData.jeonseLoanPrincipal) {
-        setJeonseLoanPrincipal(calculatorData.jeonseLoanPrincipal.toString());
-      }
-      if (calculatorData.jeonseLoanRate !== undefined) {
-        setJeonseLoanRate(calculatorData.jeonseLoanRate.toString());
       }
     }
   }, []);
@@ -130,14 +114,12 @@ export default function CalculatorPage() {
       spouseAssets: spouseAssetsValue, // 배우자 자산 별도 저장
       spouseIncome: showSpouseIncome ? parseInt(spouseIncome || "0") : 0,
       spouseHomeOwnerCount: showSpouseIncome ? spouseHomeOwnerCount : 0,
-      // 새로운 정책 관련 필드들
+      // 정책 관련 필드
       homeOwnerCount: homeOwnerCount,
-      isTenant: isTenant,
-      hasJeonseLoan: hasJeonseLoan,
-      jeonseLoanPrincipal: hasJeonseLoan
-        ? parseInt(jeonseLoanPrincipal || "0")
-        : 0,
-      jeonseLoanRate: hasJeonseLoan ? parseFloat(jeonseLoanRate || "0") : 0,
+      isTenant: false,
+      hasJeonseLoan: false,
+      jeonseLoanPrincipal: 0,
+      jeonseLoanRate: 0,
     };
 
     localStorage.setItem("calculatorData", JSON.stringify(calculatorData));
@@ -421,187 +403,6 @@ export default function CalculatorPage() {
             </div>
           )}
 
-          {/* 2025.10.15 정책 관련 추가 정보 */}
-          <div className="mt-8 pt-6 border-t border-grey-40">
-            <h3 className="text-[18px] font-bold text-grey-100 mb-3">
-              정확한 계산을 위한 추가 정보
-            </h3>
-            <p className="text-[15px] text-grey-80 leading-[22px] mb-6">
-              2025년 10월 15일 시행되는 새로운 부동산 정책이 정확히 반영됩니다.
-            </p>
-
-            {/* 임차 여부 (1주택자인 경우만 표시) */}
-            {homeOwnerCount === 1 && (
-              <div className="mb-6">
-                <label className="block text-grey-100 text-base font-bold leading-6 tracking-[-0.16px] mb-3">
-                  현재 다른 곳에서 세입자로 거주 중인가요?
-                </label>
-                <div className="flex gap-2">
-                  {[
-                    { value: false, label: "자가 거주" },
-                    { value: true, label: "전월세 거주" },
-                  ].map((option) => (
-                    <button
-                      key={option.value.toString()}
-                      type="button"
-                      onClick={() => {
-                        setIsTenant(option.value);
-                        if (!option.value) {
-                          setHasJeonseLoan(false);
-                          setJeonseLoanPrincipal("");
-                          setJeonseLoanRate("");
-                        }
-                      }}
-                      className={`flex-1 py-3 px-4 rounded-lg border transition-colors ${
-                        isTenant === option.value
-                          ? "border-primary bg-primary bg-opacity-5 text-primary font-medium"
-                          : "border-grey-40 text-grey-80"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 전세대출 정보 (1주택자 + 세입자인 경우만 표시) */}
-            {homeOwnerCount === 1 && isTenant && (
-              <div className="mb-6">
-                <label className="block text-grey-100 text-base font-bold leading-6 tracking-[-0.16px] mb-3">
-                  현재 전세대출을 받고 계신가요?
-                </label>
-                <div className="flex gap-2 mb-4">
-                  {[
-                    { value: false, label: "전세대출 없음" },
-                    { value: true, label: "전세대출 있음" },
-                  ].map((option) => (
-                    <button
-                      key={option.value.toString()}
-                      type="button"
-                      onClick={() => {
-                        setHasJeonseLoan(option.value);
-                        if (!option.value) {
-                          setJeonseLoanPrincipal("");
-                          setJeonseLoanRate("");
-                        }
-                      }}
-                      className={`flex-1 py-3 px-4 rounded-lg border transition-colors ${
-                        hasJeonseLoan === option.value
-                          ? "border-primary bg-primary bg-opacity-5 text-primary font-medium"
-                          : "border-grey-40 text-grey-80"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-
-                {hasJeonseLoan && (
-                  <div className="space-y-4">
-                    {/* 전세대출 원금 */}
-                    <div>
-                      <label
-                        htmlFor="jeonseLoanPrincipal"
-                        className="block text-grey-80 text-sm font-medium leading-5 tracking-[-0.14px] mb-2"
-                      >
-                        전세대출 원금 (만 원)
-                      </label>
-                      <div
-                        className={`flex h-12 px-3 py-2.5 justify-between items-center rounded-lg transition-colors ${
-                          focusedField === "jeonseLoanPrincipal"
-                            ? "border-2 border-primary"
-                            : "border border-grey-40"
-                        }`}
-                      >
-                        <input
-                          id="jeonseLoanPrincipal"
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={jeonseLoanPrincipal}
-                          onChange={(e) =>
-                            handleNumberInput(e, setJeonseLoanPrincipal)
-                          }
-                          onFocus={() => setFocusedField("jeonseLoanPrincipal")}
-                          onBlur={() => setFocusedField(null)}
-                          placeholder="0"
-                          className="w-full h-full outline-none text-grey-100 text-sm"
-                        />
-                        <span className="text-grey-70 text-xs font-medium whitespace-nowrap">
-                          만 원
-                        </span>
-                      </div>
-                      {jeonseLoanPrincipal && (
-                        <p className="text-primary text-xs font-medium mt-1">
-                          {formatToKorean(jeonseLoanPrincipal)}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* 전세대출 금리 */}
-                    <div>
-                      <label
-                        htmlFor="jeonseLoanRate"
-                        className="block text-grey-80 text-sm font-medium leading-5 tracking-[-0.14px] mb-2"
-                      >
-                        전세대출 금리 (%)
-                      </label>
-                      <div
-                        className={`flex h-12 px-3 py-2.5 justify-between items-center rounded-lg transition-colors ${
-                          focusedField === "jeonseLoanRate"
-                            ? "border-2 border-primary"
-                            : "border border-grey-40"
-                        }`}
-                      >
-                        <input
-                          id="jeonseLoanRate"
-                          type="text"
-                          inputMode="decimal"
-                          value={jeonseLoanRate}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            // 숫자와 소수점만 허용
-                            if (value === "" || /^\d*\.?\d*$/.test(value)) {
-                              setJeonseLoanRate(value);
-                            }
-                          }}
-                          onFocus={() => setFocusedField("jeonseLoanRate")}
-                          onBlur={() => setFocusedField(null)}
-                          placeholder="3.5"
-                          className="w-full h-full outline-none text-grey-100 text-sm"
-                        />
-                        <span className="text-grey-70 text-xs font-medium whitespace-nowrap">
-                          %
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* 정책 설명 박스 */}
-            <div className="mt-6">
-              <h4 className="text-[16px] font-bold text-grey-100 mb-3">
-                2025.10.15 새로운 정책이 반영됩니다
-              </h4>
-              <ul className="space-y-2">
-                <li className="text-[15px] text-grey-80 leading-[22px]">
-                  • 규제지역 확대: 서울 전체 + 경기 12개 지역
-                </li>
-                <li className="text-[15px] text-grey-80 leading-[22px]">
-                  • 주담대 한도 제한: 가격대별 차등 적용
-                </li>
-                <li className="text-[15px] text-grey-80 leading-[22px]">
-                  • 스트레스 DSR 상향: 3.0% 적용
-                </li>
-                <li className="text-[15px] text-grey-80 leading-[22px]">
-                  • 1주택자 전세대출 DSR 반영
-                </li>
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -612,21 +413,9 @@ export default function CalculatorPage() {
       >
         <button
           onClick={handleSubmit}
-          disabled={
-            !income.trim() ||
-            (homeOwnerCount === 1 &&
-              isTenant &&
-              hasJeonseLoan &&
-              (!jeonseLoanPrincipal.trim() || !jeonseLoanRate.trim()))
-          }
+          disabled={!income.trim()}
           className={`flex h-14 w-full justify-center items-center rounded-[300px] font-semibold text-base transition ${
-            income.trim() &&
-            !(
-              homeOwnerCount === 1 &&
-              isTenant &&
-              hasJeonseLoan &&
-              (!jeonseLoanPrincipal.trim() || !jeonseLoanRate.trim())
-            )
+            income.trim()
               ? "bg-primary text-white hover:bg-[#111111]"
               : "bg-gray-100 text-gray-400 cursor-not-allowed"
           }`}

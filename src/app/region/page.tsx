@@ -75,6 +75,8 @@ export default function RegionPage() {
   const [siDo, setSiDo] = useState("서울");
   const [siGunGu, setSiGunGu] = useState("");
   const [gu, setGu] = useState("");
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showRegionInfoModal, setShowRegionInfoModal] = useState(false);
 
   useEffect(() => {
     // 로컬 스토리지에서 사용자 이름 가져오기
@@ -267,24 +269,34 @@ export default function RegionPage() {
               </button>
             </div>
 
-            <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <h3 className="text-grey-100 text-sm font-bold leading-5 mb-2">
+            <div className="mt-8 pt-6 border-t border-grey-40">
+              <h3 className="text-[18px] font-bold text-grey-100 mb-3">
                 정책 정확도 향상을 위한 지역 상세 입력
               </h3>
-              <p className="text-grey-80 text-xs leading-4 mb-3">
+              <p className="text-[15px] text-grey-80 leading-[22px] mb-6">
                 10.15 정책 계산 시 규제지역 판정을 더 정확히 하기 위한
                 선택값이에요.
               </p>
 
-              <div className="space-y-3">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-grey-100 text-xs font-semibold mb-1">
+                  <label
+                    htmlFor="siDo"
+                    className="block text-grey-100 text-base font-bold leading-6 tracking-[-0.16px] mb-2"
+                  >
                     시/도
                   </label>
                   <select
+                    id="siDo"
                     value={siDo}
                     onChange={(e) => setSiDo(e.target.value)}
-                    className="w-full h-11 px-3 rounded-lg border border-grey-40 bg-white text-grey-100 text-sm outline-none"
+                    onFocus={() => setFocusedField("siDo")}
+                    onBlur={() => setFocusedField(null)}
+                    className={`w-full h-14 px-3 py-2.5 rounded-lg bg-white text-grey-100 text-base outline-none transition-colors ${
+                      focusedField === "siDo"
+                        ? "border-2 border-primary"
+                        : "border border-grey-40"
+                    }`}
                   >
                     <option value="서울">서울</option>
                     <option value="경기">경기</option>
@@ -307,13 +319,23 @@ export default function RegionPage() {
                 </div>
 
                 <div>
-                  <label className="block text-grey-100 text-xs font-semibold mb-1">
+                  <label
+                    htmlFor="siGunGu"
+                    className="block text-grey-100 text-base font-bold leading-6 tracking-[-0.16px] mb-2"
+                  >
                     시/군/구
                   </label>
                   <select
+                    id="siGunGu"
                     value={siGunGu}
                     onChange={(e) => setSiGunGu(e.target.value)}
-                    className="w-full h-11 px-3 rounded-lg border border-grey-40 bg-white text-grey-100 text-sm outline-none"
+                    onFocus={() => setFocusedField("siGunGu")}
+                    onBlur={() => setFocusedField(null)}
+                    className={`w-full h-14 px-3 py-2.5 rounded-lg bg-white text-grey-100 text-base outline-none transition-colors ${
+                      focusedField === "siGunGu"
+                        ? "border-2 border-primary"
+                        : "border border-grey-40"
+                    }`}
                     disabled={(REGION_OPTIONS[siDo] || []).length === 0}
                   >
                     {(REGION_OPTIONS[siDo] || []).length === 0 ? (
@@ -329,13 +351,23 @@ export default function RegionPage() {
                 </div>
 
                 <div>
-                  <label className="block text-grey-100 text-xs font-semibold mb-1">
+                  <label
+                    htmlFor="gu"
+                    className="block text-grey-100 text-base font-bold leading-6 tracking-[-0.16px] mb-2"
+                  >
                     구(선택)
                   </label>
                   <select
+                    id="gu"
                     value={gu}
                     onChange={(e) => setGu(e.target.value)}
-                    className="w-full h-11 px-3 rounded-lg border border-grey-40 bg-white text-grey-100 text-sm outline-none"
+                    onFocus={() => setFocusedField("gu")}
+                    onBlur={() => setFocusedField(null)}
+                    className={`w-full h-14 px-3 py-2.5 rounded-lg bg-white text-grey-100 text-base outline-none transition-colors ${
+                      focusedField === "gu"
+                        ? "border-2 border-primary"
+                        : "border border-grey-40"
+                    }`}
                     disabled={(GYEONGGI_GU_OPTIONS[siGunGu] || []).length === 0}
                   >
                     {(GYEONGGI_GU_OPTIONS[siGunGu] || []).length === 0 ? (
@@ -352,39 +384,53 @@ export default function RegionPage() {
               </div>
             </div>
 
-            {/* 규제지역 안내 */}
+            {/* 규제지역 안내 모달 트리거 */}
             <div className="mt-4">
-              <h3 className="text-[16px] font-bold text-grey-100 mb-3">
-                규제지역과 비규제지역의 차이
-              </h3>
-
-              <div className="space-y-3">
-                <div className="flex items-start">
-                  <span className="text-[15px] font-semibold text-grey-100 min-w-[100px]">
-                    규제지역
-                  </span>
-                  <span className="text-[15px] text-grey-80 leading-[22px]">
-                    LTV/DSR 제한이 강화되어 대출 한도가 줄어들어요
-                  </span>
-                </div>
-
-                <div className="flex items-start">
-                  <span className="text-[15px] font-semibold text-grey-100 min-w-[100px]">
-                    비규제지역
-                  </span>
-                  <span className="text-[15px] text-grey-80 leading-[22px]">
-                    상대적으로 완화된 조건으로 더 많은 대출이 가능해요
-                  </span>
-                </div>
-              </div>
-
-              <p className="text-[13px] text-grey-70 mt-3">
-                ※ 지역별 규제는 정부 정책에 따라 변동될 수 있습니다.
-              </p>
+              <button
+                type="button"
+                onClick={() => setShowRegionInfoModal(true)}
+                className="text-[15px] font-semibold leading-[22px] text-grey-100"
+              >
+                규제지역이 무엇인가요? &gt;
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* 규제지역 설명 모달 */}
+      {showRegionInfoModal && (
+        <div className="fixed inset-0 z-[1100] flex items-end sm:items-center justify-center bg-black/45 px-5 pb-5 sm:pb-0">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5">
+            <h3 className="text-[18px] font-bold text-grey-100 mb-3">
+              규제지역과 비규제지역 안내
+            </h3>
+            <div className="space-y-3">
+              <p className="text-[15px] text-grey-80 leading-[22px]">
+                <span className="font-semibold text-grey-100">규제지역</span>은
+                투기과열지구, 조정대상지역처럼 정부가 대출과 세제를 더 엄격하게
+                관리하는 지역이에요. 그래서 일반적으로 LTV, DSR, 대출 한도
+                조건이 더 보수적으로 적용됩니다.
+              </p>
+              <p className="text-[15px] text-grey-80 leading-[22px]">
+                <span className="font-semibold text-grey-100">비규제지역</span>
+                은 규제지역보다 대출 요건이 상대적으로 완화되어 같은 소득과
+                자산 조건에서도 가능한 대출 한도가 더 크게 나올 수 있어요.
+              </p>
+            </div>
+            <p className="text-[13px] text-grey-70 mt-3">
+              ※ 지역별 규제는 정책에 따라 수시로 변경될 수 있습니다.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowRegionInfoModal(false)}
+              className="mt-5 flex h-12 w-full items-center justify-center rounded-[300px] bg-primary text-white font-semibold text-base"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 하단 고정 버튼 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5 safe-area-inset-bottom">

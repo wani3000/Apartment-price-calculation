@@ -86,17 +86,17 @@ export default function RegulationPage() {
         </div>
 
         {/* 선택 옵션들 */}
-        <div className="space-y-5">
+        <div className="space-y-3">
           {/* 10.15 최신 정책 적용하기 (권장) */}
           <button
             onClick={() => !isLoading && setSelectedOption("latest")}
             disabled={isLoading}
-            className={`w-full px-3 py-4 flex items-center justify-center rounded-lg border transition-colors relative ${
+            className={`w-full px-5 py-4 flex items-center justify-between rounded-xl border-2 transition-colors relative ${
               isLoading
-                ? "border-[#868E96] bg-white opacity-50"
+                ? "border-grey-40 bg-white opacity-50"
                 : selectedOption === "latest"
-                  ? "border-[#000000] bg-gradient-to-r from-blue-50 to-indigo-50"
-                  : "border-[#868E96] bg-white"
+                  ? "border-[#000000] bg-[#F8F9FA]"
+                  : "border-grey-40 bg-white"
             }`}
           >
             {/* 추천 배지 */}
@@ -104,39 +104,37 @@ export default function RegulationPage() {
               최신
             </div>
 
-            <div className="flex justify-between items-center w-full">
-              <div className="flex flex-col items-start">
-                <span
-                  className={`text-base font-bold leading-none tracking-[-0.16px] ${
-                    selectedOption === "latest"
-                      ? "text-[#000000]"
-                      : "text-[#868E96]"
-                  }`}
-                >
-                  10.15 최신 정책 적용하기
-                </span>
-                <span className="text-xs text-grey-70 mt-1">
-                  규제지역 확대, 주담대 한도 제한 등 반영
-                </span>
-              </div>
+            <div className="flex flex-col items-start">
+              <span className="text-grey-100 text-base font-bold leading-6 tracking-[-0.16px]">
+                10.15 최신 정책 적용하기
+              </span>
+              <span className="text-grey-80 text-sm font-normal leading-5 tracking-[-0.28px] mt-1">
+                규제지역 확대, 주담대 한도 제한 등 반영
+              </span>
+            </div>
+            <div
+              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                selectedOption === "latest"
+                  ? "border-[#000000] bg-[#000000]"
+                  : "border-grey-40 bg-white"
+              }`}
+            >
               {selectedOption === "latest" && (
-                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M7.2 8.4L9.6 10.8L16.8 3.6"
-                      stroke="#000000"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
+                <svg
+                  width="14"
+                  height="10"
+                  viewBox="0 0 14 10"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M1 5L5 9L13 1"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               )}
             </div>
           </button>
@@ -145,46 +143,45 @@ export default function RegulationPage() {
           <button
             onClick={() => !isLoading && setSelectedOption("new")}
             disabled={isLoading}
-            className={`w-full h-14 px-3 flex items-center justify-center rounded-lg border transition-colors ${
+            className={`w-full px-5 py-4 flex items-center justify-between rounded-xl border-2 transition-colors ${
               isLoading
-                ? "border-[#868E96] bg-white opacity-50"
+                ? "border-grey-40 bg-white opacity-50"
                 : selectedOption === "new"
-                  ? "border-[#000000] bg-white"
-                  : "border-[#868E96] bg-white"
+                  ? "border-[#000000] bg-[#F8F9FA]"
+                  : "border-grey-40 bg-white"
             }`}
           >
-            <div
-              className="flex justify-between items-center w-full"
-              style={{ minHeight: "24px" }}
-            >
-              <span
-                className={`text-base font-bold leading-none tracking-[-0.16px] ${
-                  selectedOption === "new" ? "text-[#000000]" : "text-[#868E96]"
-                }`}
-              >
+            <div className="flex flex-col items-start">
+              <span className="text-grey-100 text-base font-bold leading-6 tracking-[-0.16px]">
                 6.27 규제안 적용하기
               </span>
+              <span className="text-grey-80 text-sm font-normal leading-5 tracking-[-0.28px] mt-1">
+                6억 한도, 30년 만기, DSR 40% 기준 반영
+              </span>
+            </div>
+            <div
+              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                selectedOption === "new"
+                  ? "border-[#000000] bg-[#000000]"
+                  : "border-grey-40 bg-white"
+              }`}
+            >
               {selectedOption === "new" && (
-                <div
-                  className="w-6 h-full flex items-center justify-center flex-shrink-0"
-                  style={{ marginTop: "6px" }}
+                <svg
+                  width="14"
+                  height="10"
+                  viewBox="0 0 14 10"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M7.2 8.4L9.6 10.8L16.8 3.6"
-                      stroke="#000000"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
+                  <path
+                    d="M1 5L5 9L13 1"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               )}
             </div>
           </button>
@@ -193,48 +190,45 @@ export default function RegulationPage() {
           <button
             onClick={() => !isLoading && setSelectedOption("existing")}
             disabled={isLoading}
-            className={`w-full h-14 px-3 flex items-center justify-center rounded-lg border transition-colors ${
+            className={`w-full px-5 py-4 flex items-center justify-between rounded-xl border-2 transition-colors ${
               isLoading
-                ? "border-[#868E96] bg-white opacity-50"
+                ? "border-grey-40 bg-white opacity-50"
                 : selectedOption === "existing"
-                  ? "border-[#000000] bg-white"
-                  : "border-[#868E96] bg-white"
+                  ? "border-[#000000] bg-[#F8F9FA]"
+                  : "border-grey-40 bg-white"
             }`}
           >
-            <div
-              className="flex justify-between items-center w-full"
-              style={{ minHeight: "24px" }}
-            >
-              <span
-                className={`text-base font-bold leading-none tracking-[-0.16px] ${
-                  selectedOption === "existing"
-                    ? "text-[#000000]"
-                    : "text-[#868E96]"
-                }`}
-              >
+            <div className="flex flex-col items-start">
+              <span className="text-grey-100 text-base font-bold leading-6 tracking-[-0.16px]">
                 기존 LTV · DSR 적용하기
               </span>
+              <span className="text-grey-80 text-sm font-normal leading-5 tracking-[-0.28px] mt-1">
+                기존 LTV/DSR 기준으로 계산
+              </span>
+            </div>
+            <div
+              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                selectedOption === "existing"
+                  ? "border-[#000000] bg-[#000000]"
+                  : "border-grey-40 bg-white"
+              }`}
+            >
               {selectedOption === "existing" && (
-                <div
-                  className="w-6 h-full flex items-center justify-center flex-shrink-0"
-                  style={{ marginTop: "4px" }}
+                <svg
+                  width="14"
+                  height="10"
+                  viewBox="0 0 14 10"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M7.2 8.4L9.6 10.8L16.8 3.6"
-                      stroke="#000000"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
+                  <path
+                    d="M1 5L5 9L13 1"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               )}
             </div>
           </button>

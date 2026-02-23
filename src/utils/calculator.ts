@@ -63,6 +63,46 @@ export function calculateLoanLimit(monthlyDSR: number, rate: number, years: numb
 }
 
 /**
+ * 보유자산/대출한도/LTV를 동시에 만족하는 최대 구매가능가 계산
+ * @param assets 보유자산 (원)
+ * @param maxLoan 대출 가능 최대 금액 (원)
+ * @param ltvRatio LTV 비율 (0~1 또는 0~100)
+ * @returns { maxPropertyPrice, usedLoan }
+ */
+export function calculateMaxAffordableByLtv(
+  assets: number,
+  maxLoan: number,
+  ltvRatio: number = 70,
+): { maxPropertyPrice: number; usedLoan: number } {
+  const safeAssets = Math.max(0, assets);
+  const safeLoan = Math.max(0, maxLoan);
+  const normalizedLtv = ltvRatio > 1 ? ltvRatio / 100 : ltvRatio;
+
+  // LTV가 0 이하이면 대출 없이 자산만으로 구매
+  if (normalizedLtv <= 0) {
+    return { maxPropertyPrice: safeAssets, usedLoan: 0 };
+  }
+
+  // LTV가 100% 이상인 비정상 입력은 대출 한도까지만 허용
+  if (normalizedLtv >= 1) {
+    return { maxPropertyPrice: safeAssets + safeLoan, usedLoan: safeLoan };
+  }
+
+  // 구매가 P는 아래 두 조건을 동시에 만족해야 함:
+  // 1) P <= assets + maxLoan (대출 상한)
+  // 2) P <= assets / (1 - LTV) (LTV 상한)
+  const maxPriceByLoan = safeAssets + safeLoan;
+  const maxPriceByLtv = safeAssets / (1 - normalizedLtv);
+  const maxPropertyPrice = Math.min(maxPriceByLoan, maxPriceByLtv);
+  const usedLoan = Math.max(0, maxPropertyPrice - safeAssets);
+
+  return {
+    maxPropertyPrice,
+    usedLoan,
+  };
+}
+
+/**
  * 실거주 시나리오에서 최대 구매 가능 금액 계산 (2025 기준)
  * @param annualIncome 연소득 (원)
  * @param assets 보유자산 (원)
@@ -84,14 +124,16 @@ export function calculateMaxPurchaseForLiving(
   const monthlyDSR = (annualIncome * dsrRatio / 100) / 12;
   
   // 주택담보대출 한도 계산 (원리금 균등 상환 기준)
-  const mortgageLimit = calculateLoanLimit(monthlyDSR, loanRate, loanYears);
+  const dsrBasedLoanLimit = calculateLoanLimit(monthlyDSR, loanRate, loanYears);
+  const affordable = calculateMaxAffordableByLtv(assets, dsrBasedLoanLimit, _ltv);
+  const mortgageLimit = affordable.usedLoan;
   
   // 신용대출은 고려하지 않음
   const creditLoan = 0;
   
   // 최대 구매 가능 금액 = 보유자산 + 주택담보대출 한도
   // DSR이 높을수록 대출 한도가 높아지고, 최대 구매 가능 금액도 커짐
-  const maxPropertyPrice = assets + mortgageLimit;
+  const maxPropertyPrice = affordable.maxPropertyPrice;
   
   return {
     maxPropertyPrice,
@@ -136,13 +178,15 @@ export function calculateMaxPurchaseForLivingWithStressDSR(
   const monthlyDSR = (annualIncome * dsrRatio / 100) / 12;
   
   // 주택담보대출 한도 계산 (스트레스 금리 적용, 원리금 균등 상환 기준)
-  const mortgageLimit = calculateLoanLimit(monthlyDSR, effectiveRate, loanYears);
+  const dsrBasedLoanLimit = calculateLoanLimit(monthlyDSR, effectiveRate, loanYears);
+  const affordable = calculateMaxAffordableByLtv(assets, dsrBasedLoanLimit, _ltv);
+  const mortgageLimit = affordable.usedLoan;
   
   // 신용대출은 고려하지 않음
   const creditLoan = 0;
   
   // 최대 구매 가능 금액 = 보유자산 + 주택담보대출 한도
-  const maxPropertyPrice = assets + mortgageLimit;
+  const maxPropertyPrice = affordable.maxPropertyPrice;
   
   return {
     maxPropertyPrice,
@@ -228,18 +272,22 @@ export function calculateMaxPurchaseWithNewRegulation627(
     mortgageLimit = dsrBasedLimit;
   }
   
-  // 월 상환액 계산 (실제 선택된 대출 금액 기준)
-  const monthlyRepayment = calculateMonthlyPayment(mortgageLimit, effectiveRate, loanYears);
+  // 보유자산/LTV(70%)를 반영한 실제 사용 대출 및 최대 구매가 계산
+  const affordable = calculateMaxAffordableByLtv(assets, mortgageLimit, 70);
+  const usedMortgageLimit = affordable.usedLoan;
+
+  // 월 상환액 계산 (실제 사용 대출 금액 기준)
+  const monthlyRepayment = calculateMonthlyPayment(usedMortgageLimit, effectiveRate, loanYears);
   
   // 신용대출은 고려하지 않음
   const creditLoan = 0;
   
   // 최대 구매 가능 금액 = 보유자산 + 주택담보대출 한도
-  const maxPropertyPrice = assets + mortgageLimit;
+  const maxPropertyPrice = affordable.maxPropertyPrice;
   
   return {
     maxPropertyPrice,
-    mortgageLimit,
+    mortgageLimit: usedMortgageLimit,
     creditLoan,
     stressRate,
     effectiveRate,

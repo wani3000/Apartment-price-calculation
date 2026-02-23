@@ -45,42 +45,6 @@ export default function NewsPage() {
         }}
       >
         <div className="px-5">
-          <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
-            <svg
-              width="40"
-              height="40"
-              viewBox="0 0 48 48"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect x="8" y="12" width="32" height="24" rx="4" fill="#E7F1FF" />
-              <line
-                x1="14"
-                y1="20"
-                x2="34"
-                y2="20"
-                stroke="#4285F4"
-                strokeWidth="2"
-              />
-              <line
-                x1="14"
-                y1="26"
-                x2="38"
-                y2="26"
-                stroke="#4285F4"
-                strokeWidth="2"
-              />
-              <line
-                x1="14"
-                y1="32"
-                x2="30"
-                y2="32"
-                stroke="#4285F4"
-                strokeWidth="2"
-              />
-            </svg>
-          </div>
-
           {/* 제목 */}
           <h1 className="text-[28px] font-bold leading-[36px] text-grey-100 mb-8 mt-6">
             최신 부동산 소식을
