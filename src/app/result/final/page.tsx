@@ -1001,6 +1001,8 @@ export default function FinalResultPage() {
           <div>
             <Header
               backUrl="/regulation"
+              showBack={false}
+              logoLink="/?manualHome=1"
               rightAction={{
                 label: "소득·자산 수정",
                 onClick: handleEditIncome,

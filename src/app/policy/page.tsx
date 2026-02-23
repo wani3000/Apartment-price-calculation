@@ -1,77 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
 
 export default function PolicyPage() {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("청년");
-  const handleOpenMenu = () => {
-    const query = searchParams.toString();
-    const currentPath = `${pathname}${query ? `?${query}` : ""}`;
-    router.push(`/menu?from=${encodeURIComponent(currentPath)}`);
-  };
 
   const tabs = ["청년", "신혼부부", "다자녀"];
 
   return (
     <div className="bg-white flex flex-col h-[100dvh] overflow-hidden">
       {/* 헤더 */}
-      <div
-        className="fixed top-0 left-0 right-0 z-50 bg-white flex justify-between items-center px-5 py-4"
-        style={{ paddingTop: "max(16px, env(safe-area-inset-top))" }}
-      >
-        <button onClick={() => router.back()} className="text-grey-100">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M15 19L8 12L15 5"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-        <button onClick={handleOpenMenu} className="text-grey-100">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M3 12H21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M3 6H21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M3 18H21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
+      <Header />
 
       {/* 메인 컨텐츠 */}
       <div

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { shareContent, getHomeShareData } from "@/utils/share";
+import Header from "@/components/Header";
 
 export default function Home() {
   const router = useRouter();
@@ -27,9 +28,17 @@ export default function Home() {
 
     const urlParams = new URLSearchParams(window.location.search);
     const sharedParam = urlParams.get("shared");
+    const manualHomeParam = urlParams.get("manualHome");
     if (sharedParam === "true") {
       setIsShared(true);
       setShareUrl(window.location.href);
+    }
+    if (manualHomeParam !== "1" && sharedParam !== "true") {
+      const hasCalculatedData = Boolean(localStorage.getItem("calculatorData"));
+      if (hasCalculatedData) {
+        router.replace("/result/final");
+        return;
+      }
     }
 
     if (process.env.NODE_ENV === "production") {
@@ -47,7 +56,7 @@ export default function Home() {
           console.error("❌ Error sending Google sitemap ping:", error);
         });
     }
-  }, []);
+  }, [router]);
 
   const handleShare = async () => {
     try {
@@ -56,11 +65,6 @@ export default function Home() {
     } catch (error) {
       console.error("공유 오류:", error);
     }
-  };
-
-  const handleOpenMenu = () => {
-    const current = `${window.location.pathname}${window.location.search}`;
-    router.push(`/menu?from=${encodeURIComponent(current)}`);
   };
 
   return (
@@ -77,42 +81,7 @@ export default function Home() {
       }}
     >
       {/* 상단 메뉴 버튼 */}
-      <div className="fixed top-0 right-0 p-4 z-50">
-        <button
-          onClick={handleOpenMenu}
-          className="text-[#000000]"
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M3 12H21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M3 6H21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M3 18H21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
+      <Header showBack={false} showBorder={false} logoLink="/" />
 
       {/* 상단 텍스트 */}
       <div className="w-full max-w-md text-center px-5 mt-8">
