@@ -3,6 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import { Capacitor } from "@capacitor/core";
+import { Media } from "@capacitor-community/media";
 import {
   calculateMaxPurchaseForLiving,
   calculateMaxPurchaseForLivingWithStressDSR,
@@ -741,14 +743,52 @@ export default function FinalResultPage() {
         },
       });
 
-      // iOS 감지 (더 정확한 감지)
+      const dataUrl = canvas.toDataURL("image/png");
+
+      // 네이티브 앱에서는 갤러리에 직접 저장
+      if (Capacitor.isNativePlatform()) {
+        try {
+          if (Capacitor.getPlatform() === "android") {
+            let albumIdentifier: string | undefined;
+            const albumName = "AptGugu";
+            const albums = await Media.getAlbums();
+            const existing = albums.albums.find(
+              (album) => album.name === albumName,
+            );
+
+            if (existing) {
+              albumIdentifier = existing.identifier;
+            } else {
+              await Media.createAlbum({ name: albumName });
+              const updatedAlbums = await Media.getAlbums();
+              const created = updatedAlbums.albums.find(
+                (album) => album.name === albumName,
+              );
+              albumIdentifier = created?.identifier;
+            }
+
+            await Media.savePhoto({
+              path: dataUrl,
+              albumIdentifier,
+              fileName: `${username || "aptgugu"}_${activeTab === "gap" ? "gap" : "live"}_card`,
+            });
+          } else {
+            await Media.savePhoto({ path: dataUrl });
+          }
+
+          alert("갤러리에 카드가 저장되었습니다.");
+          return;
+        } catch (nativeSaveError) {
+          console.error("네이티브 갤러리 저장 실패:", nativeSaveError);
+        }
+      }
+
+      // iOS Safari 감지 (더 정확한 감지)
       const isIOS =
         /iPad|iPhone|iPod/.test(navigator.userAgent) ||
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPad on iOS 13+
-
       if (isIOS) {
         // iOS에서는 이미지 자체를 새 탭으로 열어 바로 저장 가능하도록 처리
-        const dataUrl = canvas.toDataURL("image/png");
         const newWindow = window.open(dataUrl, "_blank");
         if (!newWindow) {
           fallbackDownload(canvas);
@@ -825,10 +865,13 @@ export default function FinalResultPage() {
       const shareText = username
         ? `${username} 님이 살 수 있는 아파트 가격이에요!`
         : "이 링크에서 내 결과를 확인할 수 있어요!";
+      const shareTitle = username
+        ? `${username} 님이 살 수 있는 아파트는?`
+        : "내가 살 수 있는 아파트는?";
       if (navigator.share) {
         try {
           await navigator.share({
-            title: "아파트 분석 결과",
+            title: shareTitle,
             text: shareText,
             url: targetShareUrl,
           });
@@ -839,16 +882,12 @@ export default function FinalResultPage() {
       } else {
         try {
           await navigator.clipboard.writeText(targetShareUrl);
-          alert("공유 링크가 복사되었습니다!");
         } catch (err) {
-          alert(
-            `공유 링크: ${targetShareUrl}\n(클립보드 복사에 실패했습니다. 직접 복사해 주세요.)`,
-          );
+          console.error("클립보드 복사 실패:", err);
         }
       }
     } catch (error) {
       console.error("공유 오류:", error);
-      alert("공유 링크 생성에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -868,6 +907,43 @@ export default function FinalResultPage() {
       `/result/schedule?principal=${principalMan * 10000}&rate=${appliedRate}&years=${appliedYears}`,
     );
   };
+
+  const regionLabel =
+    sharedPolicyData.siDo && sharedPolicyData.siGunGu
+      ? `${sharedPolicyData.siDo} ${sharedPolicyData.siGunGu}${
+          sharedPolicyData.gu ? ` ${sharedPolicyData.gu}` : ""
+        }`
+      : sharedPolicyData.selectedRegion === "non-regulated"
+        ? "비규제지역"
+        : "규제지역";
+
+  const latestPolicyFlags = isLatestPolicy
+    ? sharedPolicyData.siDo && sharedPolicyData.siGunGu
+      ? determinePolicyFlags(
+          sharedPolicyData.siDo,
+          sharedPolicyData.siGunGu,
+          sharedPolicyData.gu || undefined,
+        )
+      : mapRegionSelectionToPolicyFlags(sharedPolicyData.selectedRegion)
+    : null;
+
+  const isRegulatedRegion = isLatestPolicy
+    ? Boolean(
+        latestPolicyFlags?.isRegulatedArea || latestPolicyFlags?.isCapitalArea,
+      )
+    : sharedPolicyData.selectedRegion !== "non-regulated";
+
+  const regionPolicySummary = isLatestPolicy
+    ? isRegulatedRegion
+      ? "스트레스 DSR 3.0% 및 가격구간별 주담대 한도(15억 이하 6억, 15~25억 4억, 25억 초과 2억) 적용"
+      : "비규제지역 기준으로 스트레스 DSR 추가 가산 없이 DSR/LTV 기준만 적용"
+    : isNewRegulation627
+      ? isRegulatedRegion
+        ? "6.27 규제안 기준으로 수도권 스트레스 금리(기준 3.5% + 1.5%)를 반영하여 한도 산정"
+        : "6.27 규제안 기준으로 지방 스트레스 금리(기준 3.5% + 0.75%)를 반영하여 한도 산정"
+      : isRegulatedRegion
+        ? "수도권(규제) 기준 스트레스 DSR 3단계 금리를 반영하여 한도 산정"
+        : "비규제(지방) 기준 스트레스 DSR 3단계 금리를 반영하여 한도 산정";
 
   useEffect(() => {
     if (activeTab === "gap") {
@@ -1577,10 +1653,37 @@ export default function FinalResultPage() {
                 </div>
               </div>
 
-              {/* 주택담보대출 섹션 - 실거주 시 */}
-              <div className="mb-6">
-                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-                  주택담보대출
+	              {/* 주택담보대출 섹션 - 실거주 시 */}
+	              <div className="mb-6">
+	                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+	                  지역
+	                </h3>
+	                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+	                  <div className="flex justify-between items-center w-full">
+	                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+	                      선택 지역
+	                    </p>
+	                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+	                      {regionLabel}
+	                    </p>
+	                  </div>
+	                  <div className="flex justify-between items-center w-full">
+	                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+	                      적용 구분
+	                    </p>
+	                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+	                      {isRegulatedRegion ? "규제지역" : "비규제지역"}
+	                    </p>
+	                  </div>
+	                  <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+	                    {regionPolicySummary}
+	                  </p>
+	                </div>
+	              </div>
+
+	              <div className="mb-6">
+	                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+	                  주택담보대출
                 </h3>
                 <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
                   <div className="flex justify-between items-center w-full">

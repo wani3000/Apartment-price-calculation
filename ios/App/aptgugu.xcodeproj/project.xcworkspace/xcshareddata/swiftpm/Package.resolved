@@ -1,5 +1,5 @@
 {
-  "originHash" : "961c76c6b2524f9d447fcd2b820bf01715154b65c0eae12a3d31d9438e4b2cc1",
+  "originHash" : "2a49c7eec8315fb4ff1557922cd5dc721b01ba51e6db14c8cd773cc0f48739ef",
   "pins" : [
     {
       "identity" : "capacitor-swift-pm",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "13a39179b3df796f3bb2e70c47ccdd92593f34d2",
         "version" : "8.0.2"
+      }
+    },
+    {
+      "identity" : "sdwebimage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SDWebImage/SDWebImage.git",
+      "state" : {
+        "revision" : "449e8f8f10377f620db8ad22ea81208eecf6325f",
+        "version" : "5.21.6"
       }
     }
   ],

@@ -3,11 +3,11 @@ import Link from "next/link";
 import SharedRedirect from "./SharedRedirect";
 
 export const metadata: Metadata = {
-  title: "공유 결과 확인 - 아파트 구구",
-  description: "공유받은 아파트 구매 가능 금액 결과를 확인해보세요.",
+  title: "닉네임 님이 살 수 있는 아파트는?",
+  description: "닉네임 님의 소득으로 살 수 있는 아파트를 확인해 보세요.",
   openGraph: {
-    title: "공유 결과 확인 - 아파트 구구",
-    description: "공유받은 아파트 구매 가능 금액 결과를 확인해보세요.",
+    title: "닉네임 님이 살 수 있는 아파트는?",
+    description: "닉네임 님의 소득으로 살 수 있는 아파트를 확인해 보세요.",
     url: "https://aptgugu.com/result/shared",
     siteName: "AptGugu",
     images: [
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "공유 결과 확인 - 아파트 구구",
-    description: "공유받은 아파트 구매 가능 금액 결과를 확인해보세요.",
+    title: "닉네임 님이 살 수 있는 아파트는?",
+    description: "닉네임 님의 소득으로 살 수 있는 아파트를 확인해 보세요.",
     images: ["https://aptgugu.com/og.png"],
   },
 };

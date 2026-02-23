@@ -2,10 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function MenuPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const menuItems = [
     {
@@ -49,7 +50,26 @@ export default function MenuPage() {
       href: "/news",
       description: "최신 부동산 소식을 받아보세요",
     },
+    {
+      label: "고객지원",
+      href: "/support",
+      description: "문의 및 오류 제보를 접수하세요",
+    },
+    {
+      label: "데이터 삭제 안내",
+      href: "/data-deletion",
+      description: "앱 데이터 삭제 방법을 확인하세요",
+    },
   ];
+
+  const handleBack = () => {
+    const from = searchParams.get("from");
+    if (from) {
+      router.push(decodeURIComponent(from));
+      return;
+    }
+    router.back();
+  };
 
   return (
     <div className="bg-white flex flex-col h-[100dvh] overflow-hidden">
@@ -58,7 +78,7 @@ export default function MenuPage() {
         className="fixed top-0 left-0 right-0 z-50 bg-white flex items-center px-5 py-4"
         style={{ paddingTop: "max(16px, env(safe-area-inset-top))" }}
       >
-        <button onClick={() => router.back()} className="text-grey-100 mr-4">
+        <button onClick={handleBack} className="text-grey-100 mr-4">
           <svg
             width="24"
             height="24"

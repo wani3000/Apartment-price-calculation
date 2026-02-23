@@ -58,6 +58,11 @@ export default function Home() {
     }
   };
 
+  const handleOpenMenu = () => {
+    const current = `${window.location.pathname}${window.location.search}`;
+    router.push(`/menu?from=${encodeURIComponent(current)}`);
+  };
+
   return (
     <div
       className="h-[100dvh] bg-white flex flex-col items-center"
@@ -74,7 +79,7 @@ export default function Home() {
       {/* 상단 메뉴 버튼 */}
       <div className="fixed top-0 right-0 p-4 z-50">
         <button
-          onClick={() => router.push("/menu")}
+          onClick={handleOpenMenu}
           className="text-[#000000]"
         >
           <svg

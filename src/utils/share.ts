@@ -40,7 +40,6 @@ export const shareContent = async (data: ShareData): Promise<boolean> => {
     } else {
       // fallback: URL 복사
       await copyToClipboard(data.url);
-      alert('링크가 클립보드에 복사되었습니다!');
       return true;
     }
   } catch (error) {
@@ -54,11 +53,9 @@ export const shareContent = async (data: ShareData): Promise<boolean> => {
     // 다른 오류의 경우 fallback 시도
     try {
       await copyToClipboard(data.url);
-      alert('링크가 클립보드에 복사되었습니다!');
       return true;
     } catch (clipboardError) {
       console.error('클립보드 복사 실패:', clipboardError);
-      alert('공유에 실패했습니다. 링크를 수동으로 복사해주세요: ' + data.url);
       return false;
     }
   }
