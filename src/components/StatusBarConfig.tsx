@@ -8,7 +8,8 @@ export default function StatusBarConfig() {
     if (typeof window !== "undefined") {
       import("@capacitor/status-bar")
         .then(({ StatusBar, Style }) => {
-          StatusBar.setStyle({ style: Style.Light }).catch(() => {});
+          StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
+          StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
           StatusBar.setBackgroundColor({ color: "#ffffff" }).catch(() => {});
         })
         .catch(() => {});

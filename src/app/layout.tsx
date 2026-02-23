@@ -74,6 +74,8 @@ export default function RootLayout({
           as="style"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
         />
+        <meta name="color-scheme" content="light" />
+        <meta name="theme-color" content="#ffffff" />
         <link rel="icon" href="/favicon.png" />
         {/* Google AdSense는 정적 빌드 시 제외됨 - iOS 앱에서는 표시 안 됨 */}
       </head>

@@ -72,43 +72,45 @@ export default function Header({
           paddingTop: "max(16px, env(safe-area-inset-top))",
         }}
       >
-        {/* 뒤로가기 버튼 */}
-        {logoLink ? (
-          <button
-            onClick={() => router.push(logoLink)}
-            className="h-6 flex items-center"
-            aria-label="홈으로 이동"
-          >
-            <Image
-              src="/images/aptgugu_logo.svg"
-              alt="aptgugu"
-              width={118}
-              height={24}
-              className="h-6 w-auto"
-              unoptimized
-            />
-          </button>
-        ) : showBack ? (
-          <button onClick={handleBack} className="text-grey-100">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+        <div className="w-[118px] h-6 flex items-center justify-start shrink-0">
+          {/* 뒤로가기 버튼 */}
+          {logoLink ? (
+            <button
+              onClick={() => router.push(logoLink)}
+              className="h-6 flex items-center"
+              aria-label="홈으로 이동"
             >
-              <path
-                d="M15 19L8 12L15 5"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <Image
+                src="/images/aptgugu_logo.svg"
+                alt="aptgugu"
+                width={118}
+                height={24}
+                className="h-6 w-auto"
+                unoptimized
               />
-            </svg>
-          </button>
-        ) : (
-          <div className="w-6 h-6" />
-        )}
+            </button>
+          ) : showBack ? (
+            <button onClick={handleBack} className="text-grey-100">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 19L8 12L15 5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          ) : (
+            <div className="w-6 h-6" />
+          )}
+        </div>
 
         {/* 제목 */}
         {title && (
@@ -117,7 +119,7 @@ export default function Header({
           </h1>
         )}
 
-        <div className="flex items-center gap-2">
+        <div className="w-[126px] h-6 flex items-center justify-end gap-2 shrink-0">
           {rightAction && (
             <button
               onClick={handleRightAction}

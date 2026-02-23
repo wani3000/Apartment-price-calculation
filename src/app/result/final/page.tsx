@@ -1067,11 +1067,11 @@ export default function FinalResultPage() {
                   color: "var(--grey-100, #212529)",
                   fontFamily:
                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif',
-                  fontSize: "16px",
+                  fontSize: "20px",
                   fontStyle: "normal",
                   fontWeight: "700",
-                  lineHeight: "24px",
-                  letterSpacing: "-0.16px",
+                  lineHeight: "28px",
+                  letterSpacing: "-0.2px",
                   marginBottom: "8px",
                 }}
               >
@@ -1085,11 +1085,11 @@ export default function FinalResultPage() {
                   color: "var(--grey-100, #212529)",
                   fontFamily:
                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif',
-                  fontSize: "24px",
+                  fontSize: "28px",
                   fontStyle: "normal",
                   fontWeight: "700",
-                  lineHeight: "32px",
-                  letterSpacing: "-0.24px",
+                  lineHeight: "36px",
+                  letterSpacing: "-0.28px",
                   marginBottom: "4px",
                 }}
               >
@@ -1112,11 +1112,11 @@ export default function FinalResultPage() {
                   color: "var(--Gray-60, #707075)",
                   fontFamily:
                     '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif',
-                  fontSize: "13px",
+                  fontSize: "18px",
                   fontStyle: "normal",
                   fontWeight: "700",
-                  lineHeight: "20px",
-                  letterSpacing: "-0.13px",
+                  lineHeight: "26px",
+                  letterSpacing: "-0.18px",
                 }}
               >
                 {activeTab === "gap" ? "갭투자 시 최대" : "실거주 시 최대"}

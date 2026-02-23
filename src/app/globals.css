@@ -73,6 +73,7 @@
     --primary: #000000;
     --page-header-offset: 76px;
     --page-bottom-cta-offset: 112px;
+    color-scheme: light;
 }
 
 html,
