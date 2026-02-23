@@ -75,6 +75,10 @@ export default function FinalResultPage() {
   const [isNewRegulation627, setIsNewRegulation627] = useState(false);
   const [isLatestPolicy, setIsLatestPolicy] = useState(false);
   const [showGapPolicyModal, setShowGapPolicyModal] = useState(false);
+  const [showLegacyPolicyModal, setShowLegacyPolicyModal] = useState(false);
+  const [hasSpouseInfo, setHasSpouseInfo] = useState(false);
+  const [hasRegionInput, setHasRegionInput] = useState(false);
+  const [hasHomeOwnerInput, setHasHomeOwnerInput] = useState(false);
 
   // 카드 요소에 대한 ref 추가
   const cardRef = useRef<HTMLDivElement>(null);
@@ -550,6 +554,9 @@ export default function FinalResultPage() {
           jeonseLoanPrincipal: parseInt(sharedJeonsePrincipal || "0"),
           jeonseLoanRate: parseFloat(sharedJeonseRate || "0"),
         };
+        setHasSpouseInfo(spouseIncome > 0);
+        setHasRegionInput(Boolean(sharedRegion || sharedSiDo || sharedSiGunGu));
+        setHasHomeOwnerInput(sharedHomeOwnerCount !== null);
         setSharedCalculationData(calculationData);
         setSharedPolicyData(policyData);
 
@@ -581,6 +588,9 @@ export default function FinalResultPage() {
 
     setIsNewRegulation627(isNew627);
     setIsLatestPolicy(isLatest);
+    if (!isSharedLink && !isLatest) {
+      setShowLegacyPolicyModal(true);
+    }
 
     // LTV, DSR 옵션 가져오기
     const loanOptionsStr = localStorage.getItem("loanOptions");
@@ -594,7 +604,8 @@ export default function FinalResultPage() {
     const calculatorDataStr = localStorage.getItem("calculatorData");
     if (calculatorDataStr) {
       const calculatorData = JSON.parse(calculatorDataStr);
-      const selectedRegion = localStorage.getItem("selectedRegion");
+      const selectedRegionRaw = localStorage.getItem("selectedRegion");
+      const selectedRegion = selectedRegionRaw;
       const policyRegionDetailsStr = localStorage.getItem(
         "policyRegionDetails",
       );
@@ -613,6 +624,19 @@ export default function FinalResultPage() {
         jeonseLoanPrincipal: calculatorData.jeonseLoanPrincipal || 0,
         jeonseLoanRate: calculatorData.jeonseLoanRate || 0,
       };
+      setHasSpouseInfo(
+        calculatorData.hasSpouseInfo === true ||
+          Number(calculatorData.spouseIncome || 0) > 0 ||
+          Number(calculatorData.spouseAssets || 0) > 0,
+      );
+      setHasRegionInput(
+        Boolean(
+          selectedRegionRaw ||
+            policyRegionDetails?.siDo ||
+            policyRegionDetails?.siGunGu,
+        ),
+      );
+      setHasHomeOwnerInput(calculatorData.homeOwnerCount !== undefined);
       setSharedPolicyData(policyData);
 
       // localStorage에서 읽은 데이터를 만원 단위 그대로 저장 (공유 링크용)
@@ -945,6 +969,16 @@ export default function FinalResultPage() {
         ? "수도권(규제) 기준 스트레스 DSR 3단계 금리를 반영하여 한도 산정"
         : "비규제(지방) 기준 스트레스 DSR 3단계 금리를 반영하여 한도 산정";
 
+  const totalAnnualIncome = calculationResult.income + calculationResult.spouseIncome;
+  const showIncomeInfo = totalAnnualIncome > 0;
+  const showAssetInfo = calculationResult.assets > 0;
+  const showHomeOwnerInfo = hasHomeOwnerInput;
+  const showRegionInfo = hasRegionInput;
+  const homeOwnerLabel =
+    sharedPolicyData.homeOwnerCount > 0
+      ? `보유 (${sharedPolicyData.homeOwnerCount}주택)`
+      : "무주택";
+
   useEffect(() => {
     if (activeTab === "gap") {
       setShowGapPolicyModal(true);
@@ -1242,11 +1276,64 @@ export default function FinalResultPage() {
                 </div>
               </div>
             </>
-          ) : (
-            <>
-              {/* DSR 섹션 - 실거주 시 */}
-              <div className="mb-6">
-                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+	          ) : (
+	            <>
+	              <div className="mb-6">
+	                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+	                  입력 정보
+	                </h3>
+	                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+	                  {showIncomeInfo && (
+	                    <div className="flex justify-between items-center w-full">
+	                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+	                        연소득
+	                      </p>
+	                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+	                        {formatToKorean(totalAnnualIncome)}
+	                      </p>
+	                    </div>
+	                  )}
+	                  {showAssetInfo && (
+	                    <div className="flex justify-between items-center w-full">
+	                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+	                        보유자산
+	                      </p>
+	                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+	                        {formatToKorean(calculationResult.assets)}
+	                      </p>
+	                    </div>
+	                  )}
+	                  {showHomeOwnerInfo && (
+	                    <div className="flex justify-between items-center w-full">
+	                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+	                        보유주택 여부
+	                      </p>
+	                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+	                        {homeOwnerLabel}
+	                      </p>
+	                    </div>
+	                  )}
+	                  {showRegionInfo && (
+	                    <div className="flex justify-between items-center w-full">
+	                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+	                        지역
+	                      </p>
+	                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+	                        {regionLabel}
+	                      </p>
+	                    </div>
+	                  )}
+	                  {hasSpouseInfo && (
+	                    <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+	                      배우자 정보가 포함되어 합산 기준으로 계산했어요.
+	                    </p>
+	                  )}
+	                </div>
+	              </div>
+
+	              {/* DSR 섹션 - 실거주 시 */}
+	              <div className="mb-6">
+	                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   DSR (총부채원리금상환비율)
                 </h3>
                 <div className="flex flex-col p-4 gap-3 rounded-xl bg-[#F8F9FA]">
@@ -1831,6 +1918,33 @@ export default function FinalResultPage() {
               >
                 정책 원문 보기
               </a>
+            </div>
+          </div>
+        </div>
+      )}
+      {showLegacyPolicyModal && (
+        <div className="fixed inset-0 z-[60] flex items-end bg-black/40">
+          <div className="w-full bg-white rounded-t-2xl p-5 pb-[calc(20px+env(safe-area-inset-bottom))]">
+            <div className="flex items-start justify-between gap-4 mb-3">
+              <h3 className="text-grey-100 text-base font-bold">
+                최신 정책 미적용 안내
+              </h3>
+            </div>
+            <p className="text-grey-80 text-sm leading-6 mb-3">
+              현재 결과는 2025년 10월 15일 최신 정책이 아닌{" "}
+              {isNewRegulation627
+                ? "6.27 규제안 기준"
+                : "기존 LTV·DSR 기준"}{" "}
+              계산입니다. 최신 정책 기준 결과는 정책 선택 페이지에서{" "}
+              <strong>10.15 최신 정책 적용하기</strong>를 선택해 확인할 수 있어요.
+            </p>
+            <div className="flex flex-col gap-3 mt-4">
+              <button
+                onClick={() => setShowLegacyPolicyModal(false)}
+                className="flex h-14 w-full justify-center items-center rounded-[300px] bg-primary text-white font-semibold text-base"
+              >
+                확인
+              </button>
             </div>
           </div>
         </div>

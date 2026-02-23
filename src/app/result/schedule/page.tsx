@@ -86,7 +86,7 @@ export default function SchedulePage() {
           WebkitOverflowScrolling: "touch",
         }}
       >
-        <Header backUrl="/result/final" />
+        <Header backUrl="/result/final" showMenu={false} />
 
         <h1 className="text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px] mb-4">
           {years}년 만기 상환 스케줄표

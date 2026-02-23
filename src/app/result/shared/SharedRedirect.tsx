@@ -9,7 +9,7 @@ export default function SharedRedirect() {
 
   useEffect(() => {
     const usernameParam = searchParams.get("username");
-    const username = usernameParam ? decodeURIComponent(usernameParam) : "닉네임";
+    const username = usernameParam ? decodeURIComponent(usernameParam) : "내";
     const title = `${username} 님이 살 수 있는 아파트는?`;
     const description = `${username} 님의 소득으로 살 수 있는 아파트를 확인해 보세요.`;
 
