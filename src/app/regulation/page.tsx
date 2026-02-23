@@ -99,9 +99,9 @@ export default function RegulationPage() {
                   : "border-grey-40 bg-white"
             }`}
           >
-            {/* 추천 배지 */}
-            <div className="absolute -top-2 right-3 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
-              최신
+            {/* 신규 배지 */}
+            <div className="absolute -top-2 right-3 px-2 py-0.5 bg-[#FFF0F0] text-[#FF4444] text-[11px] font-semibold rounded-full">
+              신규
             </div>
 
             <div className="flex flex-col items-start">
