@@ -1,3 +1,6 @@
+import { Capacitor } from "@capacitor/core";
+import { Share } from "@capacitor/share";
+
 interface ShareData {
   title: string;
   text?: string;
@@ -7,6 +10,17 @@ interface ShareData {
 // Web Share API를 사용한 공유 기능
 export const shareContent = async (data: ShareData): Promise<boolean> => {
   try {
+    // Capacitor 네이티브 앱(iOS/Android)에서는 OS 기본 공유 시트 사용
+    if (Capacitor.isNativePlatform()) {
+      await Share.share({
+        title: data.title,
+        text: data.text,
+        url: data.url,
+        dialogTitle: "공유하기",
+      });
+      return true;
+    }
+
     // Web Share API 지원 여부 확인
     if (navigator.share) {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 

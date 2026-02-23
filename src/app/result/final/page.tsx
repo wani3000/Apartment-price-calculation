@@ -699,6 +699,21 @@ export default function FinalResultPage() {
       await document.fonts.ready;
       // 추가 대기 시간 (폰트 완전 로딩 보장)
       await new Promise((resolve) => setTimeout(resolve, 500));
+      // 카드 내 이미지 로딩 완료 대기
+      const cardImages = Array.from(cardRef.current.querySelectorAll("img"));
+      await Promise.all(
+        cardImages.map(
+          (img) =>
+            new Promise<void>((resolve) => {
+              if (img.complete) {
+                resolve();
+                return;
+              }
+              img.addEventListener("load", () => resolve(), { once: true });
+              img.addEventListener("error", () => resolve(), { once: true });
+            }),
+        ),
+      );
 
       // 카드 엘리먼트의 스크린샷 캡처
       const canvas = await html2canvas(cardRef.current, {
@@ -732,69 +747,14 @@ export default function FinalResultPage() {
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPad on iOS 13+
 
       if (isIOS) {
-        // iOS에서는 새 탭에서 이미지를 열어서 사용자가 길게 눌러서 저장할 수 있게 함
+        // iOS에서는 이미지 자체를 새 탭으로 열어 바로 저장 가능하도록 처리
         const dataUrl = canvas.toDataURL("image/png");
-
-        // 새 창에서 이미지 열기
-        const newWindow = window.open("", "_blank");
-        if (newWindow) {
-          newWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <title>${username}님의 아파트 구매 가능 금액</title>
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <style>
-                body {
-                  margin: 0;
-                  padding: 20px;
-                  background: #f5f5f5;
-                  display: flex;
-                  flex-direction: column;
-                  align-items: center;
-                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                }
-                .instruction {
-                  background: white;
-                  padding: 15px 20px;
-                  border-radius: 12px;
-                  margin-bottom: 20px;
-                  text-align: center;
-                  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                  max-width: 300px;
-                }
-                .instruction h3 {
-                  margin: 0 0 8px 0;
-                  color: #007AFF;
-                  font-size: 16px;
-                }
-                .instruction p {
-                  margin: 0;
-                  color: #666;
-                  font-size: 14px;
-                  line-height: 1.4;
-                }
-                img {
-                  max-width: 100%;
-                  height: auto;
-                  border-radius: 12px;
-                  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                }
-              </style>
-            </head>
-            <body>
-              <div class="instruction">
-                <h3>📱 갤러리에 저장하기</h3>
-                <p>아래 이미지를 <strong>길게 눌러서</strong><br>"사진에 저장"을 선택하세요</p>
-              </div>
-              <img src="${dataUrl}" alt="아파트 구매 가능 금액 카드" />
-            </body>
-            </html>
-          `);
-          newWindow.document.close();
+        const newWindow = window.open(dataUrl, "_blank");
+        if (!newWindow) {
+          fallbackDownload(canvas);
+          return;
         }
-
-        alert('새 탭에서 이미지를 길게 눌러서 "사진에 저장"을 선택하세요.');
+        alert('열린 이미지에서 길게 눌러 "사진에 저장"을 선택하세요.');
       } else {
         // 다른 브라우저에서는 기존 다운로드 방식 사용
         fallbackDownload(canvas);
@@ -858,28 +818,8 @@ export default function FinalResultPage() {
           : "";
       const sharedUrl = `https://aptgugu.com/result/final?shared=true&username=${encodeURIComponent(username)}&amount=${encodeURIComponent(amount)}&type=${type}&income=${income}&assets=${assets}&spouseIncome=${spouseIncome}&ltv=${ltv}&dsr=${dsr}&region=${region}&siDo=${encodeURIComponent(siDo)}&siGunGu=${encodeURIComponent(siGunGu)}&gu=${encodeURIComponent(gu)}&homeOwnerCount=${homeOwnerCount}&isTenant=${isTenant}&hasJeonseLoan=${hasJeonseLoan}&jeonseLoanPrincipal=${jeonseLoanPrincipal}&jeonseLoanRate=${jeonseLoanRate}${regulationParam}`;
 
-      // 2. API 단축 실패 시 원본 URL로 fallback
-      let targetShareUrl = sharedUrl;
-      try {
-        const slug = Math.random().toString(36).substring(2, 8);
-        const apiUrl = `${window.location.origin}/api/shorten`;
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            slug,
-            longUrl: sharedUrl,
-          }),
-        });
-        if (response.ok) {
-          targetShareUrl = `https://aptgugu.com/result/${slug}`;
-        }
-      } catch {
-        targetShareUrl = sharedUrl;
-      }
+      // 공유 전용 페이지 URL 사용 (OG 메타 노출 + 404 방지)
+      const targetShareUrl = sharedUrl.replace("/result/final", "/result/shared");
 
       // 3. 모바일: navigator.share 지원 시 공유 시트, 아니면 클립보드 복사 fallback
       const shareText = username
@@ -914,7 +854,7 @@ export default function FinalResultPage() {
 
   // 홈으로 이동 핸들러
   const handleGoHome = () => {
-    router.push("/");
+    router.push("/nickname");
   };
 
   const handleOpenSchedule = () => {
@@ -1735,7 +1675,7 @@ export default function FinalResultPage() {
               className="w-full h-14 justify-center items-center gap-2.5 flex bg-[#000000] text-white rounded-[300px] font-semibold"
               onClick={handleGoHome}
             >
-              내 소득으로 아파트 계산해보기
+              내가 살 수 있는 아파트 계산하기
             </button>
           ) : (
             // 일반 사용자일 때: 기존 버튼들 표시
