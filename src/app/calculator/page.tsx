@@ -412,21 +412,26 @@ export default function CalculatorPage() {
       </div>
 
       {/* 하단 고정 버튼 */}
-      <div
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5 safe-area-inset-bottom"
-        style={{ zIndex: 1000 }}
-      >
-        <button
-          onClick={handleSubmit}
-          disabled={!income.trim()}
-          className={`flex h-14 w-full justify-center items-center rounded-[300px] font-semibold text-base transition ${
-            income.trim()
-              ? "bg-primary text-white hover:bg-[#111111]"
-              : "bg-gray-100 text-gray-400 cursor-not-allowed"
-          }`}
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
+        <div
+          className="flex w-full max-w-md px-5 pt-10 pb-[calc(25px+env(safe-area-inset-bottom))] items-center"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)",
+          }}
         >
-          다음
-        </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!income.trim()}
+            className={`flex h-14 w-full justify-center items-center rounded-[300px] font-semibold text-base transition ${
+              income.trim()
+                ? "bg-primary text-white hover:bg-[#111111]"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            다음
+          </button>
+        </div>
       </div>
     </div>
   );

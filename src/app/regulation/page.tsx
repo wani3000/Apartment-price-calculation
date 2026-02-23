@@ -236,21 +236,26 @@ export default function RegulationPage() {
       </div>
 
       {/* 하단 고정 버튼 */}
-      <div
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5 safe-area-inset-bottom"
-        style={{ zIndex: 1000 }}
-      >
-        <button
-          onClick={handleSubmit}
-          disabled={isLoading || !selectedOption}
-          className={`flex h-14 w-full justify-center items-center rounded-[300px] font-bold text-lg transition ${
-            isLoading || !selectedOption
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-[#000000] text-white hover:bg-[#111111]"
-          }`}
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
+        <div
+          className="flex w-full max-w-md px-5 pt-10 pb-[calc(25px+env(safe-area-inset-bottom))] items-center"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)",
+          }}
         >
-          {isLoading ? "로딩 중..." : "다음"}
-        </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || !selectedOption}
+            className={`flex h-14 w-full justify-center items-center rounded-[300px] font-semibold text-base transition ${
+              isLoading || !selectedOption
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-[#000000] text-white hover:bg-[#111111]"
+            }`}
+          >
+            {isLoading ? "로딩 중..." : "다음"}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -199,16 +199,21 @@ export default function FAQPage() {
       </div>
 
       {/* 하단 고정 버튼 */}
-      <div
-        className="fixed bottom-0 left-0 right-0 bg-white px-5"
-        style={{ paddingBottom: "calc(20px + env(safe-area-inset-bottom))" }}
-      >
-        <button
-          onClick={() => router.back()}
-          className="w-full h-14 bg-primary text-white text-base font-semibold rounded-full mb-4"
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
+        <div
+          className="flex w-full max-w-md px-5 pt-10 pb-[calc(25px+env(safe-area-inset-bottom))] items-center"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)",
+          }}
         >
-          확인했어요
-        </button>
+          <button
+            onClick={() => router.back()}
+            className="flex h-14 w-full justify-center items-center rounded-[300px] bg-primary text-white font-semibold text-base"
+          >
+            확인했어요
+          </button>
+        </div>
       </div>
     </div>
   );
