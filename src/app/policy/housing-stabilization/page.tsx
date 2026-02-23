@@ -39,6 +39,7 @@ export default function HousingStabilizationPage() {
           paddingTop: "calc(56px + env(safe-area-inset-top))",
           paddingBottom: "calc(120px + env(safe-area-inset-bottom))",
           WebkitOverflowScrolling: "touch",
+          overscrollBehaviorY: "contain",
         }}
       >
         <div className="px-5">

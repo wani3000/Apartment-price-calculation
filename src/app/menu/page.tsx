@@ -84,6 +84,7 @@ export default function MenuPage() {
           paddingTop: "calc(56px + env(safe-area-inset-top))",
           paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
           WebkitOverflowScrolling: "touch",
+          overscrollBehaviorY: "contain",
         }}
       >
         <div className="px-5">

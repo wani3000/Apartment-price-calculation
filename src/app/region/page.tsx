@@ -59,13 +59,6 @@ const REGION_OPTIONS: Record<string, string[]> = {
   제주: [],
 };
 
-const GYEONGGI_GU_OPTIONS: Record<string, string[]> = {
-  성남시: ["분당구", "수정구", "중원구"],
-  수원시: ["영통구", "장안구", "팔달구"],
-  안양시: ["동안구"],
-  용인시: ["수지구"],
-};
-
 export default function RegionPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -74,7 +67,6 @@ export default function RegionPage() {
   >("regulated");
   const [siDo, setSiDo] = useState("서울");
   const [siGunGu, setSiGunGu] = useState("");
-  const [gu, setGu] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [showRegionInfoModal, setShowRegionInfoModal] = useState(false);
 
@@ -98,7 +90,6 @@ export default function RegionPage() {
       const parsed = JSON.parse(savedPolicyRegionDetails);
       setSiDo(parsed.siDo || "서울");
       setSiGunGu(parsed.siGunGu || "");
-      setGu(parsed.gu || "");
     }
   }, []);
 
@@ -113,35 +104,22 @@ export default function RegionPage() {
       JSON.stringify({
         siDo,
         siGunGu,
-        gu,
+        gu: "",
       }),
     );
-  }, [siDo, siGunGu, gu]);
+  }, [siDo, siGunGu]);
 
   useEffect(() => {
     const options = REGION_OPTIONS[siDo] || [];
     if (options.length === 0) {
       setSiGunGu("");
-      setGu("");
       return;
     }
 
     if (!options.includes(siGunGu)) {
       setSiGunGu(options[0]);
-      setGu("");
     }
   }, [siDo, siGunGu]);
-
-  useEffect(() => {
-    const guOptions = GYEONGGI_GU_OPTIONS[siGunGu] || [];
-    if (guOptions.length === 0) {
-      if (gu) setGu("");
-      return;
-    }
-    if (!guOptions.includes(gu)) {
-      setGu(guOptions[0]);
-    }
-  }, [siGunGu, gu]);
 
   const handleSubmit = () => {
     // 다음 페이지(정책 선택 페이지)로 이동
@@ -350,37 +328,6 @@ export default function RegionPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="gu"
-                    className="block text-grey-100 text-base font-bold leading-6 tracking-[-0.16px] mb-2"
-                  >
-                    구(선택)
-                  </label>
-                  <select
-                    id="gu"
-                    value={gu}
-                    onChange={(e) => setGu(e.target.value)}
-                    onFocus={() => setFocusedField("gu")}
-                    onBlur={() => setFocusedField(null)}
-                    className={`w-full h-14 px-3 py-2.5 rounded-lg bg-white text-grey-100 text-base outline-none transition-colors ${
-                      focusedField === "gu"
-                        ? "border-2 border-primary"
-                        : "border border-grey-40"
-                    }`}
-                    disabled={(GYEONGGI_GU_OPTIONS[siGunGu] || []).length === 0}
-                  >
-                    {(GYEONGGI_GU_OPTIONS[siGunGu] || []).length === 0 ? (
-                      <option value="">선택 안함</option>
-                    ) : (
-                      (GYEONGGI_GU_OPTIONS[siGunGu] || []).map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </div>
               </div>
             </div>
 
@@ -389,9 +336,24 @@ export default function RegionPage() {
               <button
                 type="button"
                 onClick={() => setShowRegionInfoModal(true)}
-                className="text-[15px] font-semibold leading-[22px] text-grey-100"
+                className="inline-flex items-center gap-1 text-[15px] font-semibold leading-[22px] text-grey-100"
               >
-                규제지역이 무엇인가요? &gt;
+                <span>규제지역이 무엇인가요?</span>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9 6L15 12L9 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </button>
             </div>
           </div>
@@ -400,31 +362,31 @@ export default function RegionPage() {
 
       {/* 규제지역 설명 모달 */}
       {showRegionInfoModal && (
-        <div className="fixed inset-0 z-[1100] flex items-end sm:items-center justify-center bg-black/45 px-5 pb-5 sm:pb-0">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5">
-            <h3 className="text-[18px] font-bold text-grey-100 mb-3">
+        <div className="fixed inset-0 z-[60] flex items-end bg-black/40">
+          <div className="w-full bg-white rounded-t-2xl p-5 pb-[calc(20px+env(safe-area-inset-bottom))]">
+            <h3 className="text-grey-100 text-base font-bold mb-3">
               규제지역과 비규제지역 안내
             </h3>
-            <div className="space-y-3">
-              <p className="text-[15px] text-grey-80 leading-[22px]">
+            <div className="space-y-2">
+              <p className="text-grey-80 text-sm leading-6">
                 <span className="font-semibold text-grey-100">규제지역</span>은
                 투기과열지구, 조정대상지역처럼 정부가 대출과 세제를 더 엄격하게
                 관리하는 지역이에요. 그래서 일반적으로 LTV, DSR, 대출 한도
                 조건이 더 보수적으로 적용됩니다.
               </p>
-              <p className="text-[15px] text-grey-80 leading-[22px]">
+              <p className="text-grey-80 text-sm leading-6">
                 <span className="font-semibold text-grey-100">비규제지역</span>
                 은 규제지역보다 대출 요건이 상대적으로 완화되어 같은 소득과
                 자산 조건에서도 가능한 대출 한도가 더 크게 나올 수 있어요.
               </p>
             </div>
-            <p className="text-[13px] text-grey-70 mt-3">
+            <p className="text-grey-70 text-xs leading-5 mt-3">
               ※ 지역별 규제는 정책에 따라 수시로 변경될 수 있습니다.
             </p>
             <button
               type="button"
               onClick={() => setShowRegionInfoModal(false)}
-              className="mt-5 flex h-12 w-full items-center justify-center rounded-[300px] bg-primary text-white font-semibold text-base"
+              className="mt-4 flex h-14 w-full justify-center items-center rounded-[300px] bg-primary text-white font-semibold text-base"
             >
               확인
             </button>

@@ -377,8 +377,9 @@ export function determinePolicyFlags(siDo: string, siGunGu: string, gu?: string)
     }
 
     // 구가 있는 시 체크
+    // gu 입력이 없으면 시 단위 선택만으로 규제지역으로 간주
     const cityMatch = regulatedCities.find(item => siGunGu.includes(item.city));
-    if (cityMatch && gu && cityMatch.districts.includes(gu)) {
+    if (cityMatch && (!gu || cityMatch.districts.includes(gu))) {
       flags.isRegulatedArea = true;
       flags.isTojiPermitArea = true;
     }
@@ -600,26 +601,48 @@ export function calculateMaxPurchaseWithPolicy20251015ByCapacity(
     loanYears,
   );
 
-  // P = assets + min(0.7P, DSR한도, 정책캡(P)) 고정점 반복
-  let price = Math.max(0, assets);
-  for (let i = 0; i < 64; i += 1) {
-    const cap =
-      policyFlags.isCapitalArea || policyFlags.isRegulatedArea
-        ? calculateMortgageCapByPrice(price)
-        : Number.POSITIVE_INFINITY;
-    const mortgage = Math.min(price * 0.7, mortgageByDsr, cap);
-    const next = assets + mortgage;
-    if (Math.abs(next - price) < 1) {
-      price = next;
-      break;
+  // 최대 구매가 P는 아래 제약을 동시에 만족:
+  // 1) P - assets <= DSR한도
+  // 2) P - assets <= 0.7P  (LTV 70%)
+  // 3) 규제지역이면 가격구간별 캡(P) 적용
+  const maxByLtv = assets > 0 ? assets / (1 - 0.7) : 0;
+  let price = 0;
+
+  if (policyFlags.isCapitalArea || policyFlags.isRegulatedArea) {
+    const segments = [
+      { min: 0, max: 1_500_000_000, cap: 600_000_000, strictMin: false },
+      {
+        min: 1_500_000_000,
+        max: 2_500_000_000,
+        cap: 400_000_000,
+        strictMin: true,
+      },
+      {
+        min: 2_500_000_000,
+        max: Number.POSITIVE_INFINITY,
+        cap: 200_000_000,
+        strictMin: true,
+      },
+    ];
+
+    for (const segment of segments) {
+      const loanCapInSegment = Math.min(mortgageByDsr, segment.cap);
+      const candidate = Math.min(maxByLtv, assets + loanCapInSegment, segment.max);
+      const isInRange = segment.strictMin
+        ? candidate > segment.min
+        : candidate >= segment.min;
+      if (isInRange) {
+        price = Math.max(price, candidate);
+      }
     }
-    price = next;
+  } else {
+    price = Math.min(maxByLtv, assets + mortgageByDsr);
   }
 
   const baseResult = calculateMaxPurchaseWithPolicy20251015(
     annualIncome,
     assets,
-    Math.max(100000000, Math.round(price)),
+    Math.max(0, Math.round(price)),
     policyFlags,
     dsrRatio,
     userFlags,
@@ -629,6 +652,6 @@ export function calculateMaxPurchaseWithPolicy20251015ByCapacity(
 
   return {
     ...baseResult,
-    derivedPriceAsking: Math.max(100000000, Math.round(price)),
+    derivedPriceAsking: Math.max(0, Math.round(price)),
   };
 }

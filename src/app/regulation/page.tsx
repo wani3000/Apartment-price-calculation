@@ -48,7 +48,7 @@ export default function RegulationPage() {
   return (
     <div className="bg-white flex flex-col h-screen overflow-hidden">
       {/* 헤더 */}
-      <Header backUrl="/calculator" />
+      <Header backUrl="/region" />
 
       {/* 메인 컨텐츠 영역 */}
       <div

@@ -929,11 +929,6 @@ export default function FinalResultPage() {
     );
   };
 
-  // 뒤로가기 URL 동적 설정
-  const getBackUrl = () => {
-    return "/result";
-  };
-
   useEffect(() => {
     if (activeTab === "gap") {
       setShowGapPolicyModal(true);
@@ -955,7 +950,6 @@ export default function FinalResultPage() {
         {!isSharedLink && (
           <div>
             <Header
-              backUrl={getBackUrl()}
               rightAction={{
                 label: "소득·자산 수정",
                 onClick: handleEditIncome,

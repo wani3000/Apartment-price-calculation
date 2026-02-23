@@ -75,7 +75,7 @@ export default function Home() {
       <div className="fixed top-0 right-0 p-4 z-50">
         <button
           onClick={() => router.push("/menu")}
-          className="text-grey-100 bg-white rounded-full p-2 shadow-md"
+          className="text-[#000000]"
         >
           <svg
             width="24"
