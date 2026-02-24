@@ -24,7 +24,7 @@ export type ApartmentTradeHistory = {
 };
 
 const DEFAULT_LOCAL_PROXY_URL = "http://127.0.0.1:8787";
-const DEFAULT_PROD_PROXY_URL = "https://aptgugu.com/api";
+const DEFAULT_PROD_PROXY_URL = "https://apartment-price-calculation-phi.vercel.app/api";
 const REQUEST_TIMEOUT_MS = 10000;
 
 const resolveProxyEndpoint = () => {
@@ -37,6 +37,11 @@ const resolveProxyEndpoint = () => {
 
     // Capacitor/file 환경에서는 로컬 라우트가 없으므로 서비스 도메인 API 사용
     if (protocol !== "http:" && protocol !== "https:") {
+      return DEFAULT_PROD_PROXY_URL;
+    }
+
+    // aptgugu.com 프로덕션 API가 미설정된 경우를 대비해 안정 API 도메인으로 우회
+    if (host === "aptgugu.com" || host === "www.aptgugu.com") {
       return DEFAULT_PROD_PROXY_URL;
     }
 
