@@ -46,6 +46,14 @@ const getTagValue = (xml, tag) => {
   return match ? decodeXmlEntities(String(match[1]).trim()) : "";
 };
 
+const getFirstTagValue = (xml, tags) => {
+  for (const tag of tags) {
+    const value = getTagValue(xml, tag);
+    if (value) return value;
+  }
+  return "";
+};
+
 const parseItemsFromXml = (xmlText) => {
   const resultCode = getTagValue(xmlText, "resultCode");
   const resultMsg = getTagValue(xmlText, "resultMsg");
@@ -58,13 +66,13 @@ const parseItemsFromXml = (xmlText) => {
   let match;
   while ((match = itemRegex.exec(xmlText)) !== null) {
     const block = match[1];
-    const aptName = getTagValue(block, "아파트");
-    const dealAmount = getTagValue(block, "거래금액");
-    const areaText = getTagValue(block, "전용면적");
-    const floorText = getTagValue(block, "층");
-    const year = getTagValue(block, "년");
-    const month = getTagValue(block, "월");
-    const day = getTagValue(block, "일");
+    const aptName = getFirstTagValue(block, ["아파트", "aptNm"]);
+    const dealAmount = getFirstTagValue(block, ["거래금액", "dealAmount"]);
+    const areaText = getFirstTagValue(block, ["전용면적", "excluUseAr"]);
+    const floorText = getFirstTagValue(block, ["층", "floor"]);
+    const year = getFirstTagValue(block, ["년", "dealYear"]);
+    const month = getFirstTagValue(block, ["월", "dealMonth"]);
+    const day = getFirstTagValue(block, ["일", "dealDay"]);
 
     const price10k = parseNumber(dealAmount);
     const priceWon = price10k === null ? null : Math.round(price10k * 10000);
@@ -77,8 +85,11 @@ const parseItemsFromXml = (xmlText) => {
 
     const areaSqm = parseNumber(areaText);
     const floor = parseNumber(floorText);
-    const buildYear = parseNumber(getTagValue(block, "건축년도"));
-    const dong = getTagValue(block, "법정동") || undefined;
+    const buildYear = parseNumber(
+      getFirstTagValue(block, ["건축년도", "buildYear"]),
+    );
+    const dong =
+      getFirstTagValue(block, ["법정동", "umdNm", "dong"]) || undefined;
 
     items.push({
       aptName,
