@@ -82,6 +82,11 @@
     color-scheme: light;
 }
 
+/* iOS 앱에서 safe-area가 0으로 내려오는 경우를 방지해 홈 인디케이터와 겹침 차단 */
+body[data-platform="ios"] {
+    --bottom-safe-area: max(env(safe-area-inset-bottom, 0px), 16px);
+}
+
 body[data-bottom-tab="on"] {
     --bottom-tab-offset: var(--bottom-tab-total-height);
     --page-content-bottom-safe: calc(96px + var(--bottom-tab-total-height));
