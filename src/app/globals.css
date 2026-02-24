@@ -74,7 +74,7 @@
     --page-header-offset: 76px;
     --page-bottom-cta-offset: 112px;
     --bottom-tab-height: 49px; /* iOS standard tab bar height */
-    --bottom-safe-area: env(safe-area-inset-bottom);
+    --bottom-safe-area: env(safe-area-inset-bottom, 0px);
     --bottom-tab-total-height: calc(var(--bottom-tab-height) + var(--bottom-safe-area));
     --bottom-tab-offset: max(0px, var(--bottom-safe-area));
     --page-content-bottom-safe: calc(96px + var(--bottom-safe-area));
@@ -141,9 +141,20 @@ body::before {
 }
 
 @layer components {
+    .app-bottom-tab {
+        @apply fixed left-0 right-0 bottom-0 flex justify-center z-40 border-t border-[#E9ECEF] bg-white;
+        padding-bottom: var(--bottom-safe-area);
+    }
+
+    .app-bottom-tab-inner {
+        @apply flex w-full max-w-md px-5 items-center justify-around;
+        height: var(--bottom-tab-height);
+    }
+
     .bottom-cta-container {
         @apply fixed left-0 right-0 flex justify-center z-50;
-        bottom: env(safe-area-inset-bottom);
+        bottom: 0;
+        padding-bottom: var(--bottom-safe-area);
     }
 
     .bottom-cta-surface {

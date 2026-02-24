@@ -26,8 +26,8 @@ export default function BottomTabBar() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 flex justify-center z-40 border-t border-[#E9ECEF] bg-white pb-[env(safe-area-inset-bottom)]">
-      <div className="flex h-[49px] w-full max-w-md px-5 items-center justify-around">
+    <div className="app-bottom-tab">
+      <div className="app-bottom-tab-inner">
         <button
           onClick={() => router.push("/")}
           className="flex flex-col items-center justify-center gap-0.5 min-w-[72px]"

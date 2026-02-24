@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "build:ios": "next build && npx cap sync ios",
+    "check:bottom-layout": "bash tools/check-bottom-layout.sh",
+    "build": "npm run check:bottom-layout && next build",
+    "build:ios": "npm run build && npx cap sync ios",
     "start": "next start",
     "lint": "next lint",
     "postbuild": "next-sitemap"
