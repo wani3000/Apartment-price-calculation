@@ -57,7 +57,7 @@ export default function RegulationPage() {
           paddingTop:
             "calc(var(--page-header-offset) + env(safe-area-inset-top))",
           paddingBottom:
-            "calc(var(--page-bottom-cta-offset) + env(safe-area-inset-bottom))",
+            "var(--page-content-bottom-safe)",
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
         }}
@@ -236,9 +236,9 @@ export default function RegulationPage() {
       </div>
 
       {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-[72px] left-0 right-0 flex justify-center z-50">
+      <div className="fixed bottom-[var(--bottom-tab-offset)] left-0 right-0 flex justify-center z-50">
         <div
-          className="flex w-full max-w-md px-5 pt-10 pb-[calc(25px+env(safe-area-inset-bottom))] items-center"
+          className="flex w-full max-w-md px-5 pt-3 pb-3 items-center"
           style={{
             background:
               "linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)",

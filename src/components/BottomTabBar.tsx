@@ -11,14 +11,14 @@ export default function BottomTabBar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 flex justify-center z-40 border-t border-[#E9ECEF] bg-white">
-      <div className="flex w-full max-w-md px-5 pt-1 pb-[calc(4px+env(safe-area-inset-bottom))] items-start justify-around">
+      <div className="flex w-full max-w-md px-5 pt-1 pb-[env(safe-area-inset-bottom)] items-start justify-around">
         <button
           onClick={() => router.push("/")}
-          className="flex flex-col items-center justify-center gap-1 min-w-[88px] py-1"
+          className="flex flex-col items-center justify-center gap-0.5 min-w-[72px] py-1"
         >
           <svg
-            width="28"
-            height="28"
+            width="24"
+            height="24"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -38,7 +38,7 @@ export default function BottomTabBar() {
             />
           </svg>
           <span
-            className={`text-[14px] leading-5 tracking-[-0.14px] ${
+            className={`text-[11px] leading-4 tracking-[-0.11px] ${
               isHome ? "text-[#212529] font-semibold" : "text-[#868E96] font-medium"
             }`}
           >
@@ -47,7 +47,7 @@ export default function BottomTabBar() {
         </button>
         <button
           onClick={() => router.push("/recommend")}
-          className="flex flex-col items-center justify-center gap-1 min-w-[88px] py-1"
+          className="flex flex-col items-center justify-center gap-0.5 min-w-[72px] py-1"
         >
           <svg
             width="24"
@@ -57,50 +57,50 @@ export default function BottomTabBar() {
             xmlns="http://www.w3.org/2000/svg"
           >
             <rect
-              x="3"
-              y="4"
-              width="18"
+              x="4"
+              y="3.5"
+              width="16"
               height="17"
-              rx="2.5"
+              rx="2"
               fill={isRecommend ? "#212529" : "none"}
               stroke={isRecommend ? "#212529" : "#868E96"}
               strokeWidth="2"
             />
             <rect
-              x="6.5"
-              y="7.5"
-              width="4.2"
-              height="4.2"
-              rx="0.8"
+              x="7"
+              y="7"
+              width="3.2"
+              height="3.2"
+              rx="0.6"
               fill={isRecommend ? "#FFFFFF" : "#868E96"}
             />
             <rect
-              x="13.3"
-              y="7.5"
-              width="4.2"
-              height="4.2"
-              rx="0.8"
+              x="13.8"
+              y="7"
+              width="3.2"
+              height="3.2"
+              rx="0.6"
               fill={isRecommend ? "#FFFFFF" : "#868E96"}
             />
             <rect
-              x="6.5"
-              y="13.2"
-              width="4.2"
-              height="4.2"
-              rx="0.8"
+              x="7"
+              y="12.3"
+              width="3.2"
+              height="3.2"
+              rx="0.6"
               fill={isRecommend ? "#FFFFFF" : "#868E96"}
             />
             <rect
-              x="13.3"
-              y="13.2"
-              width="4.2"
-              height="4.2"
-              rx="0.8"
+              x="13.8"
+              y="12.3"
+              width="3.2"
+              height="3.2"
+              rx="0.6"
               fill={isRecommend ? "#FFFFFF" : "#868E96"}
             />
           </svg>
           <span
-            className={`text-[14px] leading-5 tracking-[-0.14px] ${
+            className={`text-[11px] leading-4 tracking-[-0.11px] ${
               isRecommend
                 ? "text-[#212529] font-semibold"
                 : "text-[#868E96] font-medium"

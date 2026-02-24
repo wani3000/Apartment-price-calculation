@@ -1852,7 +1852,7 @@ export default function FinalResultPage() {
       </div>
 
       {/* 플로팅 버튼 영역 */}
-      <div className="fixed right-5 bottom-[calc(88px+env(safe-area-inset-bottom))] z-50">
+      <div className="fixed right-5 bottom-[calc(var(--bottom-tab-height)+16px+env(safe-area-inset-bottom))] z-50">
         {isSharedLink ? (
           <button
             className="h-11 px-4 justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-sm shadow-[0_8px_24px_rgba(0,0,0,0.18)]"

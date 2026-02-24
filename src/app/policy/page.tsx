@@ -20,7 +20,7 @@ export default function PolicyPage() {
         className="flex-1 overflow-y-auto"
         style={{
           paddingTop: "calc(56px + env(safe-area-inset-top))",
-          paddingBottom: "calc(100px + env(safe-area-inset-bottom))",
+          paddingBottom: "var(--page-content-bottom-safe)",
           WebkitOverflowScrolling: "touch",
         }}
       >
@@ -294,9 +294,9 @@ export default function PolicyPage() {
       </div>
 
       {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-[72px] left-0 right-0 flex justify-center z-50">
+      <div className="fixed bottom-[var(--bottom-tab-offset)] left-0 right-0 flex justify-center z-50">
         <div
-          className="flex w-full max-w-md px-5 pt-10 pb-[calc(25px+env(safe-area-inset-bottom))] items-center"
+          className="flex w-full max-w-md px-5 pt-3 pb-3 items-center"
           style={{
             background:
               "linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)",

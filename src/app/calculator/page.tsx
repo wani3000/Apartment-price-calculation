@@ -14,6 +14,8 @@ export default function CalculatorPage() {
   const [spouseAssets, setSpouseAssets] = useState("");
   const [spouseHomeOwnerCount, setSpouseHomeOwnerCount] = useState<number>(0);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [hasExistingCalculatorData, setHasExistingCalculatorData] =
+    useState(false);
 
   // 정책 관련 상태
   const [homeOwnerCount, setHomeOwnerCount] = useState<number>(0);
@@ -28,6 +30,7 @@ export default function CalculatorPage() {
     // 저장된 계산기 데이터 가져오기
     const calculatorDataStr = localStorage.getItem("calculatorData");
     if (calculatorDataStr) {
+      setHasExistingCalculatorData(true);
       const calculatorData = JSON.parse(calculatorDataStr);
 
       // 저장된 값이 있으면 폼에 채우기 (0 포함)
@@ -140,14 +143,14 @@ export default function CalculatorPage() {
   return (
     <div className="bg-white flex flex-col h-[100dvh] overflow-hidden">
       {/* 헤더 */}
-      <Header backUrl="/nickname" />
+      <Header backUrl={hasExistingCalculatorData ? "/" : "/nickname"} />
 
       {/* 메인 컨텐츠 영역 */}
       <div
         className="flex-1 px-5"
         style={{
           paddingTop: "calc(max(16px, env(safe-area-inset-top)) + 60px)",
-          paddingBottom: "calc(120px + env(safe-area-inset-bottom))",
+          paddingBottom: "var(--page-content-bottom-safe)",
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
         }}
@@ -412,9 +415,9 @@ export default function CalculatorPage() {
       </div>
 
       {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-[72px] left-0 right-0 flex justify-center z-50">
+      <div className="fixed bottom-[var(--bottom-tab-offset)] left-0 right-0 flex justify-center z-50">
         <div
-          className="flex w-full max-w-md px-5 pt-10 pb-[calc(25px+env(safe-area-inset-bottom))] items-center"
+          className="flex w-full max-w-md px-5 pt-3 pb-3 items-center"
           style={{
             background:
               "linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)",

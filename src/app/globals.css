@@ -73,6 +73,9 @@
     --primary: #000000;
     --page-header-offset: 76px;
     --page-bottom-cta-offset: 112px;
+    --bottom-tab-height: 56px;
+    --bottom-tab-offset: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom));
+    --page-content-bottom-safe: calc(180px + env(safe-area-inset-bottom));
     color-scheme: light;
 }
 
