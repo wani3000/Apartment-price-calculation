@@ -285,6 +285,97 @@ app.post("/recommendations/apartments", async (req, res) => {
   }
 });
 
+app.post("/region/latest-apartments", async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(Number(req.body?.limit || 5), 1), 10);
+    const siDo = String(req.body?.region?.siDo || "").trim();
+    const siGunGu = String(req.body?.region?.siGunGu || "").trim();
+
+    if (!siDo || !siGunGu) {
+      return res.status(400).json({
+        error: "region.siDo, region.siGunGu가 필요합니다.",
+      });
+    }
+
+    const mcp = await createMcpClient();
+    const regionPayload = await mcp.callTool("get_region_code", {
+      query: `${siDo} ${siGunGu}`,
+    });
+    const regionCode = String(
+      regionPayload.region_code || regionPayload.regionCode || regionPayload.code || "",
+    ).trim();
+    if (!regionCode) {
+      return res.status(404).json({ error: "지역코드를 찾지 못했습니다." });
+    }
+
+    const currentPayload = await mcp.callTool("get_current_year_month", {});
+    const currentYm = String(currentPayload.year_month || "").trim();
+    if (!/^\d{6}$/.test(currentYm)) {
+      return res.status(500).json({ error: "기준 연월 조회에 실패했습니다." });
+    }
+
+    const rawTrades = [];
+    const dedupe = new Set();
+    for (let offset = 0; offset < 6; offset += 1) {
+      const ym = monthShift(currentYm, -offset);
+      const tradePayload = await mcp.callTool("get_apartment_trades", {
+        region_code: regionCode,
+        year_month: ym,
+        num_of_rows: 200,
+        page_no: 1,
+      });
+      const items = extractTradeList(tradePayload);
+      for (const item of items) {
+        const aptName = String(item.apt_name || item.apartment_name || item["아파트"] || "").trim();
+        const priceWon = parseTradePriceWon(item);
+        if (!aptName || !priceWon) continue;
+        const key = `${aptName}|${item.dong || ""}|${item.exclu_use_ar || item.area_sqm || ""}|${item.floor || ""}|${normalizeTradeDate(item)}|${priceWon}`;
+        if (dedupe.has(key)) continue;
+        dedupe.add(key);
+        rawTrades.push(item);
+      }
+    }
+
+    const latest = rawTrades
+      .map((item) => {
+        const aptName = String(item.apt_name || item.apartment_name || item["아파트"] || "").trim();
+        const priceWon = parseTradePriceWon(item);
+        if (!aptName || !priceWon) return null;
+        const dong = String(item.dong || item["법정동"] || "").trim() || undefined;
+        const areaSqm = parseNumber(item.area_sqm || item.exclu_use_ar || item["전용면적"]);
+        const floor = parseNumber(item.floor || item["층"]);
+        const buildYear = parseNumber(item.build_year || item.buildYear || item["건축년도"]);
+        const tradeDate = normalizeTradeDate(item) || undefined;
+
+        return {
+          aptName,
+          dong,
+          areaSqm: areaSqm === null ? undefined : areaSqm,
+          floor: floor === null ? undefined : floor,
+          buildYear: buildYear === null ? undefined : buildYear,
+          tradeDate,
+          priceWon,
+        };
+      })
+      .filter((item) => item !== null)
+      .sort((a, b) => (b.tradeDate || "").localeCompare(a.tradeDate || ""))
+      .slice(0, limit);
+
+    return res.status(200).json({
+      regionCode,
+      latest,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "최신 실거래 조회 중 오류가 발생했습니다.",
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`[recommendation-proxy] listening on :${PORT}`);
   console.log(`[recommendation-proxy] MCP_URL=${MCP_URL}`);

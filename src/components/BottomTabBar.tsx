@@ -6,8 +6,11 @@ export default function BottomTabBar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isHome = pathname === "/";
-  const isRecommend = pathname === "/recommend";
+  const normalizedPath = pathname.endsWith("/") && pathname.length > 1
+    ? pathname.slice(0, -1)
+    : pathname;
+  const isHome = normalizedPath === "/";
+  const isRecommend = normalizedPath === "/recommend";
 
   return (
     <div className="fixed bottom-0 left-0 right-0 flex justify-center z-40 border-t border-[#E9ECEF] bg-white">

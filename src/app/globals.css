@@ -193,3 +193,18 @@ body::before {
         opacity: 1;
     }
 }
+
+@keyframes tradeTickerRise {
+    0% {
+        transform: translateY(12px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.trade-ticker-item {
+    animation: tradeTickerRise 0.45s ease-out both;
+}

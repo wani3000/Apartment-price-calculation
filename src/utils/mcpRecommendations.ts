@@ -45,3 +45,36 @@ export async function fetchRecommendedApartmentsFromMcp(params: {
 
   return Array.isArray(data?.recommended) ? data.recommended : [];
 }
+
+export async function fetchLatestRegionApartmentsFromMcp(params: {
+  siDo: string;
+  siGunGu: string;
+  limit?: number;
+}): Promise<RecommendedApartment[]> {
+  const endpoint =
+    process.env.NEXT_PUBLIC_RECOMMEND_PROXY_URL || DEFAULT_PROXY_URL;
+
+  const response = await fetch(
+    `${endpoint.replace(/\/$/, "")}/region/latest-apartments`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        region: {
+          siDo: params.siDo,
+          siGunGu: params.siGunGu,
+        },
+        limit: params.limit ?? 5,
+      }),
+    },
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "최신 실거래 조회에 실패했습니다.");
+  }
+
+  return Array.isArray(data?.latest) ? data.latest : [];
+}
