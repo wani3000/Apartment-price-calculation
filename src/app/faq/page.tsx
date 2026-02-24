@@ -199,7 +199,7 @@ export default function FAQPage() {
       </div>
 
       {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
+      <div className="fixed bottom-[72px] left-0 right-0 flex justify-center z-50">
         <div
           className="flex w-full max-w-md px-5 pt-10 pb-[calc(25px+env(safe-area-inset-bottom))] items-center"
           style={{

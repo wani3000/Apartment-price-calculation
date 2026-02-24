@@ -991,8 +991,7 @@ export default function FinalResultPage() {
         className="flex-1 px-5 overflow-y-auto"
         style={{
           paddingTop: "calc(max(16px, env(safe-area-inset-top)) + 60px)",
-          paddingBottom:
-            "calc(var(--page-bottom-cta-offset) + env(safe-area-inset-bottom))",
+          paddingBottom: "calc(100px + env(safe-area-inset-bottom))",
           WebkitOverflowScrolling: "touch",
         }}
       >
@@ -1852,42 +1851,32 @@ export default function FinalResultPage() {
         </div>
       </div>
 
-      {/* 하단 버튼 영역 - 하단 고정 및 그라데이션 배경 적용 */}
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
-        <div
-          className="flex w-full max-w-md px-5 pt-10 pb-[25px] gap-3 items-center"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)",
-          }}
-        >
-          {isSharedLink ? (
-            // 공유받은 링크일 때: 홈으로 이동 버튼만 표시
+      {/* 플로팅 버튼 영역 */}
+      <div className="fixed right-5 bottom-[calc(88px+env(safe-area-inset-bottom))] z-50">
+        {isSharedLink ? (
+          <button
+            className="h-11 px-4 justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-sm shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+            onClick={handleGoHome}
+          >
+            내가 살 수 있는 아파트 계산하기
+          </button>
+        ) : (
+          <div className="flex flex-col gap-2 items-end">
             <button
-              className="w-full h-14 justify-center items-center gap-2.5 flex bg-[#000000] text-white rounded-[300px] font-semibold"
-              onClick={handleGoHome}
+              className="h-10 px-4 justify-center items-center flex border border-[#ADB5BD] bg-white rounded-[300px] text-grey-100 font-medium text-sm shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+              onClick={handleSaveCard}
+              disabled={isSaving}
             >
-              내가 살 수 있는 아파트 계산하기
+              {isSaving ? "저장 중..." : "카드 저장"}
             </button>
-          ) : (
-            // 일반 사용자일 때: 기존 버튼들 표시
-            <>
-              <button
-                className="flex-1 h-14 justify-center items-center gap-2.5 flex border border-[#ADB5BD] rounded-[300px] text-grey-100 font-medium"
-                onClick={handleSaveCard}
-                disabled={isSaving}
-              >
-                {isSaving ? "저장 중..." : "카드 저장"}
-              </button>
-              <button
-                onClick={handleShare}
-                className="flex-1 h-14 justify-center items-center gap-2.5 flex bg-[#000000] text-white rounded-[300px] font-semibold"
-              >
-                공유하기
-              </button>
-            </>
-          )}
-        </div>
+            <button
+              onClick={handleShare}
+              className="h-10 px-4 justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-sm shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+            >
+              공유하기
+            </button>
+          </div>
+        )}
       </div>
 
       {showGapPolicyModal && (

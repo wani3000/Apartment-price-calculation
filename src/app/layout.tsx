@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import StatusBarConfig from "@/components/StatusBarConfig";
+import BottomTabBar from "@/components/BottomTabBar";
 
 export const metadata: Metadata = {
   title: "아파트 구구 - 아파트 구매 대출 계산기",
@@ -85,6 +86,7 @@ export default function RootLayout({
       <body className="font-pretendard">
         <StatusBarConfig />
         {children}
+        <BottomTabBar />
       </body>
     </html>
   );
