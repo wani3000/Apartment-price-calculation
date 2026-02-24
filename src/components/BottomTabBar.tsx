@@ -11,7 +11,7 @@ export default function BottomTabBar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 flex justify-center z-40 border-t border-[#E9ECEF] bg-white">
-      <div className="flex w-full max-w-md px-5 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))] items-start justify-around">
+      <div className="flex w-full max-w-md px-5 pt-1 pb-[calc(4px+env(safe-area-inset-bottom))] items-start justify-around">
         <button
           onClick={() => router.push("/")}
           className="flex flex-col items-center justify-center gap-1 min-w-[88px] py-1"
@@ -50,25 +50,52 @@ export default function BottomTabBar() {
           className="flex flex-col items-center justify-center gap-1 min-w-[88px] py-1"
         >
           <svg
-            width="28"
-            height="28"
+            width="24"
+            height="24"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path
-              d="M3 10.5L12 3L21 10.5V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V10.5Z"
+            <rect
+              x="3"
+              y="4"
+              width="18"
+              height="17"
+              rx="2.5"
               fill={isRecommend ? "#212529" : "none"}
               stroke={isRecommend ? "#212529" : "#868E96"}
               strokeWidth="2"
-              strokeLinejoin="round"
             />
             <rect
-              x="10"
-              y="14"
-              width="4"
-              height="4"
-              rx="1"
+              x="6.5"
+              y="7.5"
+              width="4.2"
+              height="4.2"
+              rx="0.8"
+              fill={isRecommend ? "#FFFFFF" : "#868E96"}
+            />
+            <rect
+              x="13.3"
+              y="7.5"
+              width="4.2"
+              height="4.2"
+              rx="0.8"
+              fill={isRecommend ? "#FFFFFF" : "#868E96"}
+            />
+            <rect
+              x="6.5"
+              y="13.2"
+              width="4.2"
+              height="4.2"
+              rx="0.8"
+              fill={isRecommend ? "#FFFFFF" : "#868E96"}
+            />
+            <rect
+              x="13.3"
+              y="13.2"
+              width="4.2"
+              height="4.2"
+              rx="0.8"
               fill={isRecommend ? "#FFFFFF" : "#868E96"}
             />
           </svg>

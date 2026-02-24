@@ -29,14 +29,32 @@ export default function Home() {
         }}
       >
         <div className="w-full max-w-md px-5 mx-auto">
-          <h1 className="text-grey-100 text-[36px] font-bold leading-[44px] tracking-[-0.36px] mb-1">
-            홈
-          </h1>
-          <p className="text-grey-80 text-base font-medium leading-6 tracking-[-0.16px] mb-6">
-            {hasCalculatorData
-              ? `${username || "사용자"}님, 내 결과를 확인하거나 새로 계산할 수 있어요`
-              : "소득과 자산을 입력해 내 최대 구매 가능 금액을 계산해요"}
-          </p>
+          <div className="flex items-center gap-2 mb-6">
+            <h1 className="text-grey-100 text-[36px] font-bold leading-[44px] tracking-[-0.36px]">
+              {username || "사용자"}
+            </h1>
+            <button
+              onClick={() => router.push("/nickname")}
+              className="text-[#ADB5BD]"
+              aria-label="닉네임 수정"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 20H8L18.5 9.5C19.3 8.7 19.3 7.4 18.5 6.6L17.4 5.5C16.6 4.7 15.3 4.7 14.5 5.5L4 16V20Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <path d="M13 7L17 11" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="w-full max-w-md px-5 mx-auto space-y-3">
@@ -49,7 +67,7 @@ export default function Home() {
                 <p className="text-[#495057] text-[18px] font-medium leading-7">
                   빠른 계산
                 </p>
-                <p className="text-[#212529] text-[34px] font-bold leading-[42px] tracking-[-0.34px] mt-1">
+                <p className="text-[#212529] text-[22px] font-bold leading-8 tracking-[-0.22px] mt-1">
                   시작하기
                 </p>
                 <p className="text-[#212529] text-[32px] font-bold leading-[40px] tracking-[-0.32px]">
@@ -74,10 +92,10 @@ export default function Home() {
               onClick={() => router.push("/calculator")}
               className="rounded-[28px] bg-[#EFF1F5] px-5 py-7 text-left"
             >
-              <p className="text-[#212529] text-[34px] font-bold leading-[42px] tracking-[-0.34px]">
+              <p className="text-[#212529] text-[22px] font-bold leading-8 tracking-[-0.22px]">
                 새로
               </p>
-              <p className="text-[#212529] text-[34px] font-bold leading-[42px] tracking-[-0.34px]">
+              <p className="text-[#212529] text-[22px] font-bold leading-8 tracking-[-0.22px]">
                 입력
               </p>
             </button>
@@ -87,10 +105,10 @@ export default function Home() {
               }
               className="rounded-[28px] bg-[#D9F0FF] px-5 py-7 text-left"
             >
-              <p className="text-[#212529] text-[34px] font-bold leading-[42px] tracking-[-0.34px]">
+              <p className="text-[#212529] text-[22px] font-bold leading-8 tracking-[-0.22px]">
                 {hasCalculatorData ? "내 결과" : "추천"}
               </p>
-              <p className="text-[#212529] text-[34px] font-bold leading-[42px] tracking-[-0.34px]">
+              <p className="text-[#212529] text-[22px] font-bold leading-8 tracking-[-0.22px]">
                 {hasCalculatorData ? "보기" : "아파트"}
               </p>
             </button>
@@ -103,7 +121,7 @@ export default function Home() {
             <p className="text-[#495057] text-[17px] font-medium leading-7">
               최근 실거래 추천
             </p>
-            <p className="text-[#212529] text-[32px] font-bold leading-[40px] tracking-[-0.32px] mt-1">
+            <p className="text-[#212529] text-[22px] font-bold leading-8 tracking-[-0.22px] mt-1">
               추천 아파트
             </p>
           </button>
@@ -119,7 +137,7 @@ export default function Home() {
                 ₩
               </div>
               <div className="text-left">
-                <p className="text-[#212529] text-[24px] font-bold leading-8 tracking-[-0.24px]">
+                <p className="text-[#212529] text-[20px] font-bold leading-7 tracking-[-0.2px]">
                   {hasCalculatorData ? "내 결과 페이지" : "소득·자산 입력"}
                 </p>
                 <p className="text-[#868E96] text-base font-normal leading-6">
@@ -140,7 +158,7 @@ export default function Home() {
                 ⌂
               </div>
               <div className="text-left">
-                <p className="text-[#212529] text-[24px] font-bold leading-8 tracking-[-0.24px]">
+                <p className="text-[#212529] text-[20px] font-bold leading-7 tracking-[-0.2px]">
                   추천 아파트
                 </p>
                 <p className="text-[#868E96] text-base font-normal leading-6">
@@ -159,7 +177,7 @@ export default function Home() {
                 ☰
               </div>
               <div className="text-left">
-                <p className="text-[#212529] text-[24px] font-bold leading-8 tracking-[-0.24px]">
+                <p className="text-[#212529] text-[20px] font-bold leading-7 tracking-[-0.2px]">
                   서비스 메뉴
                 </p>
                 <p className="text-[#868E96] text-base font-normal leading-6">
