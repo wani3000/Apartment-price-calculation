@@ -30,7 +30,16 @@ export default function RecommendPage() {
   const [lastFetchedKey, setLastFetchedKey] = useState<string>("");
 
   const openRecommendationDetail = (item: RecommendedApartment) => {
-    localStorage.setItem("selectedRecommendationApartment", JSON.stringify(item));
+    const policyRegionDetailsStr = localStorage.getItem("policyRegionDetails");
+    const policyRegion = policyRegionDetailsStr
+      ? JSON.parse(policyRegionDetailsStr)
+      : {};
+    const enriched: RecommendedApartment = {
+      ...item,
+      siDo: item.siDo || policyRegion?.siDo || "서울",
+      siGunGu: item.siGunGu || policyRegion?.siGunGu || "강남구",
+    };
+    localStorage.setItem("selectedRecommendationApartment", JSON.stringify(enriched));
     router.push("/recommend/detail");
   };
 
@@ -158,6 +167,9 @@ export default function RecommendPage() {
         limit: 10,
       });
       setRecommendations(list);
+      if (list.length > 0) {
+        localStorage.setItem("recommendedApartmentsCache", JSON.stringify(list));
+      }
       setLastFetchedKey(fetchKey);
       if (list.length === 0) {
         setRecommendationError(
@@ -186,10 +198,10 @@ export default function RecommendPage() {
   }, [fetchRecommendations]);
 
   return (
-    <div className="h-[100dvh] bg-white flex flex-col items-center overflow-hidden">
+    <div className="min-h-[100dvh] bg-white flex flex-col items-center overflow-x-hidden">
       <Header showBack={false} showBorder={false} logoLink="/" />
       <div
-        className="w-full flex-1 overflow-y-auto px-5"
+        className="w-full flex-1 min-h-0 overflow-y-auto overscroll-y-contain px-5"
         style={{
           paddingTop: "calc(max(16px, env(safe-area-inset-top)) + 60px)",
           paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
@@ -305,14 +317,6 @@ export default function RecommendPage() {
                   </p>
                   <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
                     {formatDateOrDash(item.contractDate || item.tradeDate)}
-                  </p>
-                </div>
-                <div className="flex justify-between items-center w-full">
-                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                    전산반영일
-                  </p>
-                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                    {formatDateOrDash(item.registrationDate)}
                   </p>
                 </div>
               </button>

@@ -1160,6 +1160,24 @@ export default function FinalResultPage() {
               )}
             </div>
           </div>
+
+          {!isSharedLink && (
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                className="h-11 flex-1 justify-center items-center flex border border-[#ADB5BD] bg-white rounded-[300px] text-grey-100 font-medium text-sm"
+                onClick={handleSaveCard}
+                disabled={isSaving}
+              >
+                {isSaving ? "저장 중..." : "카드 저장"}
+              </button>
+              <button
+                onClick={handleShare}
+                className="h-11 flex-1 justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-sm"
+              >
+                공유하기
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 자금계획 섹션 */}
@@ -1860,23 +1878,7 @@ export default function FinalResultPage() {
           >
             내가 살 수 있는 아파트 계산하기
           </button>
-        ) : (
-          <div className="flex flex-col gap-2 items-end">
-            <button
-              className="h-10 px-4 justify-center items-center flex border border-[#ADB5BD] bg-white rounded-[300px] text-grey-100 font-medium text-sm shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
-              onClick={handleSaveCard}
-              disabled={isSaving}
-            >
-              {isSaving ? "저장 중..." : "카드 저장"}
-            </button>
-            <button
-              onClick={handleShare}
-              className="h-10 px-4 justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-sm shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
-            >
-              공유하기
-            </button>
-          </div>
-        )}
+        ) : null}
       </div>
 
       {showGapPolicyModal && (

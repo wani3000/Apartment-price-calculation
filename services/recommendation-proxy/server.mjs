@@ -161,6 +161,38 @@ const extractTradeList = (payload) => {
   return [];
 };
 
+const toTradeTimestamp = (value) => {
+  if (!value || typeof value !== "string") return 0;
+  const digits = value.replace(/[^\d]/g, "");
+  if (digits.length < 8) return 0;
+  return Number(digits.slice(0, 8));
+};
+
+const normalizeTradeItem = (item) => {
+  const aptName = String(item.apt_name || item.apartment_name || item["아파트"] || "").trim();
+  const priceWon = parseTradePriceWon(item);
+  if (!aptName || !priceWon) return null;
+
+  const dong = String(item.dong || item["법정동"] || "").trim() || undefined;
+  const areaSqm = parseNumber(item.area_sqm || item.exclu_use_ar || item["전용면적"]);
+  const floor = parseNumber(item.floor || item["층"]);
+  const buildYear = parseNumber(item.build_year || item.buildYear || item["건축년도"]);
+  const tradeDate = normalizeTradeDate(item) || undefined;
+
+  return {
+    aptName,
+    dong,
+    areaSqm: areaSqm === null ? undefined : areaSqm,
+    floor: floor === null ? undefined : floor,
+    buildYear: buildYear === null ? undefined : buildYear,
+    tradeDate,
+    contractDate: tradeDate,
+    registrationDate: normalizeRegistrationDate(item),
+    priceWon,
+    rawFields: extractRawFields(item),
+  };
+};
+
 const createMcpClient = async () => {
   let sequence = 1;
   let sessionId = "";
@@ -271,27 +303,14 @@ app.post("/recommendations/apartments", async (req, res) => {
 
     const recommended = rawTrades
       .map((item) => {
-        const aptName = String(item.apt_name || item.apartment_name || item["아파트"] || "").trim();
-        const priceWon = parseTradePriceWon(item);
-        if (!aptName || !priceWon) return null;
-        const dong = String(item.dong || item["법정동"] || "").trim() || undefined;
-        const areaSqm = parseNumber(item.area_sqm || item.exclu_use_ar || item["전용면적"]);
-        const floor = parseNumber(item.floor || item["층"]);
-        const buildYear = parseNumber(item.build_year || item.buildYear || item["건축년도"]);
-        const tradeDate = normalizeTradeDate(item) || undefined;
-
+        const normalized = normalizeTradeItem(item);
+        if (!normalized) return null;
         return {
-          aptName,
-          dong,
-          areaSqm: areaSqm === null ? undefined : areaSqm,
-          floor: floor === null ? undefined : floor,
-          buildYear: buildYear === null ? undefined : buildYear,
-          tradeDate,
-          contractDate: tradeDate,
-          registrationDate: normalizeRegistrationDate(item),
-          priceWon,
-          gapWon: Math.abs(budgetWon - priceWon),
-          rawFields: extractRawFields(item),
+          ...normalized,
+          siDo,
+          siGunGu,
+          regionCode,
+          gapWon: Math.abs(budgetWon - normalized.priceWon),
         };
       })
       .filter((item) => item !== null)
@@ -371,26 +390,13 @@ app.post("/region/latest-apartments", async (req, res) => {
 
     const latest = rawTrades
       .map((item) => {
-        const aptName = String(item.apt_name || item.apartment_name || item["아파트"] || "").trim();
-        const priceWon = parseTradePriceWon(item);
-        if (!aptName || !priceWon) return null;
-        const dong = String(item.dong || item["법정동"] || "").trim() || undefined;
-        const areaSqm = parseNumber(item.area_sqm || item.exclu_use_ar || item["전용면적"]);
-        const floor = parseNumber(item.floor || item["층"]);
-        const buildYear = parseNumber(item.build_year || item.buildYear || item["건축년도"]);
-        const tradeDate = normalizeTradeDate(item) || undefined;
-
+        const normalized = normalizeTradeItem(item);
+        if (!normalized) return null;
         return {
-          aptName,
-          dong,
-          areaSqm: areaSqm === null ? undefined : areaSqm,
-          floor: floor === null ? undefined : floor,
-          buildYear: buildYear === null ? undefined : buildYear,
-          tradeDate,
-          contractDate: tradeDate,
-          registrationDate: normalizeRegistrationDate(item),
-          priceWon,
-          rawFields: extractRawFields(item),
+          ...normalized,
+          siDo,
+          siGunGu,
+          regionCode,
         };
       })
       .filter((item) => item !== null)
@@ -408,6 +414,102 @@ app.post("/region/latest-apartments", async (req, res) => {
         error instanceof Error
           ? error.message
           : "최신 실거래 조회 중 오류가 발생했습니다.",
+    });
+  }
+});
+
+app.post("/apartments/trade-history", async (req, res) => {
+  try {
+    const aptName = String(req.body?.aptName || "").trim();
+    const siDo = String(req.body?.region?.siDo || "").trim();
+    const siGunGu = String(req.body?.region?.siGunGu || "").trim();
+    const dong = String(req.body?.dong || "").trim();
+    const floor = parseNumber(req.body?.floor);
+    const areaSqm = parseNumber(req.body?.areaSqm);
+
+    if (!aptName || !siDo || !siGunGu) {
+      return res.status(400).json({
+        error: "aptName, region.siDo, region.siGunGu가 필요합니다.",
+      });
+    }
+
+    const mcp = await createMcpClient();
+    const regionPayload = await mcp.callTool("get_region_code", {
+      query: `${siDo} ${siGunGu}`,
+    });
+    const regionCode = String(
+      regionPayload.region_code || regionPayload.regionCode || regionPayload.code || "",
+    ).trim();
+    if (!regionCode) {
+      return res.status(404).json({ error: "지역코드를 찾지 못했습니다." });
+    }
+
+    const currentPayload = await mcp.callTool("get_current_year_month", {});
+    const currentYm = String(currentPayload.year_month || "").trim();
+    if (!/^\d{6}$/.test(currentYm)) {
+      return res.status(500).json({ error: "기준 연월 조회에 실패했습니다." });
+    }
+
+    const rawTrades = [];
+    const dedupe = new Set();
+    for (let offset = 0; offset < 18; offset += 1) {
+      const ym = monthShift(currentYm, -offset);
+      const tradePayload = await mcp.callTool("get_apartment_trades", {
+        region_code: regionCode,
+        year_month: ym,
+        num_of_rows: 300,
+        page_no: 1,
+      });
+      const items = extractTradeList(tradePayload);
+      for (const item of items) {
+        const normalized = normalizeTradeItem(item);
+        if (!normalized) continue;
+        if (normalized.aptName !== aptName) continue;
+        if (dong && normalized.dong && normalized.dong !== dong) continue;
+        if (areaSqm !== null && normalized.areaSqm !== undefined) {
+          if (Math.abs(normalized.areaSqm - areaSqm) > 0.3) continue;
+        }
+
+        const key = `${normalized.aptName}|${normalized.dong || ""}|${normalized.areaSqm || ""}|${normalized.floor || ""}|${normalized.tradeDate || ""}|${normalized.priceWon}`;
+        if (dedupe.has(key)) continue;
+        dedupe.add(key);
+        rawTrades.push({
+          ...normalized,
+          siDo,
+          siGunGu,
+          regionCode,
+        });
+      }
+      if (rawTrades.length >= 100) break;
+    }
+
+    const sorted = rawTrades.sort((a, b) => {
+      const byDate = toTradeTimestamp(b.tradeDate || "") - toTradeTimestamp(a.tradeDate || "");
+      if (byDate !== 0) return byDate;
+      if (floor !== null) {
+        const floorDiff = Math.abs((a.floor || 0) - floor) - Math.abs((b.floor || 0) - floor);
+        if (floorDiff !== 0) return floorDiff;
+      }
+      return b.priceWon - a.priceWon;
+    });
+
+    const latestTrade = sorted[0] || null;
+    const previousTrade = sorted[1] || null;
+
+    return res.status(200).json({
+      aptName,
+      regionCode,
+      latestTrade,
+      previousTrade,
+      trades: sorted.slice(0, 2),
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "아파트 거래 이력 조회 중 오류가 발생했습니다.",
     });
   }
 });

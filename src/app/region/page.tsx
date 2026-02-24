@@ -59,6 +59,12 @@ const REGION_OPTIONS: Record<string, string[]> = {
   제주: [],
 };
 
+const getSiGunGuOptions = (siDo: string) => {
+  const allOption = `${siDo} 전체`;
+  const options = REGION_OPTIONS[siDo] || [];
+  return [allOption, ...options];
+};
+
 export default function RegionPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -110,11 +116,7 @@ export default function RegionPage() {
   }, [siDo, siGunGu]);
 
   useEffect(() => {
-    const options = REGION_OPTIONS[siDo] || [];
-    if (options.length === 0) {
-      setSiGunGu("");
-      return;
-    }
+    const options = getSiGunGuOptions(siDo);
 
     if (!options.includes(siGunGu)) {
       setSiGunGu(options[0]);
@@ -314,17 +316,12 @@ export default function RegionPage() {
                         ? "border-2 border-primary"
                         : "border border-grey-40"
                     }`}
-                    disabled={(REGION_OPTIONS[siDo] || []).length === 0}
                   >
-                    {(REGION_OPTIONS[siDo] || []).length === 0 ? (
-                      <option value="">해당 없음</option>
-                    ) : (
-                      (REGION_OPTIONS[siDo] || []).map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))
-                    )}
+                    {getSiGunGuOptions(siDo).map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

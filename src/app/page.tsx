@@ -35,25 +35,54 @@ export default function Home() {
   const fetchLatestTrades = useCallback(async () => {
     try {
       const policyRegionDetailsStr = localStorage.getItem("policyRegionDetails");
-      if (!policyRegionDetailsStr) {
-        setLatestTrades([]);
-        return;
-      }
-      const region = JSON.parse(policyRegionDetailsStr);
-      if (!region?.siDo || !region?.siGunGu) {
-        setLatestTrades([]);
-        return;
-      }
-      const list = await fetchLatestRegionApartmentsFromMcp({
-        siDo: region.siDo,
-        siGunGu: region.siGunGu,
+      const region = policyRegionDetailsStr ? JSON.parse(policyRegionDetailsStr) : {};
+      const primaryRegion = {
+        siDo: typeof region?.siDo === "string" && region.siDo.trim() ? region.siDo : "서울",
+        siGunGu:
+          typeof region?.siGunGu === "string" && region.siGunGu.trim()
+            ? region.siGunGu
+            : "강남구",
+      };
+
+      let list = await fetchLatestRegionApartmentsFromMcp({
+        siDo: primaryRegion.siDo,
+        siGunGu: primaryRegion.siGunGu,
         limit: 10,
       });
+
+      // 지역 정보가 불완전하거나 해당 지역 최신 데이터가 비어 있을 때 기본 지역으로 재조회
+      if (list.length === 0 && (primaryRegion.siDo !== "서울" || primaryRegion.siGunGu !== "강남구")) {
+        list = await fetchLatestRegionApartmentsFromMcp({
+          siDo: "서울",
+          siGunGu: "강남구",
+          limit: 10,
+        });
+      }
+
       setLatestTrades(list);
+      if (list.length > 0) {
+        localStorage.setItem("latestRegionTradesCache", JSON.stringify(list));
+      }
       setLatestTradeIndex(0);
       setTickerKey((prev) => prev + 1);
     } catch (error) {
       console.error(error);
+      const cachedLatest = localStorage.getItem("latestRegionTradesCache");
+      const cachedRecommended = localStorage.getItem("recommendedApartmentsCache");
+      const fallback = cachedLatest || cachedRecommended;
+      if (fallback) {
+        try {
+          const parsed = JSON.parse(fallback) as RecommendedApartment[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setLatestTrades(parsed.slice(0, 10));
+            setLatestTradeIndex(0);
+            setTickerKey((prev) => prev + 1);
+            return;
+          }
+        } catch {
+          // ignore invalid cache
+        }
+      }
       setLatestTrades([]);
     }
   }, []);
@@ -78,11 +107,11 @@ export default function Home() {
     latestTrades.length > 0 ? latestTrades[latestTradeIndex] : null;
 
   return (
-    <div className="h-[100dvh] bg-white flex flex-col items-center overflow-hidden">
+    <div className="min-h-[100dvh] bg-white flex flex-col items-center overflow-x-hidden">
       <Header showBack={false} showBorder={false} logoLink="/" />
 
       <div
-        className="w-full flex-1 overflow-y-auto"
+        className="w-full flex-1 min-h-0 overflow-y-auto overscroll-y-contain"
         style={{
           paddingTop: "calc(max(16px, env(safe-area-inset-top)) + 60px)",
           paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
@@ -91,30 +120,34 @@ export default function Home() {
       >
         <div className="w-full max-w-md px-5 mx-auto">
           <div className="flex items-center gap-2 mb-6">
-            <h1 className="text-grey-100 text-[36px] font-bold leading-[44px] tracking-[-0.36px]">
-              {username || "사용자"}
-            </h1>
-            <button
-              onClick={() => router.push("/nickname")}
-              className="text-[#ADB5BD]"
-              aria-label="닉네임 수정"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M4 20H8L18.5 9.5C19.3 8.7 19.3 7.4 18.5 6.6L17.4 5.5C16.6 4.7 15.3 4.7 14.5 5.5L4 16V20Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                />
-                <path d="M13 7L17 11" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </button>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-grey-100 text-[36px] font-bold leading-[44px] tracking-[-0.36px]">
+                  {username || "사용자"}
+                </h1>
+                <button
+                  onClick={() => router.push("/nickname")}
+                  className="text-[#ADB5BD]"
+                  aria-label="닉네임 수정"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M4 20H8L18.5 9.5C19.3 8.7 19.3 7.4 18.5 6.6L17.4 5.5C16.6 4.7 15.3 4.7 14.5 5.5L4 16V20Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinejoin="round"
+                    />
+                    <path d="M13 7L17 11" stroke="currentColor" strokeWidth="2" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -184,12 +217,17 @@ export default function Home() {
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <path
-                    d="M4 20H8L18.5 9.5C19.3 8.7 19.3 7.4 18.5 6.6L17.4 5.5C16.6 4.7 15.3 4.7 14.5 5.5L4 16V20Z"
-                    stroke="#495057"
-                    strokeWidth="2"
-                    strokeLinejoin="round"
+                    d="M5 3.5H14.8L19 7.7V20.5H5V3.5Z"
+                    fill="#8CC8FF"
                   />
-                  <path d="M13 7L17 11" stroke="#495057" strokeWidth="2" />
+                  <path
+                    d="M15 3.5V7.5H19"
+                    fill="#62B3FF"
+                  />
+                  <path
+                    d="M9.2 15.6L14.7 10.1L16.2 11.6L10.7 17.1H9.2V15.6Z"
+                    fill="#2F8EF5"
+                  />
                 </svg>
               </div>
             </button>
@@ -210,13 +248,10 @@ export default function Home() {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <path
-                    d="M6 3H15L19 7V21H6V3Z"
-                    stroke="#495057"
-                    strokeWidth="2"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M15 3V7H19" stroke="#495057" strokeWidth="2" />
+                  <path d="M6 3.5H15.5L19 7V20.5H6V3.5Z" fill="#77C3FF" />
+                  <path d="M15.5 3.5V7H19" fill="#53B4FF" />
+                  <rect x="8.2" y="10.1" width="8.6" height="1.8" rx="0.9" fill="#2F8EF5" />
+                  <rect x="8.2" y="13.3" width="6.2" height="1.8" rx="0.9" fill="#2F8EF5" />
                 </svg>
               </div>
             </button>
@@ -262,14 +297,10 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full bg-[#EDF3FF] flex items-center justify-center">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 3H15L19 7V21H6V3Z"
-                    stroke="#495057"
-                    strokeWidth="2"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M15 3V7H19" stroke="#495057" strokeWidth="2" />
-                  <path d="M9 12H16M9 16H14" stroke="#495057" strokeWidth="2" />
+                  <path d="M6 3.5H15.5L19 7V20.5H6V3.5Z" fill="#8CC8FF" />
+                  <path d="M15.5 3.5V7H19" fill="#66B9FF" />
+                  <rect x="8.2" y="10.2" width="8.8" height="2" rx="1" fill="#2F8EF5" />
+                  <rect x="8.2" y="13.8" width="6.4" height="2" rx="1" fill="#2F8EF5" />
                 </svg>
               </div>
               <div className="text-left">
@@ -292,14 +323,11 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full bg-[#EEF7FF] flex items-center justify-center">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 3H15L19 7V21H6V3Z"
-                    stroke="#495057"
-                    strokeWidth="2"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M15 3V7H19" stroke="#495057" strokeWidth="2" />
-                  <path d="M9 13H16M9 17H13" stroke="#495057" strokeWidth="2" />
+                  <rect x="4" y="4" width="16" height="16" rx="3" fill="#7EC5FF" />
+                  <rect x="7" y="7" width="4" height="4" rx="1" fill="#2F8EF5" />
+                  <rect x="13" y="7" width="4" height="4" rx="1" fill="#2F8EF5" />
+                  <rect x="7" y="13" width="4" height="4" rx="1" fill="#2F8EF5" />
+                  <rect x="13" y="13" width="4" height="4" rx="1" fill="#2F8EF5" />
                 </svg>
               </div>
               <div className="text-left">
@@ -320,14 +348,10 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full bg-[#F2F4F8] flex items-center justify-center">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 3H15L19 7V21H6V3Z"
-                    stroke="#495057"
-                    strokeWidth="2"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M15 3V7H19" stroke="#495057" strokeWidth="2" />
-                  <path d="M9 11H16M9 15H16M9 19H14" stroke="#495057" strokeWidth="2" />
+                  <rect x="4.5" y="4.5" width="15" height="15" rx="3.5" fill="#9AD0FF" />
+                  <rect x="7.5" y="8" width="9" height="1.8" rx="0.9" fill="#2F8EF5" />
+                  <rect x="7.5" y="11.8" width="9" height="1.8" rx="0.9" fill="#2F8EF5" />
+                  <rect x="7.5" y="15.6" width="6.2" height="1.8" rx="0.9" fill="#2F8EF5" />
                 </svg>
               </div>
               <div className="text-left">

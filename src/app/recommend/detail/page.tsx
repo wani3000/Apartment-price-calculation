@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import type { RecommendedApartment } from "@/utils/mcpRecommendations";
+import {
+  fetchApartmentTradeHistoryFromMcp,
+  type RecommendedApartment,
+} from "@/utils/mcpRecommendations";
 
 const FIELD_LABELS: Record<string, string> = {
   apt_name: "아파트명",
@@ -46,6 +49,12 @@ const formatDateOrDash = (value?: string) => {
 export default function RecommendDetailPage() {
   const router = useRouter();
   const [apartment, setApartment] = useState<RecommendedApartment | null>(null);
+  const [latestTrade, setLatestTrade] = useState<RecommendedApartment | null>(null);
+  const [previousTrade, setPreviousTrade] = useState<RecommendedApartment | null>(
+    null,
+  );
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("selectedRecommendationApartment");
@@ -57,10 +66,50 @@ export default function RecommendDetailPage() {
     }
   }, []);
 
-  const rawEntries = useMemo(() => {
-    if (!apartment?.rawFields) return [];
-    return Object.entries(apartment.rawFields);
+  useEffect(() => {
+    const fetchTradeHistory = async () => {
+      if (!apartment?.aptName) return;
+
+      const policyRegionDetailsStr = localStorage.getItem("policyRegionDetails");
+      const policyRegion = policyRegionDetailsStr
+        ? JSON.parse(policyRegionDetailsStr)
+        : {};
+      const siDo = apartment.siDo || policyRegion?.siDo || "서울";
+      const siGunGu = apartment.siGunGu || policyRegion?.siGunGu || "강남구";
+
+      setIsLoadingHistory(true);
+      setHistoryError(null);
+      try {
+        const history = await fetchApartmentTradeHistoryFromMcp({
+          aptName: apartment.aptName,
+          siDo,
+          siGunGu,
+          dong: apartment.dong,
+          floor: apartment.floor,
+          areaSqm: apartment.areaSqm,
+        });
+        setLatestTrade(history.latestTrade || null);
+        setPreviousTrade(history.previousTrade || null);
+      } catch (error) {
+        setHistoryError(
+          error instanceof Error ? error.message : "거래 이력 조회에 실패했습니다.",
+        );
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    void fetchTradeHistory();
   }, [apartment]);
+
+  const latestRawEntries = useMemo(() => {
+    if (!latestTrade?.rawFields) return [];
+    return Object.entries(latestTrade.rawFields);
+  }, [latestTrade]);
+  const previousRawEntries = useMemo(() => {
+    if (!previousTrade?.rawFields) return [];
+    return Object.entries(previousTrade.rawFields);
+  }, [previousTrade]);
 
   return (
     <div className="h-[100dvh] bg-white flex flex-col items-center overflow-hidden">
@@ -98,10 +147,10 @@ export default function RecommendDetailPage() {
                 매매 추천 아파트 상세
               </h2>
               <p className="text-grey-80 text-sm font-normal leading-5 tracking-[-0.28px] mb-4">
-                API에서 가져온 정보를 기준으로 상세 내용을 정리했어요.
+                최근거래와 직전거래 2건을 기준으로 상세 내용을 정리했어요.
               </p>
 
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
+              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-4">
                 <p className="text-[#212529] text-[20px] font-bold leading-7 tracking-[-0.2px]">
                   {apartment.aptName}
                 </p>
@@ -136,47 +185,145 @@ export default function RecommendDetailPage() {
                     {formatPyeong(apartment.areaSqm)}
                   </p>
                 </div>
-                <div className="flex justify-between items-center w-full">
-                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                    계약일
-                  </p>
-                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                    {formatDateOrDash(apartment.contractDate || apartment.tradeDate)}
-                  </p>
-                </div>
-                <div className="flex justify-between items-center w-full">
-                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                    전산반영일
-                  </p>
-                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                    {formatDateOrDash(apartment.registrationDate)}
-                  </p>
-                </div>
               </div>
 
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
-                <h3 className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
-                  API 전체 정보
-                </h3>
-                {rawEntries.length === 0 && (
-                  <p className="text-[#495057] text-[15px] font-normal leading-[22px]">
-                    제공된 원본 필드가 없습니다.
+              {isLoadingHistory && (
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
+                  <p className="text-[#495057] text-[15px] font-medium leading-[22px]">
+                    거래 이력을 불러오는 중이에요...
                   </p>
-                )}
-                {rawEntries.map(([key, value]) => (
-                  <div
-                    key={key}
-                    className="flex justify-between items-start gap-3 py-1 border-b border-[#E9ECEF] last:border-b-0"
-                  >
-                    <p className="text-[#495057] text-[14px] font-medium leading-5 tracking-[-0.28px] break-keep">
-                      {FIELD_LABELS[key] || key}
-                    </p>
-                    <p className="text-[#212529] text-[14px] font-normal leading-5 tracking-[-0.28px] text-right break-all">
-                      {String(value)}
-                    </p>
+                </div>
+              )}
+              {!isLoadingHistory && historyError && (
+                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
+                  <p className="text-[#495057] text-[15px] font-medium leading-[22px]">
+                    {historyError}
+                  </p>
+                </div>
+              )}
+              {!isLoadingHistory && !historyError && (
+                <>
+                  <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
+                    <h3 className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
+                      최근거래
+                    </h3>
+                    {latestTrade ? (
+                      <>
+                        <div className="flex justify-between items-center w-full">
+                          <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                            거래금액
+                          </p>
+                          <p className="text-[#212529] text-[15px] font-semibold leading-[22px]">
+                            {formatToKoreanWon(latestTrade.priceWon)}
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center w-full">
+                          <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                            거래일
+                          </p>
+                          <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                            {formatDateOrDash(latestTrade.tradeDate)}
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center w-full">
+                          <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                            동·평형·층
+                          </p>
+                          <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                            {[
+                              latestTrade.dong || "-",
+                              formatPyeong(latestTrade.areaSqm),
+                              latestTrade.floor !== undefined
+                                ? `${latestTrade.floor}층`
+                                : "-",
+                            ].join(" · ")}
+                          </p>
+                        </div>
+                        <h4 className="text-[#212529] text-[15px] font-bold leading-[22px] mt-2">
+                          최근거래 원본 정보
+                        </h4>
+                        {latestRawEntries.map(([key, value]) => (
+                          <div
+                            key={`latest-${key}`}
+                            className="flex justify-between items-start gap-3 py-1 border-b border-[#E9ECEF] last:border-b-0"
+                          >
+                            <p className="text-[#495057] text-[14px] font-medium leading-5 tracking-[-0.28px] break-keep">
+                              {FIELD_LABELS[key] || key}
+                            </p>
+                            <p className="text-[#212529] text-[14px] font-normal leading-5 tracking-[-0.28px] text-right break-all">
+                              {String(value)}
+                            </p>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <p className="text-[#495057] text-[15px] font-normal leading-[22px]">
+                        최근거래 정보를 찾지 못했습니다.
+                      </p>
+                    )}
                   </div>
-                ))}
-              </div>
+
+                  <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
+                    <h3 className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
+                      직전거래
+                    </h3>
+                    {previousTrade ? (
+                      <>
+                        <div className="flex justify-between items-center w-full">
+                          <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                            거래금액
+                          </p>
+                          <p className="text-[#212529] text-[15px] font-semibold leading-[22px]">
+                            {formatToKoreanWon(previousTrade.priceWon)}
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center w-full">
+                          <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                            거래일
+                          </p>
+                          <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                            {formatDateOrDash(previousTrade.tradeDate)}
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center w-full">
+                          <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                            동·평형·층
+                          </p>
+                          <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                            {[
+                              previousTrade.dong || "-",
+                              formatPyeong(previousTrade.areaSqm),
+                              previousTrade.floor !== undefined
+                                ? `${previousTrade.floor}층`
+                                : "-",
+                            ].join(" · ")}
+                          </p>
+                        </div>
+                        <h4 className="text-[#212529] text-[15px] font-bold leading-[22px] mt-2">
+                          직전거래 원본 정보
+                        </h4>
+                        {previousRawEntries.map(([key, value]) => (
+                          <div
+                            key={`previous-${key}`}
+                            className="flex justify-between items-start gap-3 py-1 border-b border-[#E9ECEF] last:border-b-0"
+                          >
+                            <p className="text-[#495057] text-[14px] font-medium leading-5 tracking-[-0.28px] break-keep">
+                              {FIELD_LABELS[key] || key}
+                            </p>
+                            <p className="text-[#212529] text-[14px] font-normal leading-5 tracking-[-0.28px] text-right break-all">
+                              {String(value)}
+                            </p>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <p className="text-[#495057] text-[15px] font-normal leading-[22px]">
+                        직전거래 정보를 찾지 못했습니다.
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
