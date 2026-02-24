@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "아파트구구-대출계산기",
   webDir: "out",
   ios: {
-    contentInset: "automatic",
+    contentInset: "never",
   },
   plugins: {
     StatusBar: {

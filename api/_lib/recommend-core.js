@@ -1,17 +1,10 @@
-const MCP_PROTOCOL_VERSION = "2025-03-26";
+import fs from "node:fs";
+import path from "node:path";
 
-const parseJson = (value) => {
-  if (!value) return null;
-  if (typeof value === "object") return value;
-  if (typeof value === "string") {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return null;
-    }
-  }
-  return null;
-};
+const APT_TRADE_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade";
+const REGION_FILE = path.join(process.cwd(), "api", "_lib", "region_codes.txt");
+
+let cachedRegionRows = null;
 
 const parseNumber = (value) => {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -24,43 +17,6 @@ const parseNumber = (value) => {
   return null;
 };
 
-const parseSseResult = (raw) => {
-  const lines = raw.split("\n");
-  for (const line of lines) {
-    if (!line.startsWith("data:")) continue;
-    const json = line.slice(5).trim();
-    const parsed = parseJson(json);
-    if (parsed && typeof parsed === "object") return parsed;
-  }
-  return null;
-};
-
-const parseMcpHttpResult = async (response) => {
-  const contentType = response.headers.get("content-type") || "";
-  if (contentType.includes("application/json")) {
-    return await response.json();
-  }
-  const text = await response.text();
-  if (contentType.includes("text/event-stream")) {
-    const parsed = parseSseResult(text);
-    if (parsed) return parsed;
-  }
-  return parseJson(text) || { error: { message: "Unknown MCP response format" } };
-};
-
-const parseToolPayload = (result) => {
-  if (!result || typeof result !== "object") return {};
-  const structured = parseJson(result.structuredContent);
-  if (structured) return structured;
-  const content = Array.isArray(result.content) ? result.content : [];
-  for (const block of content) {
-    if (!block || typeof block !== "object") continue;
-    const parsed = parseJson(block.text);
-    if (parsed) return parsed;
-  }
-  return {};
-};
-
 const monthShift = (yyyymm, shift) => {
   const year = Number(yyyymm.slice(0, 4));
   const month = Number(yyyymm.slice(4, 6));
@@ -68,65 +24,157 @@ const monthShift = (yyyymm, shift) => {
   return `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 
-const normalizeTradeDate = (item) => {
-  const direct = [item.trade_date, item.deal_date, item.contract_date, item["거래일자"], item["계약일"]];
-  for (const value of direct) {
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
-  const year = parseNumber(item.deal_year ?? item.year ?? item["년"]);
-  const month = parseNumber(item.deal_month ?? item.month ?? item["월"]);
-  const day = parseNumber(item.deal_day ?? item.day ?? item["일"]);
-  if (!year || !month || !day) return "";
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+const getCurrentYearMonthKst = () => {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const year = kst.getUTCFullYear();
+  const month = String(kst.getUTCMonth() + 1).padStart(2, "0");
+  return `${year}${month}`;
 };
 
-const normalizeRegistrationDate = (item) => {
-  const direct = [
-    item.registration_date,
-    item.registrationDate,
-    item.system_date,
-    item.systemDate,
-    item.report_date,
-    item["전산반영일"],
-    item["전산반영날짜"],
-    item["신고일"],
-  ];
-  for (const value of direct) {
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
-  return undefined;
+const decodeXmlEntities = (value) =>
+  value
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+
+const getTagValue = (xml, tag) => {
+  const re = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`);
+  const match = xml.match(re);
+  return match ? decodeXmlEntities(String(match[1]).trim()) : "";
 };
 
-const parseTradePriceWon = (item) => {
-  const wonKeys = ["price_won", "priceWon", "deal_price_won", "dealAmountWon"];
-  for (const key of wonKeys) {
-    const num = parseNumber(item[key]);
-    if (num !== null) return Math.round(num);
+const parseItemsFromXml = (xmlText) => {
+  const resultCode = getTagValue(xmlText, "resultCode");
+  const resultMsg = getTagValue(xmlText, "resultMsg");
+  if (resultCode && resultCode !== "000") {
+    throw new Error(`공공데이터 API 오류(${resultCode}): ${resultMsg || "요청 실패"}`);
   }
-  const manKeys = ["price_10k", "price10k", "deal_amount", "dealAmount", "거래금액"];
-  for (const key of manKeys) {
-    const num = parseNumber(item[key]);
-    if (num !== null) return Math.round(num * 10000);
+
+  const items = [];
+  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+  let match;
+  while ((match = itemRegex.exec(xmlText)) !== null) {
+    const block = match[1];
+    const aptName = getTagValue(block, "아파트");
+    const dealAmount = getTagValue(block, "거래금액");
+    const areaText = getTagValue(block, "전용면적");
+    const floorText = getTagValue(block, "층");
+    const year = getTagValue(block, "년");
+    const month = getTagValue(block, "월");
+    const day = getTagValue(block, "일");
+
+    const price10k = parseNumber(dealAmount);
+    const priceWon = price10k === null ? null : Math.round(price10k * 10000);
+    if (!aptName || !priceWon) continue;
+
+    const y = String(parseNumber(year) || "");
+    const m = String(parseNumber(month) || "").padStart(2, "0");
+    const d = String(parseNumber(day) || "").padStart(2, "0");
+    const tradeDate = y && m && d ? `${y}-${m}-${d}` : undefined;
+
+    const areaSqm = parseNumber(areaText);
+    const floor = parseNumber(floorText);
+    const buildYear = parseNumber(getTagValue(block, "건축년도"));
+    const dong = getTagValue(block, "법정동") || undefined;
+
+    items.push({
+      aptName,
+      dong,
+      areaSqm: areaSqm === null ? undefined : areaSqm,
+      floor: floor === null ? undefined : floor,
+      buildYear: buildYear === null ? undefined : buildYear,
+      tradeDate,
+      contractDate: tradeDate,
+      registrationDate: undefined,
+      priceWon,
+      rawFields: {
+        apartment_name: aptName,
+        dong: dong || "",
+        exclu_use_ar: areaSqm ?? "",
+        floor: floor ?? "",
+        build_year: buildYear ?? "",
+        deal_amount: price10k ?? "",
+        deal_year: y || "",
+        deal_month: m || "",
+        deal_day: d || "",
+      },
+    });
   }
-  return null;
+  return items;
 };
 
-const extractRawFields = (item) => {
-  const entries = Object.entries(item || {}).filter(([, value]) => {
-    const type = typeof value;
-    return type === "string" || type === "number" || type === "boolean";
+const getApiKey = () => {
+  const key = (process.env.DATA_GO_KR_API_KEY || "").trim();
+  if (!key) {
+    throw new Error("DATA_GO_KR_API_KEY 환경변수가 필요합니다.");
+  }
+  // decoding 키/encoding 키 모두 허용
+  return /%[0-9A-Fa-f]{2}/.test(key) ? key : encodeURIComponent(key);
+};
+
+const fetchApartmentTrades = async (regionCode, yearMonth, numOfRows = 200, pageNo = 1) => {
+  const serviceKey = getApiKey();
+  const url = `${APT_TRADE_URL}?serviceKey=${serviceKey}&LAWD_CD=${encodeURIComponent(regionCode)}&DEAL_YMD=${encodeURIComponent(yearMonth)}&numOfRows=${encodeURIComponent(String(numOfRows))}&pageNo=${encodeURIComponent(String(pageNo))}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: { Accept: "application/xml, text/xml;q=0.9, */*;q=0.8" },
+  });
+  if (!response.ok) {
+    throw new Error(`실거래가 API HTTP 오류: ${response.status}`);
+  }
+  const xmlText = await response.text();
+  return parseItemsFromXml(xmlText);
+};
+
+const loadRegionRows = () => {
+  if (cachedRegionRows) return cachedRegionRows;
+
+  const text = fs.readFileSync(REGION_FILE, "utf-8");
+  const lines = text.split(/\r?\n/);
+  const rows = [];
+  for (let i = 1; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (!line) continue;
+    const parts = line.split("\t");
+    if (parts.length < 3) continue;
+    const [code, name, status] = parts;
+    if (status === "존재") rows.push({ code, name });
+  }
+  cachedRegionRows = rows;
+  return rows;
+};
+
+const isGuGunCode = (tenDigitCode) => tenDigitCode.slice(5) === "00000";
+const toApiCode = (tenDigitCode) => tenDigitCode.slice(0, 5);
+
+const searchRegionCode = (query) => {
+  const trimmed = String(query || "").trim();
+  if (!trimmed) throw new Error("지역명이 비어 있어요.");
+
+  const rows = loadRegionRows();
+  const tokens = trimmed.split(/\s+/);
+  const matched = rows.filter((row) => tokens.every((tok) => row.name.includes(tok)));
+  if (!matched.length) {
+    throw new Error(`지역코드를 찾지 못했습니다: ${trimmed}`);
+  }
+
+  matched.sort((a, b) => {
+    const aGu = isGuGunCode(a.code) ? 0 : 1;
+    const bGu = isGuGunCode(b.code) ? 0 : 1;
+    if (aGu !== bGu) return aGu - bGu;
+    return a.code.localeCompare(b.code);
   });
 
-  entries.sort(([a], [b]) => a.localeCompare(b, "ko"));
-  return Object.fromEntries(entries.map(([key, value]) => [key, value === "" ? "-" : value]));
-};
-
-const extractTradeList = (payload) => {
-  const candidates = [payload.items, payload.item, payload.data, payload.results, payload.response?.items];
-  for (const c of candidates) {
-    if (Array.isArray(c)) return c;
-  }
-  return [];
+  const best = matched.find((m) => isGuGunCode(m.code)) || matched[0];
+  return {
+    regionCode: toApiCode(best.code),
+    fullName: best.name,
+    matches: matched.slice(0, 20),
+  };
 };
 
 const toTradeTimestamp = (value) => {
@@ -134,76 +182,6 @@ const toTradeTimestamp = (value) => {
   const digits = value.replace(/[^\d]/g, "");
   if (digits.length < 8) return 0;
   return Number(digits.slice(0, 8));
-};
-
-const normalizeTradeItem = (item) => {
-  const aptName = String(item.apt_name || item.apartment_name || item["아파트"] || "").trim();
-  const priceWon = parseTradePriceWon(item);
-  if (!aptName || !priceWon) return null;
-
-  const dong = String(item.dong || item["법정동"] || "").trim() || undefined;
-  const areaSqm = parseNumber(item.area_sqm || item.exclu_use_ar || item["전용면적"]);
-  const floor = parseNumber(item.floor || item["층"]);
-  const buildYear = parseNumber(item.build_year || item.buildYear || item["건축년도"]);
-  const tradeDate = normalizeTradeDate(item) || undefined;
-
-  return {
-    aptName,
-    dong,
-    areaSqm: areaSqm === null ? undefined : areaSqm,
-    floor: floor === null ? undefined : floor,
-    buildYear: buildYear === null ? undefined : buildYear,
-    tradeDate,
-    contractDate: tradeDate,
-    registrationDate: normalizeRegistrationDate(item),
-    priceWon,
-    rawFields: extractRawFields(item),
-  };
-};
-
-const createMcpClient = async () => {
-  const mcpUrl = (process.env.REAL_ESTATE_MCP_URL || "").trim();
-  if (!mcpUrl) {
-    throw new Error("REAL_ESTATE_MCP_URL 환경변수가 필요합니다.");
-  }
-
-  let sequence = 1;
-  let sessionId = "";
-
-  const rpc = async (method, params) => {
-    const response = await fetch(mcpUrl, {
-      method: "POST",
-      headers: {
-        Accept: "application/json, text/event-stream",
-        "Content-Type": "application/json",
-        ...(sessionId ? { "mcp-session-id": sessionId } : {}),
-      },
-      body: JSON.stringify({ jsonrpc: "2.0", id: sequence++, method, params }),
-    });
-
-    const currentSessionId = response.headers.get("mcp-session-id") || response.headers.get("x-mcp-session-id");
-    if (currentSessionId) sessionId = currentSessionId;
-
-    const data = await parseMcpHttpResult(response);
-    if (!response.ok || data?.error) {
-      const message = data?.error?.message || `MCP ${method} failed`;
-      throw new Error(String(message));
-    }
-    return data.result;
-  };
-
-  await rpc("initialize", {
-    protocolVersion: MCP_PROTOCOL_VERSION,
-    capabilities: {},
-    clientInfo: { name: "aptgugu-vercel-api", version: "1.0.0" },
-  });
-
-  return {
-    async callTool(name, args) {
-      const result = await rpc("tools/call", { name, arguments: args });
-      return parseToolPayload(result);
-    },
-  };
 };
 
 export const health = (_req, res) => {
@@ -221,33 +199,16 @@ export const recommendApartments = async (req, res) => {
       return res.status(400).json({ error: "budgetWon, region.siDo, region.siGunGu가 필요합니다." });
     }
 
-    const mcp = await createMcpClient();
-    const regionPayload = await mcp.callTool("get_region_code", { query: `${siDo} ${siGunGu}` });
-    const regionCode = String(regionPayload.region_code || regionPayload.regionCode || regionPayload.code || "").trim();
-    if (!regionCode) return res.status(404).json({ error: "지역코드를 찾지 못했습니다." });
-
-    const currentPayload = await mcp.callTool("get_current_year_month", {});
-    const currentYm = String(currentPayload.year_month || "").trim();
-    if (!/^\d{6}$/.test(currentYm)) {
-      return res.status(500).json({ error: "기준 연월 조회에 실패했습니다." });
-    }
+    const { regionCode } = searchRegionCode(`${siDo} ${siGunGu}`);
+    const currentYm = getCurrentYearMonthKst();
 
     const rawTrades = [];
     const dedupe = new Set();
     for (let offset = 0; offset < 6; offset += 1) {
       const ym = monthShift(currentYm, -offset);
-      const tradePayload = await mcp.callTool("get_apartment_trades", {
-        region_code: regionCode,
-        year_month: ym,
-        num_of_rows: 200,
-        page_no: 1,
-      });
-      const items = extractTradeList(tradePayload);
+      const items = await fetchApartmentTrades(regionCode, ym, 200, 1);
       for (const item of items) {
-        const aptName = String(item.apt_name || item.apartment_name || item["아파트"] || "").trim();
-        const priceWon = parseTradePriceWon(item);
-        if (!aptName || !priceWon) continue;
-        const key = `${aptName}|${item.dong || ""}|${item.exclu_use_ar || item.area_sqm || ""}|${item.floor || ""}|${normalizeTradeDate(item)}|${priceWon}`;
+        const key = `${item.aptName}|${item.dong || ""}|${item.areaSqm || ""}|${item.floor || ""}|${item.tradeDate || ""}|${item.priceWon}`;
         if (dedupe.has(key)) continue;
         dedupe.add(key);
         rawTrades.push(item);
@@ -256,18 +217,7 @@ export const recommendApartments = async (req, res) => {
     }
 
     const recommended = rawTrades
-      .map((item) => {
-        const normalized = normalizeTradeItem(item);
-        if (!normalized) return null;
-        return {
-          ...normalized,
-          siDo,
-          siGunGu,
-          regionCode,
-          gapWon: Math.abs(budgetWon - normalized.priceWon),
-        };
-      })
-      .filter((item) => item !== null)
+      .map((item) => ({ ...item, siDo, siGunGu, regionCode, gapWon: Math.abs(budgetWon - item.priceWon) }))
       .filter((item) => item.priceWon <= budgetWon)
       .sort((a, b) => {
         if (a.gapWon !== b.gapWon) return a.gapWon - b.gapWon;
@@ -291,33 +241,16 @@ export const latestApartments = async (req, res) => {
       return res.status(400).json({ error: "region.siDo, region.siGunGu가 필요합니다." });
     }
 
-    const mcp = await createMcpClient();
-    const regionPayload = await mcp.callTool("get_region_code", { query: `${siDo} ${siGunGu}` });
-    const regionCode = String(regionPayload.region_code || regionPayload.regionCode || regionPayload.code || "").trim();
-    if (!regionCode) return res.status(404).json({ error: "지역코드를 찾지 못했습니다." });
-
-    const currentPayload = await mcp.callTool("get_current_year_month", {});
-    const currentYm = String(currentPayload.year_month || "").trim();
-    if (!/^\d{6}$/.test(currentYm)) {
-      return res.status(500).json({ error: "기준 연월 조회에 실패했습니다." });
-    }
+    const { regionCode } = searchRegionCode(`${siDo} ${siGunGu}`);
+    const currentYm = getCurrentYearMonthKst();
 
     const rawTrades = [];
     const dedupe = new Set();
     for (let offset = 0; offset < 6; offset += 1) {
       const ym = monthShift(currentYm, -offset);
-      const tradePayload = await mcp.callTool("get_apartment_trades", {
-        region_code: regionCode,
-        year_month: ym,
-        num_of_rows: 200,
-        page_no: 1,
-      });
-      const items = extractTradeList(tradePayload);
+      const items = await fetchApartmentTrades(regionCode, ym, 200, 1);
       for (const item of items) {
-        const aptName = String(item.apt_name || item.apartment_name || item["아파트"] || "").trim();
-        const priceWon = parseTradePriceWon(item);
-        if (!aptName || !priceWon) continue;
-        const key = `${aptName}|${item.dong || ""}|${item.exclu_use_ar || item.area_sqm || ""}|${item.floor || ""}|${normalizeTradeDate(item)}|${priceWon}`;
+        const key = `${item.aptName}|${item.dong || ""}|${item.areaSqm || ""}|${item.floor || ""}|${item.tradeDate || ""}|${item.priceWon}`;
         if (dedupe.has(key)) continue;
         dedupe.add(key);
         rawTrades.push(item);
@@ -325,12 +258,7 @@ export const latestApartments = async (req, res) => {
     }
 
     const latest = rawTrades
-      .map((item) => {
-        const normalized = normalizeTradeItem(item);
-        if (!normalized) return null;
-        return { ...normalized, siDo, siGunGu, regionCode };
-      })
-      .filter((item) => item !== null)
+      .map((item) => ({ ...item, siDo, siGunGu, regionCode }))
       .sort((a, b) => (b.tradeDate || "").localeCompare(a.tradeDate || ""))
       .slice(0, limit);
 
@@ -354,41 +282,23 @@ export const apartmentTradeHistory = async (req, res) => {
       return res.status(400).json({ error: "aptName, region.siDo, region.siGunGu가 필요합니다." });
     }
 
-    const mcp = await createMcpClient();
-    const regionPayload = await mcp.callTool("get_region_code", { query: `${siDo} ${siGunGu}` });
-    const regionCode = String(regionPayload.region_code || regionPayload.regionCode || regionPayload.code || "").trim();
-    if (!regionCode) return res.status(404).json({ error: "지역코드를 찾지 못했습니다." });
-
-    const currentPayload = await mcp.callTool("get_current_year_month", {});
-    const currentYm = String(currentPayload.year_month || "").trim();
-    if (!/^\d{6}$/.test(currentYm)) {
-      return res.status(500).json({ error: "기준 연월 조회에 실패했습니다." });
-    }
+    const { regionCode } = searchRegionCode(`${siDo} ${siGunGu}`);
+    const currentYm = getCurrentYearMonthKst();
 
     const rawTrades = [];
     const dedupe = new Set();
     for (let offset = 0; offset < 18; offset += 1) {
       const ym = monthShift(currentYm, -offset);
-      const tradePayload = await mcp.callTool("get_apartment_trades", {
-        region_code: regionCode,
-        year_month: ym,
-        num_of_rows: 300,
-        page_no: 1,
-      });
-      const items = extractTradeList(tradePayload);
+      const items = await fetchApartmentTrades(regionCode, ym, 300, 1);
       for (const item of items) {
-        const normalized = normalizeTradeItem(item);
-        if (!normalized) continue;
-        if (normalized.aptName !== aptName) continue;
-        if (dong && normalized.dong && normalized.dong !== dong) continue;
-        if (areaSqm !== null && normalized.areaSqm !== undefined) {
-          if (Math.abs(normalized.areaSqm - areaSqm) > 0.3) continue;
-        }
+        if (item.aptName !== aptName) continue;
+        if (dong && item.dong && item.dong !== dong) continue;
+        if (areaSqm !== null && item.areaSqm !== undefined && Math.abs(item.areaSqm - areaSqm) > 0.3) continue;
 
-        const key = `${normalized.aptName}|${normalized.dong || ""}|${normalized.areaSqm || ""}|${normalized.floor || ""}|${normalized.tradeDate || ""}|${normalized.priceWon}`;
+        const key = `${item.aptName}|${item.dong || ""}|${item.areaSqm || ""}|${item.floor || ""}|${item.tradeDate || ""}|${item.priceWon}`;
         if (dedupe.has(key)) continue;
         dedupe.add(key);
-        rawTrades.push({ ...normalized, siDo, siGunGu, regionCode });
+        rawTrades.push({ ...item, siDo, siGunGu, regionCode });
       }
       if (rawTrades.length >= 100) break;
     }
@@ -406,13 +316,7 @@ export const apartmentTradeHistory = async (req, res) => {
     const latestTrade = sorted[0] || null;
     const previousTrade = sorted[1] || null;
 
-    return res.status(200).json({
-      aptName,
-      regionCode,
-      latestTrade,
-      previousTrade,
-      trades: sorted.slice(0, 2),
-    });
+    return res.status(200).json({ aptName, regionCode, latestTrade, previousTrade, trades: sorted.slice(0, 2) });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: error instanceof Error ? error.message : "아파트 거래 이력 조회 중 오류가 발생했습니다." });
