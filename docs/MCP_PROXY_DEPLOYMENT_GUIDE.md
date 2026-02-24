@@ -8,7 +8,8 @@
 ## 2) 구성
 - `services/recommendation-proxy` : 앱 전용 추천 API
 - 외부 MCP 서버(HTTP) : `real-estate-mcp`
-- 앱(Next/Capacitor) : `NEXT_PUBLIC_RECOMMEND_PROXY_URL`로 프록시 호출
+- 앱(Next/Capacitor) : 기본적으로 `https://aptgugu.com/api` 또는 웹 동일 오리진 `/api` 호출
+- Vercel Serverless API (`/api/*`) : MCP 서버로 중계
 
 ## 3) 사용자(운영자)가 직접 해야 하는 것
 ### A. MCP 서버 배포
@@ -18,18 +19,12 @@
 3. 외부에서 접근 가능한 HTTPS URL 확보
    - 예: `https://your-mcp.example.com/mcp`
 
-### B. 추천 프록시 서버 배포
-1. `services/recommendation-proxy` 배포
-2. 환경변수 설정
-   - `REAL_ESTATE_MCP_URL` = 위 MCP URL
-3. health 체크
-   - `GET /health` -> `{ "ok": true }`
-
-### C. 앱 배포 환경변수 설정
-1. 웹/앱 공통으로 아래 값 설정
-   - `NEXT_PUBLIC_RECOMMEND_PROXY_URL` = 프록시 URL
-   - 예: `https://your-proxy.example.com`
-2. 앱 재빌드/재배포
+### B. Vercel 환경변수 설정
+1. 웹 배포 프로젝트 환경변수:
+   - `REAL_ESTATE_MCP_URL` = 위 MCP URL (예: `https://your-mcp.example.com/mcp`)
+2. 필요 시만 설정:
+   - `NEXT_PUBLIC_RECOMMEND_PROXY_URL` (기본값을 덮어쓸 때만)
+3. 재배포
 
 ## 4) 로컬 확인 방법
 ### 터미널 1: MCP
@@ -38,7 +33,7 @@ export DATA_GO_KR_API_KEY='YOUR_DECODING_KEY'
 uv run --directory /tmp/re-mcp-work/real-estate-mcp python src/real_estate/mcp_server/server.py --transport http --host 127.0.0.1 --port 8011
 ```
 
-### 터미널 2: 프록시
+### 터미널 2: 로컬 프록시(선택)
 ```bash
 cd services/recommendation-proxy
 npm install

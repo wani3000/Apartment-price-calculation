@@ -23,13 +23,34 @@ export type ApartmentTradeHistory = {
   trades?: RecommendedApartment[];
 };
 
-const DEFAULT_PROXY_URL = "http://127.0.0.1:8787";
+const DEFAULT_LOCAL_PROXY_URL = "http://127.0.0.1:8787";
+const DEFAULT_PROD_PROXY_URL = "https://aptgugu.com/api";
 const REQUEST_TIMEOUT_MS = 10000;
 
 const resolveProxyEndpoint = () => {
   const configured = process.env.NEXT_PUBLIC_RECOMMEND_PROXY_URL?.trim();
   if (configured) return configured;
-  return DEFAULT_PROXY_URL;
+
+  if (typeof window !== "undefined") {
+    const protocol = window.location.protocol;
+    const host = window.location.hostname;
+
+    // Capacitor/file 환경에서는 로컬 라우트가 없으므로 서비스 도메인 API 사용
+    if (protocol !== "http:" && protocol !== "https:") {
+      return DEFAULT_PROD_PROXY_URL;
+    }
+
+    // 웹 운영 환경에서는 동일 오리진 API 우선 사용
+    if (host !== "localhost" && host !== "127.0.0.1" && host !== "::1") {
+      return `${window.location.origin.replace(/\/$/, "")}/api`;
+    }
+
+    return DEFAULT_LOCAL_PROXY_URL;
+  }
+
+  return process.env.NODE_ENV === "production"
+    ? DEFAULT_PROD_PROXY_URL
+    : DEFAULT_LOCAL_PROXY_URL;
 };
 
 const isLocalProxyEndpoint = (endpoint: string) => {
