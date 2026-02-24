@@ -2,7 +2,7 @@
 
 import React, { ReactNode } from "react";
 import Image from "next/image";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface HeaderProps {
   backUrl?: string;
@@ -31,7 +31,6 @@ export default function Header({
 }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const handleBack = () => {
     if (onBackClick) {
@@ -46,7 +45,10 @@ export default function Header({
   };
 
   const handleOpenMenu = () => {
-    const query = searchParams.toString();
+    const query =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).toString()
+        : "";
     const currentPath = `${pathname}${query ? `?${query}` : ""}`;
     router.push(`/menu?from=${encodeURIComponent(currentPath)}`);
   };

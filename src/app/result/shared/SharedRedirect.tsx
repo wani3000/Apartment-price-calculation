@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import useClientSearchParams from "@/hooks/useClientSearchParams";
 
 export default function SharedRedirect() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
 
   useEffect(() => {
     const usernameParam = searchParams.get("username");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { Capacitor } from "@capacitor/core";
@@ -20,6 +20,7 @@ import {
 } from "@/utils/calculator";
 import Header from "@/components/Header";
 import html2canvas from "html2canvas";
+import useClientSearchParams from "@/hooks/useClientSearchParams";
 
 type CalculationInput = {
   income: number;
@@ -55,7 +56,7 @@ const DEFAULT_POLICY_INPUT: PolicyInput = {
 
 export default function FinalResultPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [username, setUsername] = useState("");
   const [activeTab, setActiveTab] = useState("live"); // 'gap' 또는 'live'
   const [sharedCalculationData, setSharedCalculationData] =

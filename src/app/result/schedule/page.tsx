@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
+import useClientSearchParams from "@/hooks/useClientSearchParams";
 
 type ScheduleRow = {
   month: number;
@@ -57,7 +57,7 @@ function formatWon(value: number): string {
 }
 
 export default function SchedulePage() {
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const principal = Number(searchParams.get("principal") || 0);
   const rate = Number(searchParams.get("rate") || 0);
   const years = Number(searchParams.get("years") || 30);

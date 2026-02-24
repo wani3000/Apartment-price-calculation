@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   calculateMaxPurchaseForLiving,
@@ -11,10 +11,11 @@ import {
 } from "@/utils/calculator";
 import Header from "@/components/Header";
 import Head from "next/head";
+import useClientSearchParams from "@/hooks/useClientSearchParams";
 
 export default function PlanPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useClientSearchParams();
   const [username, setUsername] = useState("");
   const [mode, setMode] = useState("gap"); // 'gap' 또는 'live'
   const [calculationResult, setCalculationResult] = useState({
