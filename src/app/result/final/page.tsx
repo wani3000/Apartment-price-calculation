@@ -1869,16 +1869,27 @@ export default function FinalResultPage() {
         </div>
       </div>
 
-      {/* 플로팅 버튼 영역 */}
-      <div className="fixed right-5 bottom-[calc(var(--bottom-tab-height)+16px+env(safe-area-inset-bottom))] z-50">
+      {/* 하단 고정 버튼 영역 */}
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50 bg-white/92 backdrop-blur-[2px]">
         {isSharedLink ? (
-          <button
-            className="h-11 px-4 justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-sm shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
-            onClick={handleGoHome}
-          >
-            내가 살 수 있는 아파트 계산하기
-          </button>
-        ) : null}
+          <div className="w-full max-w-md mx-auto px-5 pb-[calc(12px+env(safe-area-inset-bottom))] pt-2">
+            <button
+              className="h-14 w-full justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-base"
+              onClick={handleGoHome}
+            >
+              내가 살 수 있는 아파트 계산하기
+            </button>
+          </div>
+        ) : (
+          <div className="w-full max-w-md mx-auto px-5 pb-[calc(12px+env(safe-area-inset-bottom))] pt-2">
+            <button
+              className="h-14 w-full justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-base"
+              onClick={() => router.push("/recommend")}
+            >
+              추천 아파트 보기
+            </button>
+          </div>
+        )}
       </div>
 
       {showGapPolicyModal && (

@@ -11,6 +11,11 @@ export default function BottomTabBar() {
     : pathname;
   const isHome = normalizedPath === "/";
   const isRecommend = normalizedPath === "/recommend" || normalizedPath.startsWith("/recommend/");
+  const shouldShowTabBar = normalizedPath === "/" || normalizedPath === "/recommend";
+
+  if (!shouldShowTabBar) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-0 left-0 right-0 flex justify-center z-40 border-t border-[#E9ECEF] bg-white">
