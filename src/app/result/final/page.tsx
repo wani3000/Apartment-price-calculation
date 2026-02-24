@@ -79,7 +79,6 @@ export default function FinalResultPage() {
   const [hasSpouseInfo, setHasSpouseInfo] = useState(false);
   const [hasRegionInput, setHasRegionInput] = useState(false);
   const [hasHomeOwnerInput, setHasHomeOwnerInput] = useState(false);
-
   // 카드 요소에 대한 ref 추가
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -991,7 +990,7 @@ export default function FinalResultPage() {
         className="flex-1 px-5 overflow-y-auto"
         style={{
           paddingTop: "calc(max(16px, env(safe-area-inset-top)) + 60px)",
-          paddingBottom: "calc(100px + env(safe-area-inset-bottom))",
+          paddingBottom: "var(--page-content-bottom-safe)",
           WebkitOverflowScrolling: "touch",
         }}
       >
@@ -1870,26 +1869,26 @@ export default function FinalResultPage() {
       </div>
 
       {/* 하단 고정 버튼 영역 */}
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50 bg-white/92 backdrop-blur-[2px]">
-        {isSharedLink ? (
-          <div className="w-full max-w-md mx-auto px-5 pb-[calc(12px+env(safe-area-inset-bottom))] pt-2">
+      <div className="bottom-cta-container">
+        <div
+          className="bottom-cta-surface"
+        >
+          {isSharedLink ? (
             <button
-              className="h-14 w-full justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-base"
+              className="flex h-14 w-full justify-center items-center rounded-[300px] bg-[#000000] text-white font-semibold text-base"
               onClick={handleGoHome}
             >
               내가 살 수 있는 아파트 계산하기
             </button>
-          </div>
-        ) : (
-          <div className="w-full max-w-md mx-auto px-5 pb-[calc(12px+env(safe-area-inset-bottom))] pt-2">
+          ) : (
             <button
-              className="h-14 w-full justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-base"
+              className="flex h-14 w-full justify-center items-center rounded-[300px] bg-[#000000] text-white font-semibold text-base"
               onClick={() => router.push("/recommend")}
             >
               추천 아파트 보기
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {showGapPolicyModal && (

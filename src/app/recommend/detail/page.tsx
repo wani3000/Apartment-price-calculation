@@ -8,6 +8,26 @@ import {
   type RecommendedApartment,
 } from "@/utils/mcpRecommendations";
 
+const FALLBACK_SIGUNGU_BY_SIDO: Record<string, string> = {
+  서울: "강남구",
+  경기: "성남시",
+  인천: "연수구",
+  부산: "해운대구",
+  대구: "수성구",
+  광주: "서구",
+  대전: "유성구",
+  울산: "남구",
+  세종: "세종시",
+  강원: "춘천시",
+  충북: "청주시",
+  충남: "천안시",
+  전북: "전주시",
+  전남: "순천시",
+  경북: "포항시",
+  경남: "창원시",
+  제주: "제주시",
+};
+
 const FIELD_LABELS: Record<string, string> = {
   apt_name: "아파트명",
   apartment_name: "아파트명",
@@ -75,7 +95,13 @@ export default function RecommendDetailPage() {
         ? JSON.parse(policyRegionDetailsStr)
         : {};
       const siDo = apartment.siDo || policyRegion?.siDo || "서울";
-      const siGunGu = apartment.siGunGu || policyRegion?.siGunGu || "강남구";
+      const rawSiGunGu = apartment.siGunGu || policyRegion?.siGunGu || "";
+      const siGunGu =
+        typeof rawSiGunGu === "string" &&
+        rawSiGunGu.trim() &&
+        !rawSiGunGu.includes("전체")
+          ? rawSiGunGu
+          : FALLBACK_SIGUNGU_BY_SIDO[siDo] || "강남구";
 
       setIsLoadingHistory(true);
       setHistoryError(null);
@@ -118,7 +144,7 @@ export default function RecommendDetailPage() {
         className="w-full flex-1 overflow-y-auto px-5"
         style={{
           paddingTop: "calc(max(16px, env(safe-area-inset-top)) + 60px)",
-          paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
+          paddingBottom: "var(--tab-page-content-bottom-safe)",
           WebkitOverflowScrolling: "touch",
         }}
       >

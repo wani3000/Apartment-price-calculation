@@ -165,13 +165,9 @@ export default function HousingStabilizationPage() {
       </div>
 
       {/* 하단 고정 버튼 */}
-      <div className="fixed bottom-[var(--bottom-tab-offset)] left-0 right-0 flex justify-center z-50">
+      <div className="bottom-cta-container">
         <div
-          className="flex w-full max-w-md px-5 pt-3 pb-3 items-center"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255, 255, 255, 0.00) 0%, #FFF 31.25%)",
-          }}
+          className="bottom-cta-surface"
         >
           <button
             onClick={() => router.back()}

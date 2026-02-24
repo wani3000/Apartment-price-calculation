@@ -2,12 +2,31 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 import Header from "@/components/Header";
 import {
   fetchLatestRegionApartmentsFromMcp,
   type RecommendedApartment,
 } from "@/utils/mcpRecommendations";
+
+const FALLBACK_SIGUNGU_BY_SIDO: Record<string, string> = {
+  서울: "강남구",
+  경기: "성남시",
+  인천: "연수구",
+  부산: "해운대구",
+  대구: "수성구",
+  광주: "서구",
+  대전: "유성구",
+  울산: "남구",
+  세종: "세종시",
+  강원: "춘천시",
+  충북: "청주시",
+  충남: "천안시",
+  전북: "전주시",
+  전남: "순천시",
+  경북: "포항시",
+  경남: "창원시",
+  제주: "제주시",
+};
 
 export default function Home() {
   const router = useRouter();
@@ -36,12 +55,19 @@ export default function Home() {
     try {
       const policyRegionDetailsStr = localStorage.getItem("policyRegionDetails");
       const region = policyRegionDetailsStr ? JSON.parse(policyRegionDetailsStr) : {};
+      const rawSiDo =
+        typeof region?.siDo === "string" && region.siDo.trim() ? region.siDo : "서울";
+      const rawSiGunGu =
+        typeof region?.siGunGu === "string" && region.siGunGu.trim()
+          ? region.siGunGu
+          : "";
+      const normalizedSiGunGu =
+        rawSiGunGu.includes("전체") || !rawSiGunGu
+          ? FALLBACK_SIGUNGU_BY_SIDO[rawSiDo] || "강남구"
+          : rawSiGunGu;
       const primaryRegion = {
-        siDo: typeof region?.siDo === "string" && region.siDo.trim() ? region.siDo : "서울",
-        siGunGu:
-          typeof region?.siGunGu === "string" && region.siGunGu.trim()
-            ? region.siGunGu
-            : "강남구",
+        siDo: rawSiDo,
+        siGunGu: normalizedSiGunGu,
       };
 
       let list = await fetchLatestRegionApartmentsFromMcp({
@@ -114,7 +140,7 @@ export default function Home() {
         className="w-full flex-1 min-h-0 overflow-y-auto overscroll-y-contain"
         style={{
           paddingTop: "calc(max(16px, env(safe-area-inset-top)) + 60px)",
-          paddingBottom: "calc(88px + env(safe-area-inset-bottom))",
+          paddingBottom: "var(--tab-page-content-bottom-safe)",
           WebkitOverflowScrolling: "touch",
         }}
       >
@@ -122,8 +148,14 @@ export default function Home() {
           <div className="flex items-center gap-2 mb-6">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-grey-100 text-[36px] font-bold leading-[44px] tracking-[-0.36px]">
-                  {username || "사용자"}
+                <h1
+                  className={`text-[30px] leading-[38px] tracking-[-0.3px] ${
+                    username
+                      ? "text-grey-100 font-bold"
+                      : "text-[#ADB5BD] font-semibold"
+                  }`}
+                >
+                  {username || "닉네임을 입력해주세요"}
                 </h1>
                 <button
                   onClick={() => router.push("/nickname")}
@@ -153,50 +185,39 @@ export default function Home() {
 
         <div className="w-full max-w-md px-5 mx-auto space-y-3">
           <button
-            onClick={() => router.push("/calculator")}
+            onClick={() => router.push(username.trim() ? "/calculator" : "/nickname")}
             className="w-full rounded-[32px] bg-[#DCE9FF] px-6 py-6 text-left"
           >
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-[#495057] text-[18px] font-medium leading-7">
-                  빠른 계산
+                <p className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
+                  내 소득으로 살 수 있는
+                  <br />
+                  아파트 계산하기
                 </p>
-                <p className="text-[#212529] text-[22px] font-bold leading-8 tracking-[-0.22px] mt-1">
-                  시작하기
-                </p>
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="mt-1"
-                >
-                  <path
-                    d="M5 12H19"
-                    stroke="#212529"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M13 6L19 12L13 18"
-                    stroke="#212529"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
               </div>
-              <div className="w-[88px] h-[88px] rounded-2xl bg-white/60 flex items-center justify-center shrink-0">
-                <Image
-                  src="/images/home-image-01.png"
-                  alt="계산"
-                  width={76}
-                  height={76}
-                  unoptimized
-                  className="w-[76px] h-[76px] object-contain"
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="shrink-0"
+              >
+                <path
+                  d="M5 12H19"
+                  stroke="#212529"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
                 />
-              </div>
+                <path
+                  d="M13 6L19 12L13 18"
+                  stroke="#212529"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </div>
           </button>
 
@@ -205,30 +226,10 @@ export default function Home() {
               onClick={() => router.push("/calculator")}
               className="rounded-[28px] bg-[#EFF1F5] px-5 py-6 text-left"
             >
-              <div className="flex items-center justify-between">
-                <p className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
-                  새로 입력
+              <div className="flex items-center">
+                <p className="text-[#212529] text-[15px] font-bold leading-6 tracking-[-0.15px]">
+                  처음부터 계산하기
                 </p>
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M5 3.5H14.8L19 7.7V20.5H5V3.5Z"
-                    fill="#8CC8FF"
-                  />
-                  <path
-                    d="M15 3.5V7.5H19"
-                    fill="#62B3FF"
-                  />
-                  <path
-                    d="M9.2 15.6L14.7 10.1L16.2 11.6L10.7 17.1H9.2V15.6Z"
-                    fill="#2F8EF5"
-                  />
-                </svg>
               </div>
             </button>
             <button
@@ -237,56 +238,44 @@ export default function Home() {
               }
               className="rounded-[28px] bg-[#D9F0FF] px-5 py-6 text-left"
             >
-              <div className="flex items-center justify-between">
-                <p className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
+              <div className="flex items-center">
+                <p className="text-[#212529] text-[15px] font-bold leading-6 tracking-[-0.15px]">
                   {hasCalculatorData ? "내 결과 보기" : "추천 아파트"}
                 </p>
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M6 3.5H15.5L19 7V20.5H6V3.5Z" fill="#77C3FF" />
-                  <path d="M15.5 3.5V7H19" fill="#53B4FF" />
-                  <rect x="8.2" y="10.1" width="8.6" height="1.8" rx="0.9" fill="#2F8EF5" />
-                  <rect x="8.2" y="13.3" width="6.2" height="1.8" rx="0.9" fill="#2F8EF5" />
-                </svg>
               </div>
             </button>
           </div>
 
-          <button
-            onClick={() => router.push("/recommend")}
-            className="w-full rounded-[32px] bg-[#E3EEFF] px-6 py-7 text-left"
-          >
-            <p className="text-[#495057] text-[17px] font-medium leading-7">
-              최근 실거래 추천
-            </p>
-            <div className="mt-2 h-[56px] overflow-hidden rounded-2xl bg-white/65 px-4 py-2">
+          {hasCalculatorData && (
+            <button
+              onClick={() => router.push("/recommend")}
+              className="w-full rounded-[32px] bg-[#E3EEFF] px-6 py-7 text-left"
+            >
+              <p className="text-[#495057] text-[13px] font-bold leading-6 tracking-[-0.13px]">
+                최근 실거래 추천
+              </p>
               {currentTickerTrade ? (
-                <div key={`${tickerKey}-${currentTickerTrade.aptName}`} className="trade-ticker-item">
-                  <p className="text-[#212529] text-[18px] font-bold leading-6 tracking-[-0.18px]">
-                    {currentTickerTrade.aptName}
-                  </p>
-                  <p className="text-[#495057] text-[14px] font-medium leading-5">
-                    {formatToKoreanWon(currentTickerTrade.priceWon)} ·{" "}
-                    {currentTickerTrade.tradeDate || "최근 거래"}
-                  </p>
+                <div className="mt-2 h-[56px] overflow-hidden rounded-2xl bg-white/65 px-4 py-2">
+                  <div
+                    key={`${tickerKey}-${currentTickerTrade.aptName}`}
+                    className="trade-ticker-item"
+                  >
+                    <p className="text-[#212529] text-[18px] font-bold leading-6 tracking-[-0.18px]">
+                      {currentTickerTrade.aptName}
+                    </p>
+                    <p className="text-[#495057] text-[14px] font-medium leading-5">
+                      {formatToKoreanWon(currentTickerTrade.priceWon)} ·{" "}
+                      {currentTickerTrade.tradeDate || "최근 거래"}
+                    </p>
+                  </div>
                 </div>
               ) : (
-                <div className="trade-ticker-item">
-                  <p className="text-[#212529] text-[18px] font-bold leading-6 tracking-[-0.18px]">
-                    추천 아파트
-                  </p>
-                  <p className="text-[#495057] text-[14px] font-medium leading-5">
-                    지역을 입력하면 최신 실거래 아파트가 표시돼요
-                  </p>
-                </div>
+                <p className="mt-2 text-[#495057] text-[14px] font-medium leading-5">
+                  데이터를 불러오고 있어요.
+                </p>
               )}
-            </div>
-          </button>
+            </button>
+          )}
         </div>
 
         <div className="w-full max-w-md px-5 mx-auto mt-8 pb-6 space-y-5">
@@ -304,7 +293,7 @@ export default function Home() {
                 </svg>
               </div>
               <div className="text-left">
-                <p className="text-[#212529] text-[20px] font-bold leading-7 tracking-[-0.2px]">
+                <p className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
                   {hasCalculatorData ? "내 결과 페이지" : "소득·자산 입력"}
                 </p>
                 <p className="text-[#868E96] text-base font-normal leading-6">
@@ -331,35 +320,11 @@ export default function Home() {
                 </svg>
               </div>
               <div className="text-left">
-                <p className="text-[#212529] text-[20px] font-bold leading-7 tracking-[-0.2px]">
+                <p className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
                   추천 아파트
                 </p>
                 <p className="text-[#868E96] text-base font-normal leading-6">
                   최근 실거래 기준으로 추천을 확인해요
-                </p>
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => router.push("/menu")}
-            className="w-full bg-white rounded-2xl px-4 py-3 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-[#F2F4F8] flex items-center justify-center">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <rect x="4.5" y="4.5" width="15" height="15" rx="3.5" fill="#9AD0FF" />
-                  <rect x="7.5" y="8" width="9" height="1.8" rx="0.9" fill="#2F8EF5" />
-                  <rect x="7.5" y="11.8" width="9" height="1.8" rx="0.9" fill="#2F8EF5" />
-                  <rect x="7.5" y="15.6" width="6.2" height="1.8" rx="0.9" fill="#2F8EF5" />
-                </svg>
-              </div>
-              <div className="text-left">
-                <p className="text-[#212529] text-[20px] font-bold leading-7 tracking-[-0.2px]">
-                  서비스 메뉴
-                </p>
-                <p className="text-[#868E96] text-base font-normal leading-6">
-                  정책 안내와 자주 묻는 질문을 확인해요
                 </p>
               </div>
             </div>

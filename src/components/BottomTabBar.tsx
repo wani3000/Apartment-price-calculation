@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 export default function BottomTabBar() {
@@ -13,16 +14,23 @@ export default function BottomTabBar() {
   const isRecommend = normalizedPath === "/recommend" || normalizedPath.startsWith("/recommend/");
   const shouldShowTabBar = normalizedPath === "/" || normalizedPath === "/recommend";
 
+  useEffect(() => {
+    document.body.dataset.bottomTab = shouldShowTabBar ? "on" : "off";
+    return () => {
+      delete document.body.dataset.bottomTab;
+    };
+  }, [shouldShowTabBar]);
+
   if (!shouldShowTabBar) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 flex justify-center z-40 border-t border-[#E9ECEF] bg-white">
-      <div className="flex w-full max-w-md px-5 pt-1 pb-[env(safe-area-inset-bottom)] items-start justify-around">
+    <div className="fixed bottom-0 left-0 right-0 flex justify-center z-40 border-t border-[#E9ECEF] bg-white pb-[env(safe-area-inset-bottom)]">
+      <div className="flex h-[49px] w-full max-w-md px-5 items-center justify-around">
         <button
           onClick={() => router.push("/")}
-          className="flex flex-col items-center justify-center gap-0.5 min-w-[72px] py-1"
+          className="flex flex-col items-center justify-center gap-0.5 min-w-[72px]"
         >
           <svg
             width="24"
@@ -55,7 +63,7 @@ export default function BottomTabBar() {
         </button>
         <button
           onClick={() => router.push("/recommend")}
-          className="flex flex-col items-center justify-center gap-0.5 min-w-[72px] py-1"
+          className="flex flex-col items-center justify-center gap-0.5 min-w-[72px]"
         >
           <svg
             width="24"

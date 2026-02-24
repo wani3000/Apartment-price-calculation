@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>부동산 MCP 연동 및 실거래가 추천 기획서</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif; margin: 0; background:#f6f8fb; color:#111827; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 32px 20px 80px; }
+    h1 { font-size: 30px; margin: 0 0 14px; }
+    h2 { font-size: 22px; margin: 30px 0 10px; }
+    h3 { font-size: 18px; margin: 20px 0 8px; }
+    p, li { line-height: 1.6; }
+    code { background:#eef2ff; padding:2px 6px; border-radius:6px; }
+    .card { background:white; border:1px solid #e5e7eb; border-radius:14px; padding:18px; margin-top:14px; }
+    .ok { color:#0f766e; font-weight:700; }
+    .warn { color:#b45309; font-weight:700; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; white-space: pre-wrap; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>부동산 MCP 연동 및 실거래가 추천 기획서</h1>
+    <p>작성일: 2026-02-24</p>
+
+    <div class="card">
+      <h2>1. 목표</h2>
+      <p>
+        결과페이지에서 계산된 <b>최대 구매 가능 금액</b>과 사용자가 선택한 <b>지역</b>을 기준으로,
+        국토교통부 실거래가 데이터에서 <b>최근 거래</b>를 조회하여
+        <b>예산 이하 + 예산과 가장 유사한 아파트</b>를 최대 5개 추천한다.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>2. 조사/검증 범위</h2>
+      <ul>
+        <li>LobeHub MCP 페이지: <a href="https://lobehub.com/mcp/tae0y-real-estate-mcp" target="_blank">https://lobehub.com/mcp/tae0y-real-estate-mcp</a></li>
+        <li>LobeHub deployment 탭 요청 URL: <code>https://lobehub.com/ko/mcp/tae0y-real-estate-mcp?activeTab=deployment</code></li>
+        <li>원본 저장소: <a href="https://github.com/tae0y/real-estate-mcp" target="_blank">https://github.com/tae0y/real-estate-mcp</a></li>
+        <li>Codex CLI 연동 가이드: <code>docs/setup-codex-cli.md</code></li>
+      </ul>
+
+      <h3>LobeHub Deployment 탭 확인 요약</h3>
+      <ul>
+        <li>페이지 분류: <b>Local Service(로컬 실행형 MCP)</b></li>
+        <li>설치 구성 예시: <code>uv run --directory /path/to/real-estate-mcp python src/real_estate/mcp_server/server.py</code></li>
+        <li>핵심 전제: 클라이언트 로컬 환경에서 서버 프로세스 실행 필요</li>
+        <li>주의: LobeHub 스니펫은 env 키를 생략한 형태가 있으므로 실사용 시 <code>DATA_GO_KR_API_KEY</code> 주입이 필요</li>
+      </ul>
+
+      <h3>실제 MCP 연결 검증 결과</h3>
+      <ul>
+        <li class="ok">HTTP transport로 서버 실행 성공 (<code>uv run real-estate-mcp --transport http --port 8011</code>)</li>
+        <li class="ok">MCP initialize 핸드셰이크 성공 (protocol <code>2025-03-26</code>)</li>
+        <li class="ok">tools/list 호출 성공 (거래/전월세/청약/온비드/금융 포함 전체 도구 인식)</li>
+        <li class="ok">tools/call 성공: <code>get_current_year_month</code>, <code>get_region_code</code></li>
+        <li class="warn">거래 API 호출 시 현재 환경에서 <code>DATA_GO_KR_API_KEY</code> 미설정으로 <code>config_error</code> 확인</li>
+      </ul>
+
+      <h3>검증 로그 요약</h3>
+      <div class="mono">initialize: success (serverInfo.name=real-estate, version=1.26.0)
+get_current_year_month: {"year_month":"202602"}
+get_region_code("서울 마포구"): {"region_code":"11440", ...}
+get_apartment_trades(...): {"error":"config_error","message":"Environment variable DATA_GO_KR_API_KEY is not set."}</div>
+    </div>
+
+    <div class="card">
+      <h2>3. MCP 도구 구성 요약 (실사용 관점)</h2>
+      <table>
+        <thead>
+          <tr><th>분류</th><th>도구</th><th>추천 기능에서 사용 여부</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>지역/기준</td><td><code>get_region_code</code>, <code>get_current_year_month</code></td><td><b>사용</b></td></tr>
+          <tr><td>매매</td><td><code>get_apartment_trades</code>, <code>get_officetel_trades</code>, <code>get_villa_trades</code>, <code>get_single_house_trades</code>, <code>get_commercial_trade</code></td><td><b>1차는 apartment만 사용</b></td></tr>
+          <tr><td>전월세</td><td><code>get_apartment_rent</code> 등 4종</td><td>후속 확장</td></tr>
+          <tr><td>청약</td><td><code>get_apt_subscription_info</code>, <code>get_apt_subscription_results</code></td><td>후속 확장</td></tr>
+          <tr><td>온비드</td><td><code>get_public_auction_items</code> 외 9종</td><td>후속 확장</td></tr>
+          <tr><td>금융</td><td><code>calculate_loan_payment</code> 등 3종</td><td>현재 앱 계산식과 중복, 선택 사용</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>4. 추천 기능 요구사항 정리</h2>
+      <ul>
+        <li>입력: 결과페이지 계산값(최대 구매 가능 금액), 사용자 선택 지역(시/도/시군구)</li>
+        <li>조건: <b>지역 내부</b>, <b>최근 실거래</b>, <b>예산 이하</b>, <b>예산과 차이 최소</b></li>
+        <li>출력 개수: 최대 5개</li>
+        <li>정렬: 1) 예산 차이 오름차순, 2) 거래일 내림차순</li>
+        <li>노출 항목: 단지명, 동, 전용면적, 층, 거래일, 건축연도, 거래금액</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>5. 추천 알고리즘 (v1)</h2>
+      <ol>
+        <li><code>get_region_code(query)</code>로 5자리 지역코드 확보</li>
+        <li><code>get_current_year_month()</code>로 기준 월 확보</li>
+        <li>최근 월부터 순차 조회: <code>get_apartment_trades(region_code, YYYYMM, num_of_rows=200)</code></li>
+        <li>충분한 후보(예: 100건 이상) 확보될 때까지 최대 N개월(권장 6개월) 누적</li>
+        <li>후보 필터: <code>price_10k * 10000 &lt;= budgetWon</code></li>
+        <li>스코어링: <code>abs(budget - price)</code> 최소 + 거래일 최신 우선</li>
+        <li>중복 제거: <code>apt_name + dong + area_sqm + floor</code> 기준</li>
+        <li>상위 5건 반환</li>
+      </ol>
+      <p>예산 이하가 0건이면: "해당 기간/지역에서 예산 이하 거래가 없습니다" 안내 + 최신 저가순 5건 대체 표시(옵션).</p>
+    </div>
+
+    <div class="card">
+      <h2>6. 시스템 설계 (앱 반영)</h2>
+      <h3>권장 구조</h3>
+      <ul>
+        <li>Next.js 서버 라우트 추가: <code>/api/recommendations/apartments</code></li>
+        <li>서버 라우트 내부에서 MCP 서버 HTTP 호출(툴 체인: region_code → trades)</li>
+        <li>클라이언트(결과페이지)는 내부 API만 호출 (MCP 직접 호출 금지)</li>
+      </ul>
+
+      <h3>API 계약 (초안)</h3>
+      <div class="mono">POST /api/recommendations/apartments
+{
+  "budgetWon": 1000000000,
+  "region": {
+    "siDo": "서울특별시",
+    "siGunGu": "마포구"
+  },
+  "limit": 5
+}
+
+Response
+{
+  "regionCode": "11440",
+  "budgetWon": 1000000000,
+  "recommended": [
+    {
+      "aptName": "...",
+      "dong": "...",
+      "areaSqm": 84.97,
+      "floor": 14,
+      "tradeDate": "2026-01-10",
+      "buildYear": 2018,
+      "priceWon": 998000000,
+      "price10k": 99800,
+      "gapWon": 2000000
+    }
+  ]
+}</div>
+    </div>
+
+    <div class="card">
+      <h2>7. UI 기획 (결과페이지)</h2>
+      <ul>
+        <li>섹션명: <code>내 예산에 맞는 최근 실거래 아파트</code></li>
+        <li>카드형 리스트 5개, 현재 결과페이지 카드 UI 톤과 동일 스타일</li>
+        <li>카드당 액션: "지도에서 보기"(후속), "상세 보기"(후속)</li>
+        <li>데이터 기준 문구: "국토교통부 실거래가 공개 데이터 기반" + 조회 월 범위 표기</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>8. 환경변수/운영 정책</h2>
+      <table>
+        <thead><tr><th>키</th><th>필수</th><th>용도</th></tr></thead>
+        <tbody>
+          <tr><td><code>DATA_GO_KR_API_KEY</code></td><td>필수</td><td>국토부 실거래가 API (아파트 매매 포함)</td></tr>
+          <tr><td><code>ODCLOUD_API_KEY</code> / <code>ODCLOUD_SERVICE_KEY</code></td><td>선택</td><td>청약 API</td></tr>
+          <tr><td><code>ONBID_API_KEY</code></td><td>선택</td><td>온비드 API</td></tr>
+        </tbody>
+      </table>
+      <p>v1(아파트 추천) 기준으로는 <code>DATA_GO_KR_API_KEY</code>만 우선 필수.</p>
+    </div>
+
+    <div class="card">
+      <h2>9. 개발 단계</h2>
+      <ol>
+        <li>MCP 호출용 서버 유틸 작성 (initialize/session 재사용 포함)</li>
+        <li>추천 API 라우트 구현 + 지역코드/월 루프/정렬 로직 구현</li>
+        <li>결과페이지 섹션 UI 추가</li>
+        <li>API 키 누락/응답 없음/결과 0건 예외 처리</li>
+        <li>통합 테스트 및 iOS 동기화</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>10. 리스크 및 대응</h2>
+      <ul>
+        <li>공공데이터 월 단위 반영 지연: "최근 6개월" 누적 조회로 보완</li>
+        <li>특정 지역 거래량 부족: 0건 안내 + 조회 기간 확대 옵션</li>
+        <li>호출량 증가: 서버 캐시(지역코드+월 기준 10~30분 TTL) 적용</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

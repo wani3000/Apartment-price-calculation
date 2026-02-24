@@ -73,10 +73,25 @@
     --primary: #000000;
     --page-header-offset: 76px;
     --page-bottom-cta-offset: 112px;
-    --bottom-tab-height: 56px;
-    --bottom-tab-offset: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom));
-    --page-content-bottom-safe: calc(180px + env(safe-area-inset-bottom));
+    --bottom-tab-height: 49px; /* iOS standard tab bar height */
+    --bottom-safe-area: env(safe-area-inset-bottom);
+    --bottom-tab-total-height: calc(var(--bottom-tab-height) + var(--bottom-safe-area));
+    --bottom-tab-offset: max(0px, var(--bottom-safe-area));
+    --page-content-bottom-safe: calc(96px + var(--bottom-safe-area));
+    --tab-page-content-bottom-safe: calc(var(--bottom-tab-offset) + 16px);
     color-scheme: light;
+}
+
+body[data-bottom-tab="on"] {
+    --bottom-tab-offset: var(--bottom-tab-total-height);
+    --page-content-bottom-safe: calc(96px + var(--bottom-tab-total-height));
+    --tab-page-content-bottom-safe: calc(var(--bottom-tab-total-height) + 16px);
+}
+
+body[data-bottom-tab="off"] {
+    --bottom-tab-offset: max(0px, var(--bottom-safe-area));
+    --page-content-bottom-safe: calc(96px + var(--bottom-safe-area));
+    --tab-page-content-bottom-safe: calc(var(--bottom-safe-area) + 16px);
 }
 
 html,
@@ -122,6 +137,22 @@ body::before {
 @supports (padding: max(0px)) {
     .safe-area-inset-bottom {
         padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    }
+}
+
+@layer components {
+    .bottom-cta-container {
+        @apply fixed left-0 right-0 flex justify-center z-50;
+        bottom: env(safe-area-inset-bottom);
+    }
+
+    .bottom-cta-surface {
+        @apply flex w-full max-w-md px-5 pt-3 pb-3 items-center;
+        background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0) 0%,
+            #fff 31.25%
+        );
     }
 }
 

@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+services/recommendation-proxy/node_modules
 /.pnp
 .pnp.*
 .yarn/*
