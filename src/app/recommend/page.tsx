@@ -29,6 +29,11 @@ export default function RecommendPage() {
   );
   const [lastFetchedKey, setLastFetchedKey] = useState<string>("");
 
+  const openRecommendationDetail = (item: RecommendedApartment) => {
+    localStorage.setItem("selectedRecommendationApartment", JSON.stringify(item));
+    router.push("/recommend/detail");
+  };
+
   const formatToKoreanWon = (won: number) => {
     const man = Math.round(won / 10000);
     if (man < 10000) return `${man.toLocaleString()}만 원`;
@@ -36,6 +41,17 @@ export default function RecommendPage() {
     const restMan = man % 10000;
     if (restMan === 0) return `${eok.toLocaleString()}억 원`;
     return `${eok.toLocaleString()}억 ${restMan.toLocaleString()}만 원`;
+  };
+
+  const formatPyeong = (areaSqm?: number) => {
+    if (!areaSqm || areaSqm <= 0) return "-";
+    const pyeong = areaSqm / 3.3058;
+    return `${pyeong.toFixed(1)}평`;
+  };
+
+  const formatDateOrDash = (value?: string) => {
+    if (!value || !value.trim()) return "-";
+    return value;
   };
 
   const getRecommendationInput = () => {
@@ -225,12 +241,39 @@ export default function RecommendPage() {
             !isLoadingRecommendations &&
             !recommendationError &&
             recommendations.map((item, index) => (
-              <div
+              <button
                 key={`${item.aptName}-${item.tradeDate}-${index}`}
-                className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3"
+                type="button"
+                onClick={() => openRecommendationDetail(item)}
+                className="w-full text-left flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3"
               >
-                <p className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px]">
-                  {index + 1}. {item.aptName}
+                <div className="w-full flex justify-between items-start gap-2">
+                  <p className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
+                    {item.aptName}
+                  </p>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="mt-1 shrink-0"
+                  >
+                    <path
+                      d="M6 3L10.5 8L6 13"
+                      stroke="#868E96"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <p className="text-[#495057] text-[18px] font-medium leading-7 tracking-[-0.18px]">
+                  {[
+                    item.dong || "-",
+                    formatPyeong(item.areaSqm),
+                    item.floor !== undefined ? `${item.floor}층` : "-",
+                  ].join(" · ")}
                 </p>
                 <div className="flex justify-between items-center w-full">
                   <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
@@ -240,28 +283,39 @@ export default function RecommendPage() {
                     {formatToKoreanWon(item.priceWon)}
                   </p>
                 </div>
-                {item.tradeDate && (
-                  <div className="flex justify-between items-center w-full">
-                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                      거래일
-                    </p>
-                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                      {item.tradeDate}
-                    </p>
-                  </div>
-                )}
-                {(item.dong || item.areaSqm || item.floor !== undefined) && (
-                  <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                    {[
-                      item.dong,
-                      item.areaSqm ? `${item.areaSqm}㎡` : "",
-                      item.floor !== undefined ? `${item.floor}층` : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    거래일
                   </p>
-                )}
-              </div>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    {formatDateOrDash(item.tradeDate)}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    평형
+                  </p>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    {formatPyeong(item.areaSqm)}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    계약일
+                  </p>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    {formatDateOrDash(item.contractDate || item.tradeDate)}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center w-full">
+                  <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                    전산반영일
+                  </p>
+                  <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                    {formatDateOrDash(item.registrationDate)}
+                  </p>
+                </div>
+              </button>
             ))}
         </div>
       </div>

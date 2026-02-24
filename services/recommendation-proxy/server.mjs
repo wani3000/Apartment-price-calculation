@@ -97,6 +97,23 @@ const normalizeTradeDate = (item) => {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 };
 
+const normalizeRegistrationDate = (item) => {
+  const direct = [
+    item.registration_date,
+    item.registrationDate,
+    item.system_date,
+    item.systemDate,
+    item.report_date,
+    item["전산반영일"],
+    item["전산반영날짜"],
+    item["신고일"],
+  ];
+  for (const value of direct) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return undefined;
+};
+
 const parseTradePriceWon = (item) => {
   const wonKeys = ["price_won", "priceWon", "deal_price_won", "dealAmountWon"];
   for (const key of wonKeys) {
@@ -115,6 +132,19 @@ const parseTradePriceWon = (item) => {
     if (num !== null) return Math.round(num * 10000);
   }
   return null;
+};
+
+const extractRawFields = (item) => {
+  const entries = Object.entries(item || {}).filter(([, value]) => {
+    const type = typeof value;
+    return type === "string" || type === "number" || type === "boolean";
+  });
+
+  entries.sort(([a], [b]) => a.localeCompare(b, "ko"));
+
+  return Object.fromEntries(
+    entries.map(([key, value]) => [key, value === "" ? "-" : value]),
+  );
 };
 
 const extractTradeList = (payload) => {
@@ -257,8 +287,11 @@ app.post("/recommendations/apartments", async (req, res) => {
           floor: floor === null ? undefined : floor,
           buildYear: buildYear === null ? undefined : buildYear,
           tradeDate,
+          contractDate: tradeDate,
+          registrationDate: normalizeRegistrationDate(item),
           priceWon,
           gapWon: Math.abs(budgetWon - priceWon),
+          rawFields: extractRawFields(item),
         };
       })
       .filter((item) => item !== null)
@@ -354,7 +387,10 @@ app.post("/region/latest-apartments", async (req, res) => {
           floor: floor === null ? undefined : floor,
           buildYear: buildYear === null ? undefined : buildYear,
           tradeDate,
+          contractDate: tradeDate,
+          registrationDate: normalizeRegistrationDate(item),
           priceWon,
+          rawFields: extractRawFields(item),
         };
       })
       .filter((item) => item !== null)

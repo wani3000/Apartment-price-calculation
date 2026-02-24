@@ -10,7 +10,7 @@ export default function BottomTabBar() {
     ? pathname.slice(0, -1)
     : pathname;
   const isHome = normalizedPath === "/";
-  const isRecommend = normalizedPath === "/recommend";
+  const isRecommend = normalizedPath === "/recommend" || normalizedPath.startsWith("/recommend/");
 
   return (
     <div className="fixed bottom-0 left-0 right-0 flex justify-center z-40 border-t border-[#E9ECEF] bg-white">

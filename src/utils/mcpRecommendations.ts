@@ -4,9 +4,12 @@ export type RecommendedApartment = {
   areaSqm?: number;
   floor?: number;
   tradeDate?: string;
+  contractDate?: string;
+  registrationDate?: string;
   buildYear?: number;
   priceWon: number;
   gapWon: number;
+  rawFields?: Record<string, string | number | boolean>;
 };
 
 const DEFAULT_PROXY_URL = "http://127.0.0.1:8787";
