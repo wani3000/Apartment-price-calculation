@@ -418,6 +418,11 @@ export default function RecommendPage() {
   }, [filterSiDo, filterSiGunGu]);
 
   useEffect(() => {
+    if (!hasCalculatorData || !username.trim()) return;
+    void fetchRecommendations();
+  }, [filterSiDo, filterSiGunGu, hasCalculatorData, username, fetchRecommendations]);
+
+  useEffect(() => {
     const savedUsername = localStorage.getItem("username");
     if (savedUsername) setUsername(savedUsername);
     const hasCalculatedData = Boolean(localStorage.getItem("calculatorData"));
