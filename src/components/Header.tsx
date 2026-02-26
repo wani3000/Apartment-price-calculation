@@ -67,7 +67,7 @@ export default function Header({
   return (
     <>
       <div
-        className={`fixed top-0 left-0 right-0 z-50 bg-white flex justify-between items-center px-5 py-4 ${
+        className={`app-header-shell fixed top-0 left-0 right-0 z-50 bg-white flex justify-between items-center px-5 py-4 ${
           showBorder ? "border-b border-gray-100" : ""
         }`}
         style={{

@@ -142,6 +142,13 @@ body {
         background: #ffffff;
         min-height: 100vh;
     }
+
+    body[data-platform="web"] .app-header-shell,
+    body[data-platform="web"] .app-bottom-tab,
+    body[data-platform="web"] .bottom-cta-container {
+        left: max(0px, calc((100vw - 430px) / 2));
+        right: max(0px, calc((100vw - 430px) / 2));
+    }
 }
 
 /* iOS에서 상단 스테이터스바 영역 배경색 */
