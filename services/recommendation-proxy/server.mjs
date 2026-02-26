@@ -268,7 +268,7 @@ app.get("/health", (_req, res) => {
 app.post("/recommendations/apartments", async (req, res) => {
   try {
     const budgetWon = Number(req.body?.budgetWon || 0);
-    const limit = Math.min(Math.max(Number(req.body?.limit || 10), 1), 10);
+    const limit = Math.min(Math.max(Number(req.body?.limit || 50), 1), 200);
     const siDo = String(req.body?.region?.siDo || "").trim();
     const siGunGu = String(req.body?.region?.siGunGu || "").trim();
 

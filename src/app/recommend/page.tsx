@@ -90,7 +90,7 @@ const getSiGunGuOptions = (siDo: string) => {
 
 const RECOMMEND_HISTORY_STORAGE_KEY = "recommendApartmentsHistoryV1";
 const MAX_RECOMMEND_HISTORY = 30;
-const RECOMMEND_FETCH_LIMIT = 20;
+const RECOMMEND_FETCH_LIMIT = 200;
 const RECOMMEND_DISPLAY_LIMIT = 5;
 
 const PYEONG_FILTERS = [
@@ -103,15 +103,6 @@ const PYEONG_FILTERS = [
   "60평대",
   "70평~",
   "80평~",
-] as const;
-
-const HOUSEHOLD_FILTERS = [
-  "전체",
-  "100세대~",
-  "500세대~",
-  "1000세대~",
-  "3000세대~",
-  "5000세대~",
 ] as const;
 
 type RecommendationHistoryItem = {
@@ -164,9 +155,8 @@ export default function RecommendPage() {
   const [lastFetchedKey, setLastFetchedKey] = useState<string>("");
   const [baseBudgetWon, setBaseBudgetWon] = useState(0);
   const [pyeongFilter, setPyeongFilter] = useState<(typeof PYEONG_FILTERS)[number]>("전체");
-  const [householdFilter, setHouseholdFilter] = useState<(typeof HOUSEHOLD_FILTERS)[number]>("전체");
   const [activeFilterModal, setActiveFilterModal] = useState<
-    "siDo" | "siGunGu" | "pyeong" | "household" | null
+    "siDo" | "siGunGu" | "pyeong" | null
   >(null);
 
   const openRecommendationDetail = (item: RecommendedApartment) => {
@@ -237,25 +227,6 @@ export default function RecommendPage() {
   const getPyeongValue = (areaSqm?: number) => {
     if (!areaSqm || areaSqm <= 0) return null;
     return areaSqm / 3.3058;
-  };
-
-  const parseHouseholdFromRaw = (item: RecommendedApartment) => {
-    if (
-      typeof item.householdCount === "number" &&
-      Number.isFinite(item.householdCount) &&
-      item.householdCount > 0
-    ) {
-      return item.householdCount;
-    }
-    const rawValue = item.rawFields?.household_count;
-    if (typeof rawValue === "number") {
-      return Number.isFinite(rawValue) && rawValue > 0 ? rawValue : null;
-    }
-    if (typeof rawValue === "string") {
-      const parsed = Number(rawValue.replace(/[^\d.-]/g, ""));
-      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-    }
-    return null;
   };
 
   const readRecommendationHistory = useCallback((): RecommendationHistoryItem[] => {
@@ -509,7 +480,6 @@ export default function RecommendPage() {
   const filteredRecommendations = useMemo(() => {
     return recommendations.filter((item) => {
       const pyeong = getPyeongValue(item.areaSqm);
-      const households = parseHouseholdFromRaw(item);
 
       const pyeongPass = (() => {
         if (pyeongFilter === "전체") return true;
@@ -520,23 +490,15 @@ export default function RecommendPage() {
         return pyeong >= decade && pyeong < decade + 10;
       })();
 
-      const householdPass = (() => {
-        if (householdFilter === "전체") return true;
-        if (!households) return false;
-        const threshold = Number(householdFilter.replace(/[^\d]/g, ""));
-        return households >= threshold;
-      })();
-
-      return pyeongPass && householdPass;
+      return pyeongPass;
     });
-  }, [householdFilter, pyeongFilter, recommendations]);
+  }, [pyeongFilter, recommendations]);
 
   const visibleRecommendations = filteredRecommendations.slice(0, RECOMMEND_DISPLAY_LIMIT);
   const filterModalTitleMap = {
     siDo: "시/도",
     siGunGu: "시/군/구",
     pyeong: "평형",
-    household: "세대수",
   } as const;
 
   const activeOptions =
@@ -546,9 +508,7 @@ export default function RecommendPage() {
         ? getSiGunGuOptions(filterSiDo)
       : activeFilterModal === "pyeong"
         ? [...PYEONG_FILTERS]
-        : activeFilterModal === "household"
-              ? [...HOUSEHOLD_FILTERS]
-              : [];
+        : [];
 
   const handleFilterSelect = (value: string) => {
     if (activeFilterModal === "siDo") {
@@ -558,8 +518,6 @@ export default function RecommendPage() {
       setFilterSiGunGu(value);
     } else if (activeFilterModal === "pyeong") {
       setPyeongFilter(value as (typeof PYEONG_FILTERS)[number]);
-    } else if (activeFilterModal === "household") {
-      setHouseholdFilter(value as (typeof HOUSEHOLD_FILTERS)[number]);
     }
     setActiveFilterModal(null);
   };
@@ -568,7 +526,6 @@ export default function RecommendPage() {
     setFilterSiDo("서울");
     setFilterSiGunGu("서울 전체");
     setPyeongFilter("전체");
-    setHouseholdFilter("전체");
   };
 
   return (
@@ -663,13 +620,6 @@ export default function RecommendPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setActiveFilterModal("household")}
-                  className="shrink-0 h-11 px-4 rounded-[22px] border border-[#DEE2E6] bg-white text-[#212529] text-[15px] font-medium"
-                >
-                  {householdFilter === "전체" ? "세대수 전체" : householdFilter}
-                </button>
-                <button
-                  type="button"
                   onClick={resetFilters}
                   className="shrink-0 text-[#868E96] text-[12px] font-medium leading-4"
                 >
@@ -750,7 +700,6 @@ export default function RecommendPage() {
               !hasNoAffordableResult &&
               visibleRecommendations.length > 0 &&
               visibleRecommendations.map((item, index) => {
-                const household = parseHouseholdFromRaw(item);
                 return (
                   <button
                     key={`${item.aptName}-${item.tradeDate}-${index}`}
@@ -818,16 +767,6 @@ export default function RecommendPage() {
                         {formatDateOrDash(item.contractDate || item.tradeDate)}
                       </p>
                     </div>
-                    {household !== null && (
-                      <div className="flex justify-between items-center w-full">
-                        <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                          세대수
-                        </p>
-                        <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                          {household.toLocaleString()}
-                        </p>
-                      </div>
-                    )}
                   </button>
                 );
               })}
