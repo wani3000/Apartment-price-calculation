@@ -10,6 +10,7 @@ export type RecommendedApartment = {
   contractDate?: string;
   registrationDate?: string;
   buildYear?: number;
+  householdCount?: number;
   priceWon: number;
   gapWon: number;
   rawFields?: Record<string, string | number | boolean>;

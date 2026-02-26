@@ -156,6 +156,14 @@ const parseItemsFromXml = (xmlText) => {
     const buildYear = parseNumber(
       getFirstTagValue(block, ["건축년도", "buildYear"]),
     );
+    const householdCount = parseNumber(
+      getFirstTagValue(block, [
+        "세대수",
+        "totHshldCnt",
+        "totHouseHoldCnt",
+        "householdCount",
+      ]),
+    );
     const dong =
       getFirstTagValue(block, ["법정동", "umdNm", "dong"]) || undefined;
 
@@ -165,6 +173,7 @@ const parseItemsFromXml = (xmlText) => {
       areaSqm: areaSqm === null ? undefined : areaSqm,
       floor: floor === null ? undefined : floor,
       buildYear: buildYear === null ? undefined : buildYear,
+      householdCount: householdCount === null ? undefined : householdCount,
       tradeDate,
       contractDate: tradeDate,
       registrationDate: undefined,
@@ -175,6 +184,7 @@ const parseItemsFromXml = (xmlText) => {
         exclu_use_ar: areaSqm ?? "",
         floor: floor ?? "",
         build_year: buildYear ?? "",
+        household_count: householdCount ?? "",
         deal_amount: price10k ?? "",
         deal_year: y || "",
         deal_month: m || "",

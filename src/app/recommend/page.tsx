@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import {
@@ -90,7 +90,30 @@ const getSiGunGuOptions = (siDo: string) => {
 
 const RECOMMEND_HISTORY_STORAGE_KEY = "recommendApartmentsHistoryV1";
 const MAX_RECOMMEND_HISTORY = 30;
-const RECOMMEND_LIMIT = 5;
+const RECOMMEND_FETCH_LIMIT = 20;
+const RECOMMEND_DISPLAY_LIMIT = 5;
+
+const PYEONG_FILTERS = [
+  "전체",
+  "10평대",
+  "20평대",
+  "30평대",
+  "40평대",
+  "50평대",
+  "60평대",
+  "70평~",
+  "80평~",
+] as const;
+
+const PRICE_FILTERS = ["전체", "5억 이하", "5~10억", "10~15억", "15억~"] as const;
+const HOUSEHOLD_FILTERS = [
+  "전체",
+  "100세대~",
+  "500세대~",
+  "1000세대~",
+  "3000세대~",
+  "5000세대~",
+] as const;
 
 type RecommendationHistoryItem = {
   key: string;
@@ -140,6 +163,9 @@ export default function RecommendPage() {
   const [hasNoAffordableResult, setHasNoAffordableResult] = useState(false);
   const [lastFetchedKey, setLastFetchedKey] = useState<string>("");
   const [baseBudgetWon, setBaseBudgetWon] = useState(0);
+  const [pyeongFilter, setPyeongFilter] = useState<(typeof PYEONG_FILTERS)[number]>("전체");
+  const [priceFilter, setPriceFilter] = useState<(typeof PRICE_FILTERS)[number]>("전체");
+  const [householdFilter, setHouseholdFilter] = useState<(typeof HOUSEHOLD_FILTERS)[number]>("전체");
 
   const openRecommendationDetail = (item: RecommendedApartment) => {
     const policyRegionDetailsStr = localStorage.getItem("policyRegionDetails");
@@ -173,6 +199,24 @@ export default function RecommendPage() {
   const formatDateOrDash = (value?: string) => {
     if (!value || !value.trim()) return "-";
     return value;
+  };
+
+  const getPyeongValue = (areaSqm?: number) => {
+    if (!areaSqm || areaSqm <= 0) return null;
+    return areaSqm / 3.3058;
+  };
+
+  const parseHouseholdFromRaw = (item: RecommendedApartment) => {
+    if (typeof item.householdCount === "number" && Number.isFinite(item.householdCount)) {
+      return item.householdCount;
+    }
+    const rawValue = item.rawFields?.household_count;
+    if (typeof rawValue === "number") return rawValue;
+    if (typeof rawValue === "string") {
+      const parsed = Number(rawValue.replace(/[^\d.-]/g, ""));
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
   };
 
   const readRecommendationHistory = useCallback((): RecommendationHistoryItem[] => {
@@ -311,12 +355,11 @@ export default function RecommendPage() {
         budgetWon: input.budgetWon,
         siDo: input.region.siDo,
         siGunGu: input.region.siGunGu,
-        limit: RECOMMEND_LIMIT,
+        limit: RECOMMEND_FETCH_LIMIT,
       });
-      const topList = list.slice(0, RECOMMEND_LIMIT);
-      setRecommendations(topList);
+      setRecommendations(list);
       if (list.length > 0) {
-        localStorage.setItem("recommendedApartmentsCache", JSON.stringify(topList));
+        localStorage.setItem("recommendedApartmentsCache", JSON.stringify(list));
         writeRecommendationHistory({
           key: fetchKey,
           region: {
@@ -324,7 +367,7 @@ export default function RecommendPage() {
             siGunGu: input.region.siGunGu,
           },
           budgetWon: input.budgetWon,
-          items: topList,
+          items: list,
           updatedAt: new Date().toISOString(),
         });
       }
@@ -341,7 +384,7 @@ export default function RecommendPage() {
         try {
           const parsed = JSON.parse(cachedRecommendations) as RecommendedApartment[];
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setRecommendations(parsed.slice(0, RECOMMEND_LIMIT));
+            setRecommendations(parsed);
             setHasNoAffordableResult(false);
             setRecommendationError(null);
             return;
@@ -390,7 +433,7 @@ export default function RecommendPage() {
       const history = readRecommendationHistory();
       const matched = history.find((item) => item.key === fetchKey);
       if (matched && matched.items.length > 0) {
-        setRecommendations(matched.items.slice(0, RECOMMEND_LIMIT));
+        setRecommendations(matched.items);
         setLastFetchedKey(fetchKey);
       }
     }
@@ -401,6 +444,42 @@ export default function RecommendPage() {
   }, [fetchRecommendations, getRecommendationInput, readRecommendationHistory]);
 
   const shouldShowInitialPrompt = !hasCalculatorData || !username.trim();
+  const filteredRecommendations = useMemo(() => {
+    return recommendations.filter((item) => {
+      const pyeong = getPyeongValue(item.areaSqm);
+      const priceEok = item.priceWon / 100000000;
+      const households = parseHouseholdFromRaw(item);
+
+      const pyeongPass = (() => {
+        if (pyeongFilter === "전체") return true;
+        if (!pyeong) return false;
+        if (pyeongFilter === "70평~") return pyeong >= 70 && pyeong < 80;
+        if (pyeongFilter === "80평~") return pyeong >= 80;
+        const decade = Number(pyeongFilter.replace(/[^\d]/g, ""));
+        return pyeong >= decade && pyeong < decade + 10;
+      })();
+
+      const pricePass = (() => {
+        if (priceFilter === "전체") return true;
+        if (priceFilter === "5억 이하") return priceEok <= 5;
+        if (priceFilter === "5~10억") return priceEok > 5 && priceEok <= 10;
+        if (priceFilter === "10~15억") return priceEok > 10 && priceEok <= 15;
+        if (priceFilter === "15억~") return priceEok >= 15;
+        return true;
+      })();
+
+      const householdPass = (() => {
+        if (householdFilter === "전체") return true;
+        if (!households) return false;
+        const threshold = Number(householdFilter.replace(/[^\d]/g, ""));
+        return households >= threshold;
+      })();
+
+      return pyeongPass && pricePass && householdPass;
+    });
+  }, [householdFilter, priceFilter, pyeongFilter, recommendations]);
+
+  const visibleRecommendations = filteredRecommendations.slice(0, RECOMMEND_DISPLAY_LIMIT);
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col items-center overflow-x-hidden">
@@ -493,6 +572,57 @@ export default function RecommendPage() {
               </p>
             </div>
 
+            <div className="mb-4 space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {PYEONG_FILTERS.map((label) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setPyeongFilter(label)}
+                    className={`px-4 h-10 rounded-full text-[16px] font-medium ${
+                      pyeongFilter === label
+                        ? "bg-[#4F46E5] text-white"
+                        : "bg-[#F1F3F5] text-[#343A40]"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {PRICE_FILTERS.map((label) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setPriceFilter(label)}
+                    className={`px-4 h-10 rounded-full text-[16px] font-medium ${
+                      priceFilter === label
+                        ? "bg-[#4F46E5] text-white"
+                        : "bg-[#F1F3F5] text-[#343A40]"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {HOUSEHOLD_FILTERS.map((label) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setHouseholdFilter(label)}
+                    className={`px-4 h-10 rounded-full text-[16px] font-medium ${
+                      householdFilter === label
+                        ? "bg-[#4F46E5] text-white"
+                        : "bg-[#F1F3F5] text-[#343A40]"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {isLoadingRecommendations && (
               <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
                 <p className="text-grey-80 text-sm font-medium leading-5 tracking-[-0.28px]">
@@ -514,7 +644,9 @@ export default function RecommendPage() {
                 </button>
               </div>
             )}
-            {!isLoadingRecommendations && !recommendationError && hasNoAffordableResult && (
+            {!isLoadingRecommendations &&
+              !recommendationError &&
+              (hasNoAffordableResult || (!hasNoAffordableResult && filteredRecommendations.length === 0)) && (
               <div
                 className="w-full flex items-center justify-center text-center"
                 style={{
@@ -523,14 +655,17 @@ export default function RecommendPage() {
                 }}
               >
                 <p className="text-[#868E96] text-[12px] font-medium leading-4 tracking-[-0.12px]">
-                  현재 살 수 있는 아파트가 없어요.
+                  {hasNoAffordableResult
+                    ? "현재 살 수 있는 아파트가 없어요."
+                    : "필터 조건에 맞는 아파트가 없어요."}
                 </p>
               </div>
             )}
             {!isLoadingRecommendations &&
               !recommendationError &&
               !hasNoAffordableResult &&
-              recommendations.map((item, index) => (
+              visibleRecommendations.length > 0 &&
+              visibleRecommendations.map((item, index) => (
                 <button
                   key={`${item.aptName}-${item.tradeDate}-${index}`}
                   type="button"
@@ -595,6 +730,14 @@ export default function RecommendPage() {
                     </p>
                     <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
                       {formatDateOrDash(item.contractDate || item.tradeDate)}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center w-full">
+                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                      세대수
+                    </p>
+                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                      {parseHouseholdFromRaw(item)?.toLocaleString() || "-"}
                     </p>
                   </div>
                 </button>
