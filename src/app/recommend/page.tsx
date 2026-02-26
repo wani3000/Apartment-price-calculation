@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import {
@@ -148,6 +148,7 @@ const FALLBACK_SIGUNGU_BY_SIDO: Record<string, string> = {
 
 export default function RecommendPage() {
   const router = useRouter();
+  const initializedRef = useRef(false);
   const [username, setUsername] = useState("");
   const [hasCalculatorData, setHasCalculatorData] = useState(false);
   const [filterSiDo, setFilterSiDo] = useState("서울");
@@ -423,6 +424,9 @@ export default function RecommendPage() {
   }, [filterSiDo, filterSiGunGu, hasCalculatorData, username, fetchRecommendations]);
 
   useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     const savedUsername = localStorage.getItem("username");
     if (savedUsername) setUsername(savedUsername);
     const hasCalculatedData = Boolean(localStorage.getItem("calculatorData"));
