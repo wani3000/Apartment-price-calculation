@@ -84,7 +84,7 @@
 
 /* iOS 앱에서 safe-area가 0으로 내려오는 경우를 방지해 홈 인디케이터와 겹침 차단 */
 body[data-platform="ios"] {
-    --bottom-safe-area: max(env(safe-area-inset-bottom, 0px), 16px);
+    --bottom-safe-area: max(env(safe-area-inset-bottom, 0px), 34px);
 }
 
 body[data-bottom-tab="on"] {
@@ -124,6 +124,24 @@ body {
     /* 최소 높이를 뷰포트로 설정 */
     min-height: 100vh;
     min-height: -webkit-fill-available;
+}
+
+#app-web-frame {
+    width: 100%;
+    min-height: 100vh;
+}
+
+@media (min-width: 768px) {
+    body[data-platform="web"] {
+        background: #f1f3f5;
+    }
+
+    body[data-platform="web"] #app-web-frame {
+        max-width: 430px;
+        margin: 0 auto;
+        background: #ffffff;
+        min-height: 100vh;
+    }
 }
 
 /* iOS에서 상단 스테이터스바 영역 배경색 */
