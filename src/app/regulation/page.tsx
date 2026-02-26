@@ -31,18 +31,7 @@ export default function RegulationPage() {
   const handleSubmit = () => {
     // 선택사항 저장
     localStorage.setItem("regulationOption", selectedOption);
-
-    // 선택에 따라 다른 페이지로 이동
-    if (selectedOption === "existing") {
-      // 기존 LTV · DSR 적용하기 선택 시 기존 결과 페이지로
-      router.push("/result");
-    } else if (selectedOption === "new") {
-      // 6.27 규제안 적용하기 선택 시 6.27 규제 페이지로
-      router.push("/result/new-regulation");
-    } else if (selectedOption === "latest") {
-      // 10.15 최신 정책 적용하기 선택 시 자세한 결과 페이지로
-      router.push("/result/final?regulation=latest");
-    }
+    router.push(`/result/calculating?policy=${encodeURIComponent(selectedOption)}`);
   };
 
   return (
@@ -91,7 +80,7 @@ export default function RegulationPage() {
           <button
             onClick={() => !isLoading && setSelectedOption("latest")}
             disabled={isLoading}
-            className={`w-full px-5 py-4 flex items-center justify-between rounded-xl border-2 transition-colors relative ${
+            className={`w-full px-5 py-4 flex items-center justify-between rounded-2xl border-2 transition-colors relative ${
               isLoading
                 ? "border-grey-40 bg-white opacity-50"
                 : selectedOption === "latest"
@@ -143,7 +132,7 @@ export default function RegulationPage() {
           <button
             onClick={() => !isLoading && setSelectedOption("new")}
             disabled={isLoading}
-            className={`w-full px-5 py-4 flex items-center justify-between rounded-xl border-2 transition-colors ${
+            className={`w-full px-5 py-4 flex items-center justify-between rounded-2xl border-2 transition-colors ${
               isLoading
                 ? "border-grey-40 bg-white opacity-50"
                 : selectedOption === "new"
@@ -190,7 +179,7 @@ export default function RegulationPage() {
           <button
             onClick={() => !isLoading && setSelectedOption("existing")}
             disabled={isLoading}
-            className={`w-full px-5 py-4 flex items-center justify-between rounded-xl border-2 transition-colors ${
+            className={`w-full px-5 py-4 flex items-center justify-between rounded-2xl border-2 transition-colors ${
               isLoading
                 ? "border-grey-40 bg-white opacity-50"
                 : selectedOption === "existing"

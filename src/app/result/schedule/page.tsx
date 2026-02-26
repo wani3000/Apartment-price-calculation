@@ -92,7 +92,7 @@ export default function SchedulePage() {
           {years}년 만기 상환 스케줄표
         </h1>
 
-        <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-4">
+        <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA] mb-4">
           <p className="text-[#495057] text-sm font-medium leading-5">
             대출원금:{" "}
             <span className="text-[#212529]">{formatWon(principal)}</span>

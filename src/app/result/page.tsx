@@ -109,7 +109,7 @@ export default function ResultPage() {
                 </span>
               </button>
             </div>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mt-4">
+            <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA] mt-4">
               <p className="text-[#495057] text-sm font-normal leading-5 tracking-[-0.28px]">
                 스트레스 DSR 3단계(수도권 1.5%, 지방 0.75%)가 한도 계산에 반영됩니다.
               </p>

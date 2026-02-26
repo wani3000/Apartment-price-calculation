@@ -159,13 +159,20 @@ const parseItemsFromXml = (xmlText) => {
     const householdCount = parseNumber(
       getFirstTagValue(block, [
         "세대수",
+        "총세대수",
         "totHshldCnt",
+        "totHhldCnt",
         "totHouseHoldCnt",
+        "kaptHshldCnt",
+        "hshldCnt",
         "householdCount",
       ]),
     );
     const dong =
       getFirstTagValue(block, ["법정동", "umdNm", "dong"]) || undefined;
+
+    const normalizedHouseholdCount =
+      householdCount !== null && householdCount > 0 ? householdCount : undefined;
 
     items.push({
       aptName,
@@ -173,7 +180,7 @@ const parseItemsFromXml = (xmlText) => {
       areaSqm: areaSqm === null ? undefined : areaSqm,
       floor: floor === null ? undefined : floor,
       buildYear: buildYear === null ? undefined : buildYear,
-      householdCount: householdCount === null ? undefined : householdCount,
+      householdCount: normalizedHouseholdCount,
       tradeDate,
       contractDate: tradeDate,
       registrationDate: undefined,
@@ -184,7 +191,7 @@ const parseItemsFromXml = (xmlText) => {
         exclu_use_ar: areaSqm ?? "",
         floor: floor ?? "",
         build_year: buildYear ?? "",
-        household_count: householdCount ?? "",
+        household_count: normalizedHouseholdCount ?? "",
         deal_amount: price10k ?? "",
         deal_year: y || "",
         deal_month: m || "",
@@ -466,7 +473,7 @@ export const apartmentTradeHistory = async (req, res) => {
 
     const latestTrade = sorted[0] || null;
     const previousTrade = sorted[1] || null;
-    const payload = { aptName, regionCode, latestTrade, previousTrade, trades: sorted.slice(0, 2) };
+    const payload = { aptName, regionCode, latestTrade, previousTrade, trades: sorted.slice(0, 5) };
     setCachedValue(historyCacheKey, payload, HISTORY_CACHE_TTL_MS);
     return res.status(200).json(payload);
   } catch (error) {

@@ -81,7 +81,7 @@ export default function NewRegulationResultPage() {
                 </span>
               </button>
             </div>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mt-4">
+            <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA] mt-4">
               <p className="text-[#495057] text-sm font-normal leading-5 tracking-[-0.28px]">
                 30년 만기 기준이며, 수도권은 한도 산정 시 스트레스 금리 1.5%를 더해 계산해요.
               </p>

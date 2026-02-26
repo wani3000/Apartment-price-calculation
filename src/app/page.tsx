@@ -35,6 +35,24 @@ export default function Home() {
   const [latestTrades, setLatestTrades] = useState<RecommendedApartment[]>([]);
   const [latestTradeIndex, setLatestTradeIndex] = useState(0);
   const [tickerKey, setTickerKey] = useState(0);
+  const hasNickname = username.trim().length > 0;
+  const calculatorEntryPath = hasNickname ? "/calculator" : "/nickname";
+
+  const pushHomeEntry = (path: string, allowRecommendTab = false) => {
+    if (!hasNickname && !allowRecommendTab) {
+      router.push("/nickname");
+      return;
+    }
+    router.push(path);
+  };
+
+  const startFreshCalculation = () => {
+    if (!hasNickname) {
+      router.push("/nickname");
+      return;
+    }
+    router.push("/calculator?fresh=true");
+  };
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
@@ -185,8 +203,8 @@ export default function Home() {
 
         <div className="w-full max-w-md px-5 mx-auto space-y-3">
           <button
-            onClick={() => router.push(username.trim() ? "/calculator" : "/nickname")}
-            className="w-full rounded-[32px] bg-[#DCE9FF] px-6 py-6 text-left"
+            onClick={() => pushHomeEntry(calculatorEntryPath)}
+            className="w-full rounded-2xl bg-[#DCE9FF] px-6 py-6 text-left"
           >
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -223,8 +241,8 @@ export default function Home() {
 
           <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={() => router.push("/calculator")}
-              className="rounded-[28px] bg-[#EFF1F5] px-5 py-6 text-left"
+              onClick={startFreshCalculation}
+              className="rounded-2xl bg-[#EFF1F5] px-5 py-6 text-left"
             >
               <div className="flex items-center">
                 <p className="text-[#212529] text-[15px] font-bold leading-6 tracking-[-0.15px]">
@@ -234,9 +252,11 @@ export default function Home() {
             </button>
             <button
               onClick={() =>
-                router.push(hasCalculatorData ? "/result/final" : "/recommend")
+                hasCalculatorData
+                  ? pushHomeEntry("/result/final")
+                  : pushHomeEntry("/recommend", true)
               }
-              className="rounded-[28px] bg-[#D9F0FF] px-5 py-6 text-left"
+              className="rounded-2xl bg-[#D9F0FF] px-5 py-6 text-left"
             >
               <div className="flex items-center">
                 <p className="text-[#212529] text-[15px] font-bold leading-6 tracking-[-0.15px]">
@@ -248,14 +268,14 @@ export default function Home() {
 
           {hasCalculatorData && (
             <button
-              onClick={() => router.push("/recommend")}
-              className="w-full rounded-[32px] bg-[#E3EEFF] px-6 py-7 text-left"
+              onClick={() => pushHomeEntry("/recommend", true)}
+              className="w-full rounded-2xl bg-[#E3EEFF] px-6 py-7 text-left"
             >
               <p className="text-[#495057] text-[13px] font-bold leading-6 tracking-[-0.13px]">
                 최근 실거래 추천
               </p>
               {currentTickerTrade ? (
-                <div className="mt-2 h-[56px] overflow-hidden rounded-2xl bg-white/65 px-4 py-2">
+                <div className="mt-2 h-[56px] overflow-hidden">
                   <div
                     key={`${tickerKey}-${currentTickerTrade.aptName}`}
                     className="trade-ticker-item"
@@ -280,7 +300,11 @@ export default function Home() {
 
         <div className="w-full max-w-md px-5 mx-auto mt-8 pb-6 space-y-5">
           <button
-            onClick={() => router.push(hasCalculatorData ? "/result/final" : "/calculator")}
+            onClick={() =>
+              hasCalculatorData
+                ? pushHomeEntry("/result/final")
+                : pushHomeEntry(calculatorEntryPath)
+            }
             className="w-full bg-white rounded-2xl px-4 py-3 flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
@@ -306,7 +330,7 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => router.push("/recommend")}
+            onClick={() => pushHomeEntry("/recommend", true)}
             className="w-full bg-white rounded-2xl px-4 py-3 flex items-center justify-between"
           >
             <div className="flex items-center gap-3">

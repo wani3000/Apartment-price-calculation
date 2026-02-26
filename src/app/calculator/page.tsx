@@ -1,11 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 
 export default function CalculatorPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isFreshEntry = searchParams.get("fresh") === "true";
   const [username, setUsername] = useState("");
   const [income, setIncome] = useState("");
   const [assets, setAssets] = useState("");
@@ -16,21 +18,26 @@ export default function CalculatorPage() {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [hasExistingCalculatorData, setHasExistingCalculatorData] =
     useState(false);
+  const [isNicknameChecked, setIsNicknameChecked] = useState(false);
 
   // 정책 관련 상태
   const [homeOwnerCount, setHomeOwnerCount] = useState<number>(0);
 
   useEffect(() => {
     // 로컬 스토리지에서 사용자 이름 가져오기
-    const savedUsername = localStorage.getItem("username");
-    if (savedUsername) {
-      setUsername(savedUsername);
+    const savedUsername = (localStorage.getItem("username") || "").trim();
+    if (!savedUsername) {
+      router.replace("/nickname");
+      return;
     }
+    setUsername(savedUsername);
+    setIsNicknameChecked(true);
 
     // 저장된 계산기 데이터 가져오기
     const calculatorDataStr = localStorage.getItem("calculatorData");
-    if (calculatorDataStr) {
-      setHasExistingCalculatorData(true);
+    setHasExistingCalculatorData(Boolean(calculatorDataStr));
+
+    if (!isFreshEntry && calculatorDataStr) {
       const calculatorData = JSON.parse(calculatorDataStr);
 
       // 저장된 값이 있으면 폼에 채우기 (0 포함)
@@ -67,8 +74,22 @@ export default function CalculatorPage() {
       if (calculatorData.homeOwnerCount !== undefined) {
         setHomeOwnerCount(calculatorData.homeOwnerCount);
       }
+      return;
     }
-  }, []);
+
+    // fresh 진입 시에는 저장 데이터를 유지한 채 화면만 빈 상태로 시작
+    setIncome("");
+    setAssets("");
+    setShowSpouseIncome(false);
+    setSpouseIncome("");
+    setSpouseAssets("");
+    setSpouseHomeOwnerCount(0);
+    setHomeOwnerCount(0);
+  }, [router, isFreshEntry]);
+
+  if (!isNicknameChecked) {
+    return null;
+  }
 
   // 숫자를 한글 표기로 변환 (예: 12000 -> 1억 2,000만 원)
   const formatToKorean = (num: string) => {

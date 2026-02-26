@@ -36,4 +36,9 @@ if ! grep -A5 '\.bottom-cta-container' "$GLOBAL_CSS" | grep -q 'padding-bottom: 
   exit 1
 fi
 
+if ! grep -A3 'body\[data-platform="ios"\]' "$GLOBAL_CSS" | grep -q 'max(env(safe-area-inset-bottom, 0px), 34px)'; then
+  echo "[check-bottom-layout] iOS bottom safe-area minimum must be 34px." >&2
+  exit 1
+fi
+
 echo "[check-bottom-layout] OK"

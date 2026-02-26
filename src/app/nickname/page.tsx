@@ -63,7 +63,7 @@ export default function NicknamePage() {
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             placeholder="닉네임을 입력해주세요"
-            className="w-full px-4 py-3 rounded-xl border border-grey-60 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+            className="w-full px-4 py-3 rounded-2xl border border-grey-60 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
           />
         </div>
       </div>

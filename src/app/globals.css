@@ -138,6 +138,7 @@ body {
     }
 
     body[data-platform="web"] #app-web-frame {
+        width: 430px;
         max-width: 430px;
         margin: 0 auto;
         background: #ffffff;
@@ -148,8 +149,11 @@ body {
     body[data-platform="web"] .app-header-shell,
     body[data-platform="web"] .app-bottom-tab,
     body[data-platform="web"] .bottom-cta-container {
-        left: max(0px, calc((100vw - 430px) / 2));
-        right: max(0px, calc((100vw - 430px) / 2));
+        left: 50%;
+        right: auto;
+        width: 430px;
+        box-sizing: border-box;
+        transform: translateX(-50%);
     }
 
     /* 데스크탑 웹에서는 프레임 내부가 아닌 문서 전체 스크롤을 사용 */

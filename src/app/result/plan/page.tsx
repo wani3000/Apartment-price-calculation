@@ -191,7 +191,7 @@ export default function PlanPage() {
         </h1>
 
         {/* 최대 금액 정보 */}
-        <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-6">
+        <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA] mb-6">
           <h2 className="text-black text-[18px] font-bold leading-[26px] tracking-[-0.18px]">
             {mode === "gap" ? "갭투자 시" : "실거주 시"}
           </h2>
@@ -217,7 +217,7 @@ export default function PlanPage() {
               <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                 신용대출
               </h3>
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+              <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                 <div className="flex justify-between items-center w-full">
                   <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                     연소득의 120%
@@ -237,7 +237,7 @@ export default function PlanPage() {
               <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                 월 상환액 (이자)
               </h3>
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+              <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                 <div className="flex justify-between items-center w-full">
                   <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                     1년 만기
@@ -259,7 +259,7 @@ export default function PlanPage() {
               <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                 전세금
               </h3>
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+              <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                 <div className="flex justify-between items-center w-full">
                   <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                     전세가율 53%
@@ -282,7 +282,7 @@ export default function PlanPage() {
               <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                 DSR (총부채원리금상환비율)
               </h3>
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+              <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                 <div className="flex justify-between items-center w-full">
                   <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                     {loanOptions.dsr}% 기준
@@ -303,7 +303,7 @@ export default function PlanPage() {
               <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                 주택담보대출
               </h3>
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+              <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                 <div className="flex justify-between items-center w-full">
                   <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                     40년 만기
@@ -323,7 +323,7 @@ export default function PlanPage() {
               <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                 신용대출
               </h3>
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+              <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                 <div className="flex justify-between items-center w-full">
                   <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                     연소득의 120%
@@ -343,7 +343,7 @@ export default function PlanPage() {
               <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                 월 상환액 (원금+이자)
               </h3>
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+              <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                 <div className="flex justify-between items-center w-full">
                   <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                     40년 만기
@@ -365,7 +365,7 @@ export default function PlanPage() {
           <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
             보유자산
           </h3>
-          <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+          <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
             <div className="flex justify-between items-center w-full">
               <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                 보유자산

@@ -1183,7 +1183,7 @@ export default function FinalResultPage() {
         {/* 자금계획 섹션 */}
         <div className="flex flex-col">
           {/* 최대 금액 정보 */}
-          <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-6">
+          <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA] mb-6">
             <h2 className="text-black text-[18px] font-bold leading-[26px] tracking-[-0.18px]">
               {activeTab === "gap" ? "갭투자 시" : "실거주 시"}
             </h2>
@@ -1214,7 +1214,7 @@ export default function FinalResultPage() {
           </div>
 
           {activeTab === "gap" && (
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-6">
+            <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA] mb-6">
               <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px]">
                 갭투자 가능 지역
               </h3>
@@ -1234,7 +1234,7 @@ export default function FinalResultPage() {
                 <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   신용대출
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       연소득의 120%
@@ -1254,7 +1254,7 @@ export default function FinalResultPage() {
                 <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   월 상환액 (이자)
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       1년 만기
@@ -1276,7 +1276,7 @@ export default function FinalResultPage() {
                 <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   전세금
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       전세가율 53%
@@ -1301,7 +1301,7 @@ export default function FinalResultPage() {
 	                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
 	                  입력 정보
 	                </h3>
-	                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+	                <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
 	                  {showIncomeInfo && (
 	                    <div className="flex justify-between items-center w-full">
 	                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
@@ -1355,7 +1355,7 @@ export default function FinalResultPage() {
 	                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   DSR (총부채원리금상환비율)
                 </h3>
-                <div className="flex flex-col p-4 gap-3 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-3 rounded-2xl bg-[#F8F9FA]">
                   {isLatestPolicy ? (
                     /* 2025.10.15 최신 정책 적용 시 */
                     <>
@@ -1727,7 +1727,7 @@ export default function FinalResultPage() {
 
                 {/* DSR 선택에 따른 금융권 구분 표시 */}
                 <div className="mt-3">
-                  <div className="bg-[#F8F9FA] rounded-xl px-3 py-5 space-y-2">
+                  <div className="bg-[#F8F9FA] rounded-2xl px-3 py-5 space-y-2">
                     <div className="flex items-start gap-2">
                       <div className="flex-shrink-0 w-4 h-4 bg-[#000000] rounded-full flex items-center justify-center mt-0.5">
                         <span className="text-white text-xs font-bold">ℹ</span>
@@ -1764,7 +1764,7 @@ export default function FinalResultPage() {
 	                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
 	                  지역
 	                </h3>
-	                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+	                <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
 	                  <div className="flex justify-between items-center w-full">
 	                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
 	                      선택 지역
@@ -1791,7 +1791,7 @@ export default function FinalResultPage() {
 	                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
 	                  주택담보대출
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       {isLatestPolicy
@@ -1827,7 +1827,7 @@ export default function FinalResultPage() {
                 <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
                   월 상환액 (원금+이자)
                 </h3>
-                <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+                <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                       {isLatestPolicy
@@ -1853,7 +1853,7 @@ export default function FinalResultPage() {
             <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
               보유자산
             </h3>
-            <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA]">
+            <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
               <div className="flex justify-between items-center w-full">
                 <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
                   보유자산

@@ -105,7 +105,6 @@ const PYEONG_FILTERS = [
   "80평~",
 ] as const;
 
-const PRICE_FILTERS = ["전체", "5억 이하", "5~10억", "10~15억", "15억~"] as const;
 const HOUSEHOLD_FILTERS = [
   "전체",
   "100세대~",
@@ -165,8 +164,10 @@ export default function RecommendPage() {
   const [lastFetchedKey, setLastFetchedKey] = useState<string>("");
   const [baseBudgetWon, setBaseBudgetWon] = useState(0);
   const [pyeongFilter, setPyeongFilter] = useState<(typeof PYEONG_FILTERS)[number]>("전체");
-  const [priceFilter, setPriceFilter] = useState<(typeof PRICE_FILTERS)[number]>("전체");
   const [householdFilter, setHouseholdFilter] = useState<(typeof HOUSEHOLD_FILTERS)[number]>("전체");
+  const [activeFilterModal, setActiveFilterModal] = useState<
+    "siDo" | "siGunGu" | "pyeong" | "household" | null
+  >(null);
 
   const openRecommendationDetail = (item: RecommendedApartment) => {
     const policyRegionDetailsStr = localStorage.getItem("policyRegionDetails");
@@ -178,8 +179,28 @@ export default function RecommendPage() {
       siDo: item.siDo || policyRegion?.siDo || "서울",
       siGunGu: item.siGunGu || policyRegion?.siGunGu || "강남구",
     };
-    localStorage.setItem("selectedRecommendationApartment", JSON.stringify(enriched));
-    router.push("/recommend/detail");
+    try {
+      localStorage.setItem(
+        "selectedRecommendationApartment",
+        JSON.stringify(enriched),
+      );
+    } catch (error) {
+      console.warn("failed to persist selected apartment", error);
+    }
+
+    const params = new URLSearchParams({
+      aptName: enriched.aptName,
+      siDo: enriched.siDo || "서울",
+      siGunGu: enriched.siGunGu || "강남구",
+      dong: enriched.dong || "",
+      floor:
+        typeof enriched.floor === "number" ? String(enriched.floor) : "",
+      areaSqm:
+        typeof enriched.areaSqm === "number" ? String(enriched.areaSqm) : "",
+      priceWon: String(enriched.priceWon || 0),
+      tradeDate: enriched.tradeDate || "",
+    });
+    router.push(`/recommend/detail?${params.toString()}`);
   };
 
   const formatToKoreanWon = (won: number) => {
@@ -199,7 +220,18 @@ export default function RecommendPage() {
 
   const formatDateOrDash = (value?: string) => {
     if (!value || !value.trim()) return "-";
-    return value;
+    const normalized = value.trim().replace(/\./g, "-");
+    const match = normalized.match(/^(\d{2,4})-(\d{1,2})-(\d{1,2})$/);
+    if (!match) return value;
+    let year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+      return value;
+    }
+    // 2자리 연도는 2000년대로 해석 (예: 26-01-13 -> 2026년 1월 13일)
+    if (year < 100) year += 2000;
+    return `${year}년 ${month}월 ${day}일`;
   };
 
   const getPyeongValue = (areaSqm?: number) => {
@@ -208,14 +240,20 @@ export default function RecommendPage() {
   };
 
   const parseHouseholdFromRaw = (item: RecommendedApartment) => {
-    if (typeof item.householdCount === "number" && Number.isFinite(item.householdCount)) {
+    if (
+      typeof item.householdCount === "number" &&
+      Number.isFinite(item.householdCount) &&
+      item.householdCount > 0
+    ) {
       return item.householdCount;
     }
     const rawValue = item.rawFields?.household_count;
-    if (typeof rawValue === "number") return rawValue;
+    if (typeof rawValue === "number") {
+      return Number.isFinite(rawValue) && rawValue > 0 ? rawValue : null;
+    }
     if (typeof rawValue === "string") {
       const parsed = Number(rawValue.replace(/[^\d.-]/g, ""));
-      return Number.isFinite(parsed) ? parsed : null;
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
     }
     return null;
   };
@@ -360,7 +398,13 @@ export default function RecommendPage() {
       });
       setRecommendations(list);
       if (list.length > 0) {
-        localStorage.setItem("recommendedApartmentsCache", JSON.stringify(list));
+        localStorage.setItem(
+          "recommendedApartmentsCache",
+          JSON.stringify({
+            key: fetchKey,
+            items: list,
+          }),
+        );
         writeRecommendationHistory({
           key: fetchKey,
           region: {
@@ -383,9 +427,18 @@ export default function RecommendPage() {
       );
       if (cachedRecommendations) {
         try {
-          const parsed = JSON.parse(cachedRecommendations) as RecommendedApartment[];
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setRecommendations(parsed);
+          const parsed = JSON.parse(cachedRecommendations) as
+            | RecommendedApartment[]
+            | { key?: string; items?: RecommendedApartment[] };
+          const cachedItems = Array.isArray(parsed)
+            ? parsed
+            : Array.isArray(parsed?.items)
+              ? parsed.items
+              : [];
+          const cachedKey = Array.isArray(parsed) ? "" : String(parsed?.key || "");
+
+          if (cachedItems.length > 0 && cachedKey === fetchKey) {
+            setRecommendations(cachedItems);
             setHasNoAffordableResult(false);
             setRecommendationError(null);
             return;
@@ -456,7 +509,6 @@ export default function RecommendPage() {
   const filteredRecommendations = useMemo(() => {
     return recommendations.filter((item) => {
       const pyeong = getPyeongValue(item.areaSqm);
-      const priceEok = item.priceWon / 100000000;
       const households = parseHouseholdFromRaw(item);
 
       const pyeongPass = (() => {
@@ -468,15 +520,6 @@ export default function RecommendPage() {
         return pyeong >= decade && pyeong < decade + 10;
       })();
 
-      const pricePass = (() => {
-        if (priceFilter === "전체") return true;
-        if (priceFilter === "5억 이하") return priceEok <= 5;
-        if (priceFilter === "5~10억") return priceEok > 5 && priceEok <= 10;
-        if (priceFilter === "10~15억") return priceEok > 10 && priceEok <= 15;
-        if (priceFilter === "15억~") return priceEok >= 15;
-        return true;
-      })();
-
       const householdPass = (() => {
         if (householdFilter === "전체") return true;
         if (!households) return false;
@@ -484,11 +527,49 @@ export default function RecommendPage() {
         return households >= threshold;
       })();
 
-      return pyeongPass && pricePass && householdPass;
+      return pyeongPass && householdPass;
     });
-  }, [householdFilter, priceFilter, pyeongFilter, recommendations]);
+  }, [householdFilter, pyeongFilter, recommendations]);
 
   const visibleRecommendations = filteredRecommendations.slice(0, RECOMMEND_DISPLAY_LIMIT);
+  const filterModalTitleMap = {
+    siDo: "시/도",
+    siGunGu: "시/군/구",
+    pyeong: "평형",
+    household: "세대수",
+  } as const;
+
+  const activeOptions =
+    activeFilterModal === "siDo"
+      ? [...SI_DO_OPTIONS]
+      : activeFilterModal === "siGunGu"
+        ? getSiGunGuOptions(filterSiDo)
+      : activeFilterModal === "pyeong"
+        ? [...PYEONG_FILTERS]
+        : activeFilterModal === "household"
+              ? [...HOUSEHOLD_FILTERS]
+              : [];
+
+  const handleFilterSelect = (value: string) => {
+    if (activeFilterModal === "siDo") {
+      setFilterSiDo(value);
+      setFilterSiGunGu(`${value} 전체`);
+    } else if (activeFilterModal === "siGunGu") {
+      setFilterSiGunGu(value);
+    } else if (activeFilterModal === "pyeong") {
+      setPyeongFilter(value as (typeof PYEONG_FILTERS)[number]);
+    } else if (activeFilterModal === "household") {
+      setHouseholdFilter(value as (typeof HOUSEHOLD_FILTERS)[number]);
+    }
+    setActiveFilterModal(null);
+  };
+
+  const resetFilters = () => {
+    setFilterSiDo("서울");
+    setFilterSiGunGu("서울 전체");
+    setPyeongFilter("전체");
+    setHouseholdFilter("전체");
+  };
 
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col items-center overflow-x-hidden">
@@ -530,125 +611,111 @@ export default function RecommendPage() {
         ) : (
           <div className="w-full max-w-md mx-auto">
             <h2 className="text-grey-100 text-2xl font-bold leading-8 tracking-[-0.24px] mb-2">
-              최근 매매 추천 아파트
+              내 구매금액으로 살 수 있는 아파트
             </h2>
-            <p className="text-grey-80 text-sm font-normal leading-5 tracking-[-0.28px] mb-6">
+            <p className="text-[#868E96] text-base font-normal leading-6 mb-6">
               입력한 소득·자산으로 계산한 최대 구매 금액과 가장 가까운 최근
               실거래 아파트를 보여줘요.
             </p>
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div>
-                <label className="block text-[#495057] text-[13px] font-semibold mb-1">
-                  시/도
-                </label>
-                <select
-                  value={filterSiDo}
-                  onChange={(e) => setFilterSiDo(e.target.value)}
-                  className="w-full h-12 px-3 rounded-xl border border-[#DEE2E6] bg-white text-[#212529] text-[15px] outline-none"
-                >
-                  {SI_DO_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[#495057] text-[13px] font-semibold mb-1">
-                  시/군/구
-                </label>
-                <select
-                  value={filterSiGunGu}
-                  onChange={(e) => setFilterSiGunGu(e.target.value)}
-                  className="w-full h-12 px-3 rounded-xl border border-[#DEE2E6] bg-white text-[#212529] text-[15px] outline-none"
-                >
-                  {getSiGunGuOptions(filterSiDo).map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+            <div className="mb-4 rounded-2xl bg-[#D9F0FF] px-5 py-6">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[#212529] text-[15px] font-normal leading-6 tracking-[-0.15px]">
+                  내 구매 금액
+                </p>
+                <div className="shrink-0 flex items-center gap-2">
+                  <p className="text-[#212529] text-[15px] font-bold leading-6 tracking-[-0.15px]">
+                    {baseBudgetWon > 0 ? formatToKoreanWon(baseBudgetWon).replace("만 원", "만원") : "-"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/calculator")}
+                    className="text-[#1D4ED8] text-[14px] font-bold leading-5"
+                  >
+                    수정
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="mb-4 px-4 py-3 rounded-xl bg-[#F8F9FA]">
-              <p className="text-[#495057] text-[13px] font-medium">
-                내 계산 최대 구매금액:{" "}
-                <span className="text-[#212529] font-bold">
-                  {baseBudgetWon > 0 ? formatToKoreanWon(baseBudgetWon) : "-"}
-                </span>
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div>
-                <label className="block text-[#495057] text-[13px] font-semibold mb-1">
-                  평형
-                </label>
-                <select
-                  value={pyeongFilter}
-                  onChange={(e) =>
-                    setPyeongFilter(e.target.value as (typeof PYEONG_FILTERS)[number])
-                  }
-                  className="w-full h-12 px-3 rounded-xl border border-[#DEE2E6] bg-white text-[#212529] text-[15px] outline-none"
+            <div className="mb-4">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveFilterModal("siDo")}
+                  className="shrink-0 h-11 px-4 rounded-[22px] border border-[#DEE2E6] bg-white text-[#212529] text-[15px] font-medium"
                 >
-                  {PYEONG_FILTERS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[#495057] text-[13px] font-semibold mb-1">
-                  가격
-                </label>
-                <select
-                  value={priceFilter}
-                  onChange={(e) =>
-                    setPriceFilter(e.target.value as (typeof PRICE_FILTERS)[number])
-                  }
-                  className="w-full h-12 px-3 rounded-xl border border-[#DEE2E6] bg-white text-[#212529] text-[15px] outline-none"
+                  {filterSiDo}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveFilterModal("siGunGu")}
+                  className="shrink-0 h-11 px-4 rounded-[22px] border border-[#DEE2E6] bg-white text-[#212529] text-[15px] font-medium"
                 >
-                  {PRICE_FILTERS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-span-2">
-                <label className="block text-[#495057] text-[13px] font-semibold mb-1">
-                  세대수
-                </label>
-                <select
-                  value={householdFilter}
-                  onChange={(e) =>
-                    setHouseholdFilter(
-                      e.target.value as (typeof HOUSEHOLD_FILTERS)[number],
-                    )
-                  }
-                  className="w-full h-12 px-3 rounded-xl border border-[#DEE2E6] bg-white text-[#212529] text-[15px] outline-none"
+                  {filterSiGunGu}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveFilterModal("pyeong")}
+                  className="shrink-0 h-11 px-4 rounded-[22px] border border-[#DEE2E6] bg-white text-[#212529] text-[15px] font-medium"
                 >
-                  {HOUSEHOLD_FILTERS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                  {pyeongFilter === "전체" ? "평형 전체" : pyeongFilter}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveFilterModal("household")}
+                  className="shrink-0 h-11 px-4 rounded-[22px] border border-[#DEE2E6] bg-white text-[#212529] text-[15px] font-medium"
+                >
+                  {householdFilter === "전체" ? "세대수 전체" : householdFilter}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="shrink-0 text-[#868E96] text-[12px] font-medium leading-4"
+                >
+                  초기화
+                </button>
               </div>
             </div>
 
             {isLoadingRecommendations && (
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
-                <p className="text-grey-80 text-sm font-medium leading-5 tracking-[-0.28px]">
-                  추천 목록을 불러오는 중이에요...
+              <div
+                className="w-full flex flex-col items-center justify-center text-center gap-3"
+                style={{
+                  minHeight:
+                    "calc(100dvh - (max(16px, env(safe-area-inset-top)) + 60px) - var(--tab-page-content-bottom-safe) - 80px)",
+                }}
+              >
+                <svg
+                  className="animate-spin"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-label="loading"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                    stroke="#DEE2E6"
+                    strokeWidth="3"
+                  />
+                  <path
+                    d="M21 12A9 9 0 0 0 12 3"
+                    stroke="#212529"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <p className="text-[#495057] text-[13px] font-medium leading-[18px] tracking-[-0.13px]">
+                  최근 실거래가를 불러올게요!
                 </p>
               </div>
             )}
             {!isLoadingRecommendations && recommendationError && (
-              <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
+              <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA] mb-3">
                 <p className="text-grey-80 text-sm font-medium leading-5 tracking-[-0.28px]">
                   {recommendationError}
                 </p>
@@ -682,86 +749,133 @@ export default function RecommendPage() {
               !recommendationError &&
               !hasNoAffordableResult &&
               visibleRecommendations.length > 0 &&
-              visibleRecommendations.map((item, index) => (
-                <button
-                  key={`${item.aptName}-${item.tradeDate}-${index}`}
-                  type="button"
-                  onClick={() => openRecommendationDetail(item)}
-                  className="w-full text-left flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3"
-                >
-                  <div className="w-full flex justify-between items-start gap-2">
-                    <p className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
-                      {item.aptName}
+              visibleRecommendations.map((item, index) => {
+                const household = parseHouseholdFromRaw(item);
+                return (
+                  <button
+                    key={`${item.aptName}-${item.tradeDate}-${index}`}
+                    type="button"
+                    onClick={() => openRecommendationDetail(item)}
+                    className="w-full text-left flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA] mb-3"
+                  >
+                    <div className="w-full flex justify-between items-start gap-2">
+                      <p className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
+                        {item.aptName}
+                      </p>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="mt-1 shrink-0"
+                      >
+                        <path
+                          d="M6 3L10.5 8L6 13"
+                          stroke="#868E96"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-[#495057] text-[18px] font-medium leading-7 tracking-[-0.18px]">
+                      {[
+                        item.dong || "-",
+                        formatPyeong(item.areaSqm),
+                        item.floor !== undefined ? `${item.floor}층` : "-",
+                      ].join(" · ")}
                     </p>
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="mt-1 shrink-0"
-                    >
-                      <path
-                        d="M6 3L10.5 8L6 13"
-                        stroke="#868E96"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-[#495057] text-[18px] font-medium leading-7 tracking-[-0.18px]">
-                    {[
-                      item.dong || "-",
-                      formatPyeong(item.areaSqm),
-                      item.floor !== undefined ? `${item.floor}층` : "-",
-                    ].join(" · ")}
-                  </p>
-                  <div className="flex justify-between items-center w-full">
-                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                      거래금액
-                    </p>
-                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                      {formatToKoreanWon(item.priceWon)}
-                    </p>
-                  </div>
-                  <div className="flex justify-between items-center w-full">
-                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                      거래일
-                    </p>
-                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                      {formatDateOrDash(item.tradeDate)}
-                    </p>
-                  </div>
-                  <div className="flex justify-between items-center w-full">
-                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                      평형
-                    </p>
-                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                      {formatPyeong(item.areaSqm)}
-                    </p>
-                  </div>
-                  <div className="flex justify-between items-center w-full">
-                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                      계약일
-                    </p>
-                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                      {formatDateOrDash(item.contractDate || item.tradeDate)}
-                    </p>
-                  </div>
-                  <div className="flex justify-between items-center w-full">
-                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-                      세대수
-                    </p>
-                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-                      {parseHouseholdFromRaw(item)?.toLocaleString() || "-"}
-                    </p>
-                  </div>
-                </button>
-              ))}
+                    <div className="flex justify-between items-center w-full">
+                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                        거래금액
+                      </p>
+                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                        {formatToKoreanWon(item.priceWon)}
+                      </p>
+                    </div>
+                    <div className="flex justify-between items-center w-full">
+                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                        거래일
+                      </p>
+                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                        {formatDateOrDash(item.tradeDate)}
+                      </p>
+                    </div>
+                    <div className="flex justify-between items-center w-full">
+                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                        평형
+                      </p>
+                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                        {formatPyeong(item.areaSqm)}
+                      </p>
+                    </div>
+                    <div className="flex justify-between items-center w-full">
+                      <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                        계약일
+                      </p>
+                      <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                        {formatDateOrDash(item.contractDate || item.tradeDate)}
+                      </p>
+                    </div>
+                    {household !== null && (
+                      <div className="flex justify-between items-center w-full">
+                        <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                          세대수
+                        </p>
+                        <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                          {household.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
           </div>
         )}
       </div>
+
+      {activeFilterModal && (
+        <div className="fixed inset-0 z-[90] bg-black/45 flex items-end">
+          <div
+            className="w-full max-w-[430px] mx-auto bg-white rounded-t-[24px] max-h-[70dvh] overflow-hidden"
+            style={{ paddingBottom: "max(20px, env(safe-area-inset-bottom))" }}
+          >
+            <div className="h-1.5 w-10 bg-[#DEE2E6] rounded-full mx-auto mt-3 mb-4" />
+            <div className="px-5 pb-2 flex items-center justify-between">
+              <h3 className="text-[#212529] text-[20px] font-bold leading-7">
+                {filterModalTitleMap[activeFilterModal]}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setActiveFilterModal(null)}
+                className="text-[#868E96] text-[15px] font-medium"
+              >
+                닫기
+              </button>
+            </div>
+            <div
+              className="px-5 pb-4 overflow-y-auto space-y-2"
+              style={{
+                maxHeight: "calc(70dvh - 96px)",
+                WebkitOverflowScrolling: "touch",
+                overscrollBehavior: "contain",
+              }}
+            >
+              {activeOptions.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => handleFilterSelect(option)}
+                  className="w-full h-12 px-4 rounded-2xl border border-[#DEE2E6] text-left text-[#212529] text-[16px] font-medium"
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

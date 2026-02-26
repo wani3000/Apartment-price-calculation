@@ -177,6 +177,19 @@ const normalizeTradeItem = (item) => {
   const areaSqm = parseNumber(item.area_sqm || item.exclu_use_ar || item["전용면적"]);
   const floor = parseNumber(item.floor || item["층"]);
   const buildYear = parseNumber(item.build_year || item.buildYear || item["건축년도"]);
+  const householdRaw = parseNumber(
+    item.household_count ||
+      item.householdCount ||
+      item.tot_hshld_cnt ||
+      item.totHshldCnt ||
+      item.totHouseHoldCnt ||
+      item.kapt_hshld_cnt ||
+      item.kaptHshldCnt ||
+      item["세대수"] ||
+      item["총세대수"],
+  );
+  const householdCount =
+    householdRaw !== null && householdRaw > 0 ? householdRaw : undefined;
   const tradeDate = normalizeTradeDate(item) || undefined;
 
   return {
@@ -185,11 +198,15 @@ const normalizeTradeItem = (item) => {
     areaSqm: areaSqm === null ? undefined : areaSqm,
     floor: floor === null ? undefined : floor,
     buildYear: buildYear === null ? undefined : buildYear,
+    householdCount,
     tradeDate,
     contractDate: tradeDate,
     registrationDate: normalizeRegistrationDate(item),
     priceWon,
-    rawFields: extractRawFields(item),
+    rawFields: {
+      ...extractRawFields(item),
+      household_count: householdCount ?? "",
+    },
   };
 };
 
@@ -501,7 +518,7 @@ app.post("/apartments/trade-history", async (req, res) => {
       regionCode,
       latestTrade,
       previousTrade,
-      trades: sorted.slice(0, 2),
+      trades: sorted.slice(0, 5),
     });
   } catch (error) {
     console.error(error);

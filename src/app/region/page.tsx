@@ -163,7 +163,7 @@ export default function RegionPage() {
             </p>
             <div className="flex flex-col space-y-3">
               <button
-                className={`flex px-5 py-4 justify-between items-center rounded-xl border-2 ${
+                className={`flex px-5 py-4 justify-between items-center rounded-2xl border-2 ${
                   selectedRegion === "regulated"
                     ? "border-[#000000] bg-[#F8F9FA]"
                     : "border-grey-40 bg-white"
@@ -206,7 +206,7 @@ export default function RegionPage() {
               </button>
 
               <button
-                className={`flex px-5 py-4 justify-between items-center rounded-xl border-2 ${
+                className={`flex px-5 py-4 justify-between items-center rounded-2xl border-2 ${
                   selectedRegion === "non-regulated"
                     ? "border-[#000000] bg-[#F8F9FA]"
                     : "border-grey-40 bg-white"
