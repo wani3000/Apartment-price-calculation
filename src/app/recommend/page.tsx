@@ -16,6 +16,93 @@ import {
   type RecommendedApartment,
 } from "@/utils/mcpRecommendations";
 
+const SI_DO_OPTIONS = [
+  "서울",
+  "경기",
+  "인천",
+  "부산",
+  "대구",
+  "광주",
+  "대전",
+  "울산",
+  "세종",
+  "강원",
+  "충북",
+  "충남",
+  "전북",
+  "전남",
+  "경북",
+  "경남",
+  "제주",
+] as const;
+
+const REGION_OPTIONS: Record<string, string[]> = {
+  서울: [
+    "강남구",
+    "강동구",
+    "강북구",
+    "강서구",
+    "관악구",
+    "광진구",
+    "구로구",
+    "금천구",
+    "노원구",
+    "도봉구",
+    "동대문구",
+    "동작구",
+    "마포구",
+    "서대문구",
+    "서초구",
+    "성동구",
+    "성북구",
+    "송파구",
+    "양천구",
+    "영등포구",
+    "용산구",
+    "은평구",
+    "종로구",
+    "중구",
+    "중랑구",
+  ],
+  경기: ["과천시", "광명시", "의왕시", "하남시", "성남시", "수원시", "안양시", "용인시"],
+  인천: [],
+  부산: [],
+  대구: [],
+  광주: [],
+  대전: [],
+  울산: [],
+  세종: [],
+  강원: [],
+  충북: [],
+  충남: [],
+  전북: [],
+  전남: [],
+  경북: [],
+  경남: [],
+  제주: [],
+};
+
+const getSiGunGuOptions = (siDo: string) => {
+  const allOption = `${siDo} 전체`;
+  const options = REGION_OPTIONS[siDo] || [];
+  return [allOption, ...options];
+};
+
+const RECOMMEND_HISTORY_STORAGE_KEY = "recommendApartmentsHistoryV1";
+const MAX_RECOMMEND_HISTORY = 30;
+const RECOMMEND_LIMIT = 5;
+
+type RecommendationHistoryItem = {
+  key: string;
+  region: {
+    siDo: string;
+    siGunGu: string;
+  };
+  budgetWon: number;
+  items: RecommendedApartment[];
+  updatedAt: string;
+};
+
 const FALLBACK_SIGUNGU_BY_SIDO: Record<string, string> = {
   서울: "강남구",
   경기: "성남시",
@@ -40,6 +127,8 @@ export default function RecommendPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [hasCalculatorData, setHasCalculatorData] = useState(false);
+  const [filterSiDo, setFilterSiDo] = useState("서울");
+  const [filterSiGunGu, setFilterSiGunGu] = useState("서울 전체");
   const [recommendations, setRecommendations] = useState<RecommendedApartment[]>(
     [],
   );
@@ -50,6 +139,7 @@ export default function RecommendPage() {
   );
   const [hasNoAffordableResult, setHasNoAffordableResult] = useState(false);
   const [lastFetchedKey, setLastFetchedKey] = useState<string>("");
+  const [baseBudgetWon, setBaseBudgetWon] = useState(0);
 
   const openRecommendationDetail = (item: RecommendedApartment) => {
     const policyRegionDetailsStr = localStorage.getItem("policyRegionDetails");
@@ -85,7 +175,25 @@ export default function RecommendPage() {
     return value;
   };
 
-  const getRecommendationInput = () => {
+  const readRecommendationHistory = useCallback((): RecommendationHistoryItem[] => {
+    try {
+      const raw = localStorage.getItem(RECOMMEND_HISTORY_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as RecommendationHistoryItem[];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, []);
+
+  const writeRecommendationHistory = useCallback((entry: RecommendationHistoryItem) => {
+    const list = readRecommendationHistory();
+    const deduped = [entry, ...list.filter((item) => item.key !== entry.key)];
+    const next = deduped.slice(0, MAX_RECOMMEND_HISTORY);
+    localStorage.setItem(RECOMMEND_HISTORY_STORAGE_KEY, JSON.stringify(next));
+  }, [readRecommendationHistory]);
+
+  const getRecommendationInput = useCallback(() => {
     const calculatorDataStr = localStorage.getItem("calculatorData");
     if (!calculatorDataStr) return null;
 
@@ -101,14 +209,14 @@ export default function RecommendPage() {
     const assets = convertManToWon(Number(calculatorData.assets || 0));
     const spouseIncome = convertManToWon(Number(calculatorData.spouseIncome || 0));
     const totalIncome = income + spouseIncome;
-    const siDo = policyRegionDetails.siDo || "서울";
+    const defaultSiDo = policyRegionDetails.siDo || "서울";
     const rawSiGunGu = policyRegionDetails.siGunGu || "";
-    const siGunGu =
+    const defaultSiGunGu =
       typeof rawSiGunGu === "string" &&
       rawSiGunGu.trim() &&
       !rawSiGunGu.includes("전체")
         ? rawSiGunGu
-        : FALLBACK_SIGUNGU_BY_SIDO[siDo] || "강남구";
+        : FALLBACK_SIGUNGU_BY_SIDO[defaultSiDo] || "강남구";
     const gu = policyRegionDetails.gu || "";
     const selectedRegion =
       selectedRegionRaw === "non-regulated" ? "non-regulated" : "regulated";
@@ -123,8 +231,8 @@ export default function RecommendPage() {
       budgetWon = Math.round(liveResult.maxPropertyPrice);
     } else if (regulationOption === "latest") {
       const policyFlags =
-        siDo && siGunGu
-          ? determinePolicyFlags(siDo, siGunGu, gu || undefined)
+        defaultSiDo && defaultSiGunGu
+          ? determinePolicyFlags(defaultSiDo, defaultSiGunGu, gu || undefined)
           : mapRegionSelectionToPolicyFlags(selectedRegion);
 
       const liveResult = calculateMaxPurchaseWithPolicy20251015ByCapacity(
@@ -160,16 +268,25 @@ export default function RecommendPage() {
       budgetWon = Math.round(liveResult.maxPropertyPrice);
     }
 
-    if (!siDo || !siGunGu || budgetWon <= 0) return null;
+    const normalizedFilterSiGunGu =
+      filterSiGunGu && !filterSiGunGu.includes("전체")
+        ? filterSiGunGu
+        : FALLBACK_SIGUNGU_BY_SIDO[filterSiDo] || "강남구";
+
+    if (!filterSiDo || !normalizedFilterSiGunGu || budgetWon <= 0) return null;
 
     return {
       budgetWon,
       region: {
-        siDo,
-        siGunGu,
+        siDo: filterSiDo,
+        siGunGu: normalizedFilterSiGunGu,
+      },
+      defaultRegion: {
+        siDo: defaultSiDo,
+        siGunGu: defaultSiGunGu,
       },
     };
-  };
+  }, [filterSiDo, filterSiGunGu]);
 
   const fetchRecommendations = useCallback(async () => {
     const input = getRecommendationInput();
@@ -194,11 +311,22 @@ export default function RecommendPage() {
         budgetWon: input.budgetWon,
         siDo: input.region.siDo,
         siGunGu: input.region.siGunGu,
-        limit: 10,
+        limit: RECOMMEND_LIMIT,
       });
-      setRecommendations(list);
+      const topList = list.slice(0, RECOMMEND_LIMIT);
+      setRecommendations(topList);
       if (list.length > 0) {
-        localStorage.setItem("recommendedApartmentsCache", JSON.stringify(list));
+        localStorage.setItem("recommendedApartmentsCache", JSON.stringify(topList));
+        writeRecommendationHistory({
+          key: fetchKey,
+          region: {
+            siDo: input.region.siDo,
+            siGunGu: input.region.siGunGu,
+          },
+          budgetWon: input.budgetWon,
+          items: topList,
+          updatedAt: new Date().toISOString(),
+        });
       }
       setLastFetchedKey(fetchKey);
       if (list.length === 0) {
@@ -206,6 +334,22 @@ export default function RecommendPage() {
       }
     } catch (error) {
       console.error(error);
+      const cachedRecommendations = localStorage.getItem(
+        "recommendedApartmentsCache",
+      );
+      if (cachedRecommendations) {
+        try {
+          const parsed = JSON.parse(cachedRecommendations) as RecommendedApartment[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setRecommendations(parsed.slice(0, RECOMMEND_LIMIT));
+            setHasNoAffordableResult(false);
+            setRecommendationError(null);
+            return;
+          }
+        } catch {
+          // ignore cache parse error
+        }
+      }
       setRecommendations([]);
       setHasNoAffordableResult(false);
       setRecommendationError(
@@ -216,17 +360,45 @@ export default function RecommendPage() {
     } finally {
       setIsLoadingRecommendations(false);
     }
-  }, [lastFetchedKey, recommendations.length]);
+  }, [
+    getRecommendationInput,
+    lastFetchedKey,
+    recommendations.length,
+    writeRecommendationHistory,
+  ]);
+
+  useEffect(() => {
+    const options = getSiGunGuOptions(filterSiDo);
+    if (!options.includes(filterSiGunGu)) {
+      setFilterSiGunGu(options[0]);
+    }
+  }, [filterSiDo, filterSiGunGu]);
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("username");
     if (savedUsername) setUsername(savedUsername);
     const hasCalculatedData = Boolean(localStorage.getItem("calculatorData"));
     setHasCalculatorData(hasCalculatedData);
+
+    const input = getRecommendationInput();
+    if (input) {
+      setFilterSiDo(input.defaultRegion.siDo);
+      setFilterSiGunGu(input.defaultRegion.siGunGu || `${input.defaultRegion.siDo} 전체`);
+      setBaseBudgetWon(input.budgetWon);
+
+      const fetchKey = `${input.defaultRegion.siDo}-${input.defaultRegion.siGunGu}-${input.budgetWon}`;
+      const history = readRecommendationHistory();
+      const matched = history.find((item) => item.key === fetchKey);
+      if (matched && matched.items.length > 0) {
+        setRecommendations(matched.items.slice(0, RECOMMEND_LIMIT));
+        setLastFetchedKey(fetchKey);
+      }
+    }
+
     if (hasCalculatedData) {
       void fetchRecommendations();
     }
-  }, [fetchRecommendations]);
+  }, [fetchRecommendations, getRecommendationInput, readRecommendationHistory]);
 
   const shouldShowInitialPrompt = !hasCalculatorData || !username.trim();
 
@@ -243,21 +415,21 @@ export default function RecommendPage() {
       >
         {shouldShowInitialPrompt ? (
           <div
-            className="w-full max-w-md mx-auto flex items-center justify-center"
+            className="w-full max-w-md mx-auto flex items-start justify-center pt-[80px]"
             style={{
-              minHeight:
-                "calc(100dvh - (max(16px, env(safe-area-inset-top)) + 60px) - var(--tab-page-content-bottom-safe))",
+              minHeight: "calc(100dvh - (max(16px, env(safe-area-inset-top)) + 60px))",
             }}
           >
             <div className="w-full flex flex-col items-center text-center gap-3">
-              <h3 className="text-[#212529] text-[16px] font-bold leading-6 tracking-[-0.16px]">
+              <h3 className="text-[#212529] text-[18px] font-bold leading-6 tracking-[-0.18px]">
                 내가 살 수 있는 아파트 금액을
                 <br />
                 계산해보세요
               </h3>
               <p className="text-[#495057] text-[14px] font-normal leading-5 tracking-[-0.28px]">
-                내 최대 구매 금액과 가장 가까운 최근 실거래 아파트를 확인할 수
-                있어요
+                내 최대 구매 금액과 가장 가까운
+                <br />
+                최근 실거래 아파트를 확인할 수 있어요
               </p>
               <button
                 onClick={() => router.push("/nickname")}
@@ -277,6 +449,50 @@ export default function RecommendPage() {
               실거래 아파트를 보여줘요.
             </p>
 
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <label className="block text-[#495057] text-[13px] font-semibold mb-1">
+                  시/도
+                </label>
+                <select
+                  value={filterSiDo}
+                  onChange={(e) => setFilterSiDo(e.target.value)}
+                  className="w-full h-12 px-3 rounded-xl border border-[#DEE2E6] bg-white text-[#212529] text-[15px] outline-none"
+                >
+                  {SI_DO_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[#495057] text-[13px] font-semibold mb-1">
+                  시/군/구
+                </label>
+                <select
+                  value={filterSiGunGu}
+                  onChange={(e) => setFilterSiGunGu(e.target.value)}
+                  className="w-full h-12 px-3 rounded-xl border border-[#DEE2E6] bg-white text-[#212529] text-[15px] outline-none"
+                >
+                  {getSiGunGuOptions(filterSiDo).map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="mb-4 px-4 py-3 rounded-xl bg-[#F8F9FA]">
+              <p className="text-[#495057] text-[13px] font-medium">
+                내 계산 최대 구매금액:{" "}
+                <span className="text-[#212529] font-bold">
+                  {baseBudgetWon > 0 ? formatToKoreanWon(baseBudgetWon) : "-"}
+                </span>
+              </p>
+            </div>
+
             {isLoadingRecommendations && (
               <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
                 <p className="text-grey-80 text-sm font-medium leading-5 tracking-[-0.28px]">
@@ -287,8 +503,15 @@ export default function RecommendPage() {
             {!isLoadingRecommendations && recommendationError && (
               <div className="flex flex-col p-4 gap-2 rounded-xl bg-[#F8F9FA] mb-3">
                 <p className="text-grey-80 text-sm font-medium leading-5 tracking-[-0.28px]">
-                  정보를 불러오고 있어요. 잠시만 기다려주세요!
+                  {recommendationError}
                 </p>
+                <button
+                  type="button"
+                  onClick={() => void fetchRecommendations()}
+                  className="self-start mt-1 px-3 py-1.5 rounded-full bg-black text-white text-[12px] font-semibold"
+                >
+                  다시 시도
+                </button>
               </div>
             )}
             {!isLoadingRecommendations && !recommendationError && hasNoAffordableResult && (
