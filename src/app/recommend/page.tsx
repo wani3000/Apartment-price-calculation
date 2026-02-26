@@ -572,54 +572,62 @@ export default function RecommendPage() {
               </p>
             </div>
 
-            <div className="mb-4 space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {PYEONG_FILTERS.map((label) => (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => setPyeongFilter(label)}
-                    className={`px-4 h-10 rounded-full text-[16px] font-medium ${
-                      pyeongFilter === label
-                        ? "bg-[#4F46E5] text-white"
-                        : "bg-[#F1F3F5] text-[#343A40]"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <label className="block text-[#495057] text-[13px] font-semibold mb-1">
+                  평형
+                </label>
+                <select
+                  value={pyeongFilter}
+                  onChange={(e) =>
+                    setPyeongFilter(e.target.value as (typeof PYEONG_FILTERS)[number])
+                  }
+                  className="w-full h-12 px-3 rounded-xl border border-[#DEE2E6] bg-white text-[#212529] text-[15px] outline-none"
+                >
+                  {PYEONG_FILTERS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {PRICE_FILTERS.map((label) => (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => setPriceFilter(label)}
-                    className={`px-4 h-10 rounded-full text-[16px] font-medium ${
-                      priceFilter === label
-                        ? "bg-[#4F46E5] text-white"
-                        : "bg-[#F1F3F5] text-[#343A40]"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+              <div>
+                <label className="block text-[#495057] text-[13px] font-semibold mb-1">
+                  가격
+                </label>
+                <select
+                  value={priceFilter}
+                  onChange={(e) =>
+                    setPriceFilter(e.target.value as (typeof PRICE_FILTERS)[number])
+                  }
+                  className="w-full h-12 px-3 rounded-xl border border-[#DEE2E6] bg-white text-[#212529] text-[15px] outline-none"
+                >
+                  {PRICE_FILTERS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {HOUSEHOLD_FILTERS.map((label) => (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => setHouseholdFilter(label)}
-                    className={`px-4 h-10 rounded-full text-[16px] font-medium ${
-                      householdFilter === label
-                        ? "bg-[#4F46E5] text-white"
-                        : "bg-[#F1F3F5] text-[#343A40]"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+              <div className="col-span-2">
+                <label className="block text-[#495057] text-[13px] font-semibold mb-1">
+                  세대수
+                </label>
+                <select
+                  value={householdFilter}
+                  onChange={(e) =>
+                    setHouseholdFilter(
+                      e.target.value as (typeof HOUSEHOLD_FILTERS)[number],
+                    )
+                  }
+                  className="w-full h-12 px-3 rounded-xl border border-[#DEE2E6] bg-white text-[#212529] text-[15px] outline-none"
+                >
+                  {HOUSEHOLD_FILTERS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
