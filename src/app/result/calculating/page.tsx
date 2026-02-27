@@ -12,7 +12,7 @@ export default function CalculatingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const policy = searchParams.get("policy") || "latest";
-  const [isNativeIos, setIsNativeIos] = useState(false);
+  const [isEligibleWebHost, setIsEligibleWebHost] = useState(false);
   const isAdsenseReady = Boolean(ADSENSE_CLIENT && ADSENSE_SLOT);
 
   const targetPath = useMemo(() => {
@@ -22,7 +22,12 @@ export default function CalculatingPage() {
   }, [policy]);
 
   useEffect(() => {
-    setIsNativeIos(Capacitor.getPlatform() === "ios" && Capacitor.isNativePlatform());
+    const nativePlatform = Capacitor.isNativePlatform();
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname.toLowerCase();
+      const validHost = host === "aptgugu.com" || host === "www.aptgugu.com";
+      setIsEligibleWebHost(!nativePlatform && validHost);
+    }
   }, []);
 
   useEffect(() => {
@@ -36,14 +41,14 @@ export default function CalculatingPage() {
   }, [router, targetPath]);
 
   useEffect(() => {
-    if (isNativeIos || !isAdsenseReady) return;
+    if (!isEligibleWebHost || !isAdsenseReady) return;
     try {
       ((window as Window & { adsbygoogle?: unknown[] }).adsbygoogle =
         (window as Window & { adsbygoogle?: unknown[] }).adsbygoogle || []).push({});
     } catch {
       // ignore ad init error
     }
-  }, [isNativeIos, isAdsenseReady]);
+  }, [isEligibleWebHost, isAdsenseReady]);
 
   return (
     <div className="bg-white flex flex-col h-[100dvh] overflow-hidden">
@@ -80,7 +85,7 @@ export default function CalculatingPage() {
         className="w-full max-w-md mx-auto px-5 pb-4"
         style={{ paddingBottom: "calc(16px + env(safe-area-inset-bottom))" }}
       >
-        {!isNativeIos && isAdsenseReady ? (
+        {isEligibleWebHost && isAdsenseReady ? (
           <>
             <Script
               id="adsense-calculating-script"
@@ -106,4 +111,3 @@ export default function CalculatingPage() {
     </div>
   );
 }
-
