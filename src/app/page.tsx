@@ -325,7 +325,7 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => pushHomeEntry("/recommend", true)}
+            onClick={() => router.push("/acquisition-tax")}
             className="w-full bg-white rounded-2xl px-4 py-3 flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
@@ -340,10 +340,10 @@ export default function Home() {
               </div>
               <div className="text-left">
                 <p className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
-                  추천 아파트
+                  취등록세 계산기
                 </p>
                 <p className="text-[#868E96] text-base font-normal leading-6">
-                  최근 실거래 기준으로 추천을 확인해요
+                  취득세와 부대세를 쉽게 계산할 수 있어요
                 </p>
               </div>
             </div>

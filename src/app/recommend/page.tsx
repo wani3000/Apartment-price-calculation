@@ -136,6 +136,19 @@ const FALLBACK_SIGUNGU_BY_SIDO: Record<string, string> = {
   제주: "제주시",
 };
 
+const parseDateForSort = (value?: string) => {
+  if (!value) return 0;
+  const normalized = value.trim().replace(/\./g, "-");
+  const match = normalized.match(/^(\d{2,4})-(\d{1,2})-(\d{1,2})$/);
+  if (!match) return 0;
+  let year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return 0;
+  if (year < 100) year += 2000;
+  return Number(`${year}${String(month).padStart(2, "0")}${String(day).padStart(2, "0")}`);
+};
+
 export default function RecommendPage() {
   const router = useRouter();
   const initializedRef = useRef(false);
@@ -319,10 +332,7 @@ export default function RecommendPage() {
       budgetWon = Math.round(liveResult.maxPropertyPrice);
     }
 
-    const normalizedFilterSiGunGu =
-      filterSiGunGu && !filterSiGunGu.includes("전체")
-        ? filterSiGunGu
-        : FALLBACK_SIGUNGU_BY_SIDO[filterSiDo] || "강남구";
+    const normalizedFilterSiGunGu = filterSiGunGu?.trim() || `${filterSiDo} 전체`;
 
     if (!filterSiDo || !normalizedFilterSiGunGu || budgetWon <= 0) return null;
 
@@ -358,12 +368,76 @@ export default function RecommendPage() {
     setHasNoAffordableResult(false);
 
     try {
-      const list = await fetchRecommendedApartmentsFromMcp({
-        budgetWon: input.budgetWon,
-        siDo: input.region.siDo,
-        siGunGu: input.region.siGunGu,
-        limit: RECOMMEND_FETCH_LIMIT,
-      });
+      const isWholeRegion = input.region.siGunGu.includes("전체");
+      let list: RecommendedApartment[] = [];
+
+      if (isWholeRegion) {
+        const guTargets = (REGION_OPTIONS[input.region.siDo] || []).filter(Boolean);
+        const queryTargets =
+          guTargets.length > 0
+            ? guTargets
+            : [FALLBACK_SIGUNGU_BY_SIDO[input.region.siDo] || "강남구"];
+        const perGuLimit = Math.max(
+          8,
+          Math.ceil(RECOMMEND_FETCH_LIMIT / queryTargets.length),
+        );
+
+        const responses = await Promise.allSettled(
+          queryTargets.map((siGunGu) =>
+            fetchRecommendedApartmentsFromMcp({
+              budgetWon: input.budgetWon,
+              siDo: input.region.siDo,
+              siGunGu,
+              limit: perGuLimit,
+            }),
+          ),
+        );
+
+        const merged = responses.flatMap((response) =>
+          response.status === "fulfilled" ? response.value : [],
+        );
+
+        if (merged.length === 0) {
+          const firstRejected = responses.find(
+            (response): response is PromiseRejectedResult => response.status === "rejected",
+          );
+          if (firstRejected) throw firstRejected.reason;
+        }
+
+        const deduped = new Map<string, RecommendedApartment>();
+        for (const item of merged) {
+          const key = [
+            item.aptName,
+            item.siDo,
+            item.siGunGu,
+            item.dong,
+            item.floor ?? "",
+            item.areaSqm ?? "",
+            item.tradeDate ?? "",
+            item.priceWon,
+          ].join("|");
+          if (!deduped.has(key)) deduped.set(key, item);
+        }
+
+        list = Array.from(deduped.values())
+          .sort((a, b) => {
+            const diffA = Math.abs(input.budgetWon - (a.priceWon || 0));
+            const diffB = Math.abs(input.budgetWon - (b.priceWon || 0));
+            if (diffA !== diffB) return diffA - diffB;
+            const dateA = parseDateForSort(a.tradeDate);
+            const dateB = parseDateForSort(b.tradeDate);
+            if (dateA !== dateB) return dateB - dateA;
+            return (b.priceWon || 0) - (a.priceWon || 0);
+          })
+          .slice(0, RECOMMEND_FETCH_LIMIT);
+      } else {
+        list = await fetchRecommendedApartmentsFromMcp({
+          budgetWon: input.budgetWon,
+          siDo: input.region.siDo,
+          siGunGu: input.region.siGunGu,
+          limit: RECOMMEND_FETCH_LIMIT,
+        });
+      }
       setRecommendations(list);
       if (list.length > 0) {
         localStorage.setItem(
