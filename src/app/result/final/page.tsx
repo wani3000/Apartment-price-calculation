@@ -934,8 +934,8 @@ export default function FinalResultPage() {
 
   const regionLabel =
     sharedPolicyData.siDo && sharedPolicyData.siGunGu
-      ? `${sharedPolicyData.siDo} ${sharedPolicyData.siGunGu}${
-          sharedPolicyData.gu ? ` ${sharedPolicyData.gu}` : ""
+      ? `${sharedPolicyData.siDo} · ${sharedPolicyData.siGunGu}${
+          sharedPolicyData.gu ? ` · ${sharedPolicyData.gu}` : ""
         }`
       : sharedPolicyData.selectedRegion === "non-regulated"
         ? "비규제지역"
@@ -1162,9 +1162,9 @@ export default function FinalResultPage() {
           </div>
 
           {!isSharedLink && (
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-4 flex items-center justify-start gap-2">
               <button
-                className="h-11 flex-1 justify-center items-center flex border border-[#ADB5BD] bg-white rounded-[300px] text-grey-100 font-medium text-sm"
+                className="h-11 px-4 justify-center items-center flex border border-[#DEE2E6] bg-white rounded-[22px] text-[#212529] text-[15px] font-medium"
                 onClick={handleSaveCard}
                 disabled={isSaving}
               >
@@ -1172,7 +1172,7 @@ export default function FinalResultPage() {
               </button>
               <button
                 onClick={handleShare}
-                className="h-11 flex-1 justify-center items-center flex bg-[#000000] text-white rounded-[300px] font-semibold text-sm"
+                className="h-11 px-4 justify-center items-center flex border border-[#DEE2E6] bg-white rounded-[22px] text-[#212529] text-[15px] font-medium"
               >
                 공유하기
               </button>
@@ -1201,7 +1201,9 @@ export default function FinalResultPage() {
               {activeTab === "gap" ? (
                 "세입자의 전세금을 활용해 투자해요"
               ) : isLatestPolicy ? (
-                "2025.10.15 최신 정책 적용: 규제지역 확대, 주담대 한도 제한, 스트레스 DSR 3.0%"
+                <span className="text-[#868E96] text-[14px] font-normal leading-5 tracking-[-0.14px]">
+                  2025.10.15 최신 정책을 반영해 규제지역 확대, 주담대 한도 제한, 스트레스 DSR 3.0% 상향 기준으로 계산했어요.
+                </span>
               ) : isNewRegulation627 ? (
                 "6.27 규제안 적용: 최대 6억원 대출 한도, 30년 만기, 지역별 스트레스 금리"
               ) : (
@@ -1359,7 +1361,7 @@ export default function FinalResultPage() {
                   {isLatestPolicy ? (
                     /* 2025.10.15 최신 정책 적용 시 */
                     <>
-                      <div className="space-y-3">
+                      <div className="space-y-[22px]">
                         <div>
                           <div className="flex justify-between items-center">
                             <span className="text-[#495057] text-[15px] font-normal leading-[22px]">
@@ -1450,23 +1452,6 @@ export default function FinalResultPage() {
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-[#E9ECEF]">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-white text-[10px] font-bold">
-                              !
-                            </span>
-                          </div>
-                          <p className="text-blue-700 text-[14px] font-bold leading-5">
-                            2025.10.15 최신 주택시장 안정화 대책 적용
-                          </p>
-                        </div>
-                        <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                          규제지역 확대, 주담대 한도 캡 적용, 스트레스 DSR 3.0%
-                          상향이 반영되었습니다. 가격구간별 주담대 한도: 15억
-                          이하 6억, 15-25억 4억, 25억 초과 2억 제한
-                        </p>
-                      </div>
                     </>
                   ) : isNewRegulation627 ? (
                     /* 6.27 규제 강화 방안 적용 시 */
@@ -1483,7 +1468,7 @@ export default function FinalResultPage() {
                               )}
                             </span>
                           </div>
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-2">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               최대 6억원 제한
                             </span>
@@ -1501,7 +1486,7 @@ export default function FinalResultPage() {
                               )}
                             </span>
                           </div>
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-2">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               스트레스 금리 5.0% 적용
                             </span>
@@ -1519,7 +1504,7 @@ export default function FinalResultPage() {
                               )}
                             </span>
                           </div>
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-2">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               스트레스 금리 4.25% 적용
                             </span>
@@ -1535,7 +1520,7 @@ export default function FinalResultPage() {
                               5.0%
                             </span>
                           </div>
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-2">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               기준금리 3.5% + 스트레스 금리 1.5% (지방 4.25%)
                             </span>
@@ -1551,7 +1536,7 @@ export default function FinalResultPage() {
                               3.5%
                             </span>
                           </div>
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-2">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               스트레스 금리는 한도 산정에만 적용
                             </span>
@@ -1610,7 +1595,7 @@ export default function FinalResultPage() {
                               )}
                             </span>
                           </div>
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-2">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               DSR {loanOptions.dsr}% 적용
                             </span>
@@ -1628,7 +1613,7 @@ export default function FinalResultPage() {
                               )}
                             </span>
                           </div>
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-2">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               스트레스 금리 5.0% 적용
                             </span>
@@ -1646,7 +1631,7 @@ export default function FinalResultPage() {
                               )}
                             </span>
                           </div>
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-2">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               스트레스 금리 4.25% 적용
                             </span>
@@ -1662,7 +1647,7 @@ export default function FinalResultPage() {
                               5.0%
                             </span>
                           </div>
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-2">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               기준금리 3.5% + 스트레스 금리 1.5% (지방 4.25%)
                             </span>
@@ -1678,7 +1663,7 @@ export default function FinalResultPage() {
                               3.5%
                             </span>
                           </div>
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-2">
                             <span className="text-[#868E96] text-[13px] font-normal leading-[18px]">
                               스트레스 금리는 한도 산정에만 적용
                             </span>
@@ -1726,38 +1711,90 @@ export default function FinalResultPage() {
                 </div>
 
                 {/* DSR 선택에 따른 금융권 구분 표시 */}
-                <div className="mt-3">
-                  <div className="bg-[#F8F9FA] rounded-2xl px-3 py-5 space-y-2">
-                    <div className="flex items-start gap-2">
-                      <div className="flex-shrink-0 w-4 h-4 bg-[#000000] rounded-full flex items-center justify-center mt-0.5">
-                        <span className="text-white text-xs font-bold">ℹ</span>
-                      </div>
-                      <p className="text-[#495057] text-[13px] font-medium leading-[18px] tracking-[-0.26px]">
-                        {isLatestPolicy
-                          ? "2025.10.15 최신 정책에서는 한도 산정 시 스트레스 DSR 3.0%를 적용하고, 월 상환액은 실제 금리(3.5%) 기준으로 별도 표시합니다."
-                          : isNewRegulation627
+                {!isLatestPolicy && (
+                  <div className="mt-3">
+                    <div className="bg-[#F8F9FA] rounded-2xl px-3 py-5 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <div className="flex-shrink-0 w-4 h-4 bg-[#000000] rounded-full flex items-center justify-center mt-0.5">
+                          <span className="text-white text-xs font-bold">ℹ</span>
+                        </div>
+                        <p className="text-[#495057] text-[13px] font-medium leading-[18px] tracking-[-0.26px]">
+                          {isNewRegulation627
                             ? "6.27 규제안에 따라 모든 금융업권에 DSR 40% 규제가 통일 적용됩니다."
                             : loanOptions.dsr === 50
                               ? "2금융권 대출 (연소득의 50% 적용)을 가정한 결과에요."
                               : "1금융권 대출 (연소득의 40% 적용)을 가정한 결과에요."}
-                      </p>
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <div className="flex-shrink-0 w-4 h-4 bg-[#868E96] rounded-full flex items-center justify-center mt-0.5">
-                        <span className="text-white text-xs font-bold">%</span>
+                        </p>
                       </div>
-                      <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                        {isLatestPolicy
-                          ? "2025.10.15 최신 정책에서는 기준금리에 3.0% 스트레스 금리가 적용되며, 가격구간별 주담대 한도 제한이 함께 적용됩니다."
-                          : isNewRegulation627
+
+                      <div className="flex items-start gap-2">
+                        <div className="flex-shrink-0 w-4 h-4 bg-[#868E96] rounded-full flex items-center justify-center mt-0.5">
+                          <span className="text-white text-xs font-bold">%</span>
+                        </div>
+                        <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                          {isNewRegulation627
                             ? "실제 금리는 평균 변동금리인 3.5%로 설정하였으며, 개인의 신용도에 따라 달라질 수 있고 여기에 수도권 (3.5% + 1.5% 스트레스변동금리)를 더한 금리가 적용되어요."
                             : "실제 금리는 평균 변동금리인 3.5%로 설정하였으며, 개인의 신용도에 따라 달라질 수 있어요."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+                {isLatestPolicy && (
+                  <div className="mb-6">
+                    <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+                      최신 정책 안내
+                    </h3>
+                    <div className="w-full rounded-2xl bg-[#DCE9FF] px-6 py-6 text-left">
+                      <p className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px]">
+                        2025.10.15 최신 주택시장 안정화 대책 적용
+                      </p>
+                      <p className="mt-1 text-[#868E96] text-[14px] font-normal leading-5 tracking-[-0.14px]">
+                        규제지역 확대, 주담대 한도 캡 적용, 스트레스 DSR 3.0%
+                        상향이 반영되었습니다.
+                      </p>
+                    </div>
+                    <div className="mt-3 flex flex-col gap-2 rounded-2xl bg-[#F8F9FA] p-4">
+                      <div className="flex flex-col gap-2">
+                        <p className="text-[#495057] text-[15px] font-bold leading-[22px] tracking-[-0.3px]">
+                          가격구간별 주담대 한도
+                        </p>
+                        <div className="flex justify-between items-center w-full">
+                          <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                            15억 이하
+                          </p>
+                          <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                            6억
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center w-full">
+                          <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                            15-25억
+                          </p>
+                          <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                            4억
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center w-full">
+                          <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+                            25억 초과
+                          </p>
+                          <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+                            2억
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-[#868E96] text-[14px] font-normal leading-5 tracking-[-0.14px]">
+                        한도 산정은 기준금리 3.5%에 스트레스 금리 3.0%를 더한
+                        6.5%를 적용하고, 월 상환액은 실제 금리 3.5%로 계산합니다.
+                        주담대 한도는 가격구간별 상한(15억 이하 6억, 15~25억 4억,
+                        25억 초과 2억)을 적용합니다.
                       </p>
                     </div>
                   </div>
-                </div>
-              </div>
+                )}
 
 	              {/* 주택담보대출 섹션 - 실거주 시 */}
 	              <div className="mb-6">
@@ -1773,19 +1810,29 @@ export default function FinalResultPage() {
 	                      {regionLabel}
 	                    </p>
 	                  </div>
-	                  <div className="flex justify-between items-center w-full">
-	                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
-	                      적용 구분
-	                    </p>
-	                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
-	                      {isRegulatedRegion ? "규제지역" : "비규제지역"}
-	                    </p>
-	                  </div>
-	                  <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-	                    {regionPolicySummary}
-	                  </p>
-	                </div>
-	              </div>
+		                  <div className="flex justify-between items-center w-full">
+		                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+		                      적용 구분
+		                    </p>
+		                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+		                      {isRegulatedRegion ? "규제지역" : "비규제지역"}
+		                    </p>
+		                  </div>
+		                  <div className="flex justify-between items-center w-full">
+		                    <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
+		                      가격구간별 한도 적용 금액
+		                    </p>
+		                    <p className="text-[#212529] text-[15px] font-medium leading-[22px]">
+		                      {isLatestPolicy && isRegulatedRegion
+		                        ? formatToKorean(calculationResult.living.mortgageLimit)
+		                        : "미적용"}
+		                    </p>
+		                  </div>
+		                  <p className="text-[#868E96] text-[14px] font-normal leading-5 tracking-[-0.14px]">
+		                    {regionPolicySummary}
+		                  </p>
+		                </div>
+		              </div>
 
 	              <div className="mb-6">
 	                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
@@ -1806,7 +1853,7 @@ export default function FinalResultPage() {
                         : formatToKorean(stressDSRResult.capital.mortgageLimit)}
                     </p>
                   </div>
-                  <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
+                  <p className="text-[#868E96] text-[14px] font-normal leading-5 tracking-[-0.14px]">
                     {isLatestPolicy
                       ? "2025.10.15 최신 정책 (스트레스 DSR 3.0%, 가격별 한도 제한)"
                       : isNewRegulation627
@@ -1823,10 +1870,10 @@ export default function FinalResultPage() {
               </div>
 
               {/* 월 상환액 섹션 - 실거주 시 */}
-              <div className="mb-6">
-                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
-                  월 상환액 (원금+이자)
-                </h3>
+	              <div className="mb-6">
+	                <h3 className="text-[#212529] text-base font-bold leading-6 tracking-[-0.16px] mb-2">
+	                  월 상환액 (원금+이자)
+	                </h3>
                 <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA]">
                   <div className="flex justify-between items-center w-full">
                     <p className="text-[#495057] text-[15px] font-normal leading-[22px] tracking-[-0.3px]">
@@ -1840,13 +1887,14 @@ export default function FinalResultPage() {
                       {formatToKorean(stressDSRResult.actual.monthlyRepayment)}
                     </p>
                   </div>
-                  <p className="text-[#868E96] text-[13px] font-normal leading-[18px] tracking-[-0.26px]">
-                    월 상환액은 월상환 실제금리 3.5% 기준으로 계산합니다.
-                  </p>
-                </div>
-              </div>
-            </>
-          )}
+	                  <p className="text-[#868E96] text-[14px] font-normal leading-5 tracking-[-0.14px]">
+	                    월 상환액은 월상환 실제금리 3.5% 기준으로 계산합니다.
+	                  </p>
+	                </div>
+	              </div>
+
+	            </>
+	          )}
 
           {/* 보유자산 섹션 - 공통 */}
           <div className="mb-40">
@@ -1894,7 +1942,7 @@ export default function FinalResultPage() {
 
       {showGapPolicyModal && (
         <div className="fixed inset-0 z-[60] flex items-end bg-black/40">
-          <div className="w-full bg-white rounded-t-2xl p-5 pb-[calc(20px+env(safe-area-inset-bottom))]">
+          <div className="w-full max-w-[430px] mx-auto bg-white rounded-t-2xl p-5 pb-[calc(20px+env(safe-area-inset-bottom))]">
             <div className="flex items-start justify-between gap-4 mb-3">
               <h3 className="text-grey-100 text-base font-bold">
                 갭투자 관련 정책 안내

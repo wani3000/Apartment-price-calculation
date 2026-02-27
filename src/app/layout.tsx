@@ -84,7 +84,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.png" />
         {/* Google AdSense는 정적 빌드 시 제외됨 - iOS 앱에서는 표시 안 됨 */}
       </head>
-      <body className="font-pretendard">
+      <body className="font-pretendard" data-platform="web">
         <StatusBarConfig />
         <RouteAccessGuard />
         <div id="app-web-frame">

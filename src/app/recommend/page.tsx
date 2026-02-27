@@ -219,9 +219,8 @@ export default function RecommendPage() {
     if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
       return value;
     }
-    // 2자리 연도는 2000년대로 해석 (예: 26-01-13 -> 2026년 1월 13일)
     if (year < 100) year += 2000;
-    return `${year}년 ${month}월 ${day}일`;
+    return `${year}.${String(month).padStart(2, "0")}.${String(day).padStart(2, "0")}`;
   };
 
   const getPyeongValue = (areaSqm?: number) => {
@@ -630,7 +629,7 @@ export default function RecommendPage() {
 
             {isLoadingRecommendations && (
               <div
-                className="w-full flex flex-col items-center justify-center text-center gap-3"
+                className="w-full flex flex-col items-center justify-start text-center gap-3 pt-[120px]"
                 style={{
                   minHeight:
                     "calc(100dvh - (max(16px, env(safe-area-inset-top)) + 60px) - var(--tab-page-content-bottom-safe) - 80px)",
@@ -794,7 +793,7 @@ export default function RecommendPage() {
               </button>
             </div>
             <div
-              className="px-5 pb-4 overflow-y-auto space-y-2"
+              className="modal-scroll-area px-5 pb-4 overflow-y-auto space-y-2"
               style={{
                 maxHeight: "calc(70dvh - 96px)",
                 WebkitOverflowScrolling: "touch",

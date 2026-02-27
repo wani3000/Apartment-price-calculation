@@ -54,7 +54,7 @@ const formatDateOrDash = (value?: string) => {
     return value;
   }
   if (year < 100) year += 2000;
-  return `${year}년 ${month}월 ${day}일`;
+  return `${year}.${String(month).padStart(2, "0")}.${String(day).padStart(2, "0")}`;
 };
 
 const formatCompactDate = (value?: string) => {
@@ -241,9 +241,32 @@ export default function RecommendDetailPage() {
               </div>
 
               {isLoadingHistory && (
-                <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA] mb-3">
-                  <p className="text-[#495057] text-[15px] font-medium leading-[22px]">
-                    거래 이력을 불러오는 중이에요...
+                <div className="flex flex-col items-center justify-center text-center gap-3 mb-3 py-8">
+                  <svg
+                    className="animate-spin"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-label="loading"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="9"
+                      stroke="#DEE2E6"
+                      strokeWidth="3"
+                    />
+                    <path
+                      d="M21 12A9 9 0 0 0 12 3"
+                      stroke="#212529"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <p className="text-[#495057] text-[13px] font-medium leading-[18px] tracking-[-0.13px]">
+                    최근 실거래가를 불러올게요!
                   </p>
                 </div>
               )}
@@ -255,22 +278,22 @@ export default function RecommendDetailPage() {
                 </div>
               )}
               {!isLoadingHistory && !historyError && (
-                <div className="rounded-2xl bg-[#F8F9FA] overflow-hidden mb-3">
-                  <div className="px-4 py-3 border-b border-[#E9ECEF]">
+                <div className="overflow-hidden mb-3">
+                  <div className="py-3 border-b border-[#E9ECEF]">
                     <h3 className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
                       최근 거래
                     </h3>
                   </div>
-                  <div className="px-4 py-3 grid grid-cols-[170px_1fr_104px] items-center gap-x-5 border-b border-[#E9ECEF]">
+                  <div className="py-3 grid grid-cols-[minmax(0,160px)_minmax(0,1fr)_minmax(0,96px)] items-center gap-x-4 border-b border-[#E9ECEF]">
                     <p className="text-[#495057] text-[13px] font-medium whitespace-nowrap">계약일</p>
                     <p className="text-[#495057] text-[13px] font-medium whitespace-nowrap">면적(공급)</p>
-                    <p className="text-[#495057] text-[13px] font-medium text-right">가격</p>
+                    <p className="text-[#495057] text-[13px] font-medium text-right justify-self-end w-full max-w-[96px]">가격</p>
                   </div>
                   {tradeRows.length > 0 ? (
                     tradeRows.map((trade, index) => (
                       <div
                         key={`${trade.tradeDate}-${trade.priceWon}-${trade.floor ?? "na"}-${index}`}
-                        className="px-4 py-4 grid grid-cols-[170px_1fr_104px] items-center gap-x-5 border-b border-[#E9ECEF] last:border-b-0"
+                        className="py-4 grid grid-cols-[minmax(0,160px)_minmax(0,1fr)_minmax(0,96px)] items-center gap-x-4 border-b border-[#E9ECEF] last:border-b-0"
                       >
                         <p className="text-[#343A40] text-[14px] font-medium leading-5 whitespace-nowrap">
                           {formatCompactDate(trade.contractDate || trade.tradeDate)}
@@ -278,11 +301,11 @@ export default function RecommendDetailPage() {
                         <p className="text-[#343A40] text-[14px] font-medium leading-5 whitespace-nowrap">
                           {formatAreaCell(trade)}
                         </p>
-                        <div className="text-right">
+                        <div className="text-right justify-self-end w-full max-w-[96px] overflow-hidden">
                           <p className="text-[#212529] text-[14px] font-bold leading-5 tracking-[-0.14px] whitespace-nowrap">
                             {formatToKoreanWon(trade.priceWon).replace("만 원", "")}
                           </p>
-                          <p className="text-[#343A40] text-[14px] font-medium leading-5">
+                          <p className="text-[#343A40] text-[14px] font-medium leading-5 whitespace-nowrap">
                             {trade.floor !== undefined ? `${trade.floor}층` : "-"}
                           </p>
                         </div>

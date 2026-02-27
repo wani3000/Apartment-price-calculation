@@ -144,21 +144,30 @@ body {
         background: #ffffff;
         min-height: 100vh;
         height: auto;
+        overflow-x: clip;
     }
 
     body[data-platform="web"] .app-header-shell,
     body[data-platform="web"] .app-bottom-tab,
     body[data-platform="web"] .bottom-cta-container {
-        left: 50%;
-        right: auto;
-        width: 430px;
+        left: 0;
+        right: 0;
+        width: min(100%, 430px);
+        margin-left: auto;
+        margin-right: auto;
         box-sizing: border-box;
-        transform: translateX(-50%);
+        transform: none;
     }
 
     /* 데스크탑 웹에서는 프레임 내부가 아닌 문서 전체 스크롤을 사용 */
     body[data-platform="web"] #app-web-frame .overflow-y-auto {
         overflow-y: visible !important;
+    }
+
+    /* 모달 내부 스크롤은 데스크탑 웹에서도 유지 */
+    body[data-platform="web"] #app-web-frame .modal-scroll-area {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
     }
 
     body[data-platform="web"] #app-web-frame .overflow-hidden {
@@ -168,6 +177,13 @@ body {
     body[data-platform="web"] #app-web-frame .h-\[100dvh\] {
         height: auto !important;
         min-height: 100vh !important;
+    }
+}
+
+/* platform dataset이 늦게 붙는 초기 렌더에서도 데스크탑 내부 스크롤로 인한 축 틀어짐 방지 */
+@media (min-width: 768px) {
+    #app-web-frame .overflow-y-auto {
+        overflow-y: visible !important;
     }
 }
 
@@ -251,6 +267,18 @@ body::before {
     justify-content: center;
     align-items: center;
     gap: 8px;
+}
+
+/* horizontal filter rail: keep scrolling, hide visual scrollbar */
+.no-scrollbar {
+    -ms-overflow-style: none; /* IE and old Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/WebView */
+    width: 0;
+    height: 0;
 }
 
 .dot {

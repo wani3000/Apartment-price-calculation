@@ -300,30 +300,25 @@ export default function Home() {
 
         <div className="w-full max-w-md px-5 mx-auto mt-8 pb-6 space-y-5">
           <button
-            onClick={() =>
-              hasCalculatorData
-                ? pushHomeEntry("/result/final")
-                : pushHomeEntry(calculatorEntryPath)
-            }
+            onClick={() => router.push("/loan-calculator")}
             className="w-full bg-white rounded-2xl px-4 py-3 flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full bg-[#EDF3FF] flex items-center justify-center">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M6 3.5H15.5L19 7V20.5H6V3.5Z" fill="#8CC8FF" />
-                  <path d="M15.5 3.5V7H19" fill="#66B9FF" />
-                  <rect x="8.2" y="10.2" width="8.8" height="2" rx="1" fill="#2F8EF5" />
-                  <rect x="8.2" y="13.8" width="6.4" height="2" rx="1" fill="#2F8EF5" />
+                  <rect x="5" y="3.5" width="14" height="17" rx="2" fill="#8CC8FF" />
+                  <rect x="8" y="6.5" width="8" height="2" rx="1" fill="#2F8EF5" />
+                  <rect x="8" y="10.5" width="3" height="3" rx="0.8" fill="#2F8EF5" />
+                  <rect x="13" y="10.5" width="3" height="3" rx="0.8" fill="#2F8EF5" />
+                  <rect x="8" y="14.5" width="8" height="2" rx="1" fill="#2F8EF5" />
                 </svg>
               </div>
               <div className="text-left">
                 <p className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
-                  {hasCalculatorData ? "내 결과 페이지" : "소득·자산 입력"}
+                  대출계산기
                 </p>
                 <p className="text-[#868E96] text-base font-normal leading-6">
-                  {hasCalculatorData
-                    ? "계산된 최대 구매 금액을 확인해요"
-                    : "내 정보를 입력하고 바로 계산해요"}
+                  대출을 쉽게 계산할 수 있어요
                 </p>
               </div>
             </div>
