@@ -265,11 +265,9 @@ export default function RecommendPage() {
     const defaultSiDo = policyRegionDetails.siDo || "서울";
     const rawSiGunGu = policyRegionDetails.siGunGu || "";
     const defaultSiGunGu =
-      typeof rawSiGunGu === "string" &&
-      rawSiGunGu.trim() &&
-      !rawSiGunGu.includes("전체")
+      typeof rawSiGunGu === "string" && rawSiGunGu.trim()
         ? rawSiGunGu
-        : FALLBACK_SIGUNGU_BY_SIDO[defaultSiDo] || "강남구";
+        : `${defaultSiDo} 전체`;
     const gu = policyRegionDetails.gu || "";
     const selectedRegion =
       selectedRegionRaw === "non-regulated" ? "non-regulated" : "regulated";
@@ -774,10 +772,14 @@ export default function RecommendPage() {
       </div>
 
       {activeFilterModal && (
-        <div className="fixed inset-0 z-[90] bg-black/45 flex items-end">
+        <div
+          className="fixed inset-0 z-[90] bg-black/45 flex items-end"
+          onClick={() => setActiveFilterModal(null)}
+        >
           <div
             className="w-full max-w-[430px] mx-auto bg-white rounded-t-[24px] max-h-[70dvh] overflow-hidden"
             style={{ paddingBottom: "max(20px, env(safe-area-inset-bottom))" }}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="h-1.5 w-10 bg-[#DEE2E6] rounded-full mx-auto mt-3 mb-4" />
             <div className="px-5 pb-2 flex items-center justify-between">

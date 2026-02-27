@@ -108,23 +108,25 @@ export default function LoanCalculatorResultPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-[#F8F9FA] overflow-hidden mb-6">
-          <div className="grid grid-cols-[56px_1fr_1fr] px-4 py-3 border-b border-[#E9ECEF]">
-            <p className="text-[#495057] text-[13px] font-medium">회차</p>
+        <div className="overflow-hidden mb-6">
+          <div className="grid grid-cols-3 py-3 border-b border-[#E9ECEF]">
+            <p className="text-[#495057] text-[13px] font-medium">원금</p>
+            <p className="text-[#495057] text-[13px] font-medium text-right">이자</p>
             <p className="text-[#495057] text-[13px] font-medium text-right">납입금</p>
-            <p className="text-[#495057] text-[13px] font-medium text-right">잔액</p>
           </div>
           {previewRows.map((row) => (
             <div
               key={row.month}
-              className="grid grid-cols-[56px_1fr_1fr] px-4 py-3 border-b border-[#E9ECEF] last:border-b-0"
+              className="grid grid-cols-3 py-3 border-b border-[#E9ECEF] last:border-b-0"
             >
-              <p className="text-[#495057] text-[14px]">{row.month}</p>
-              <p className="text-[#212529] text-[14px] text-right">
-                {formatToKoreanWon(row.paymentWon)}
+              <p className="text-[#212529] text-[14px]">
+                {formatToKoreanWon(row.principalWon)}
               </p>
               <p className="text-[#212529] text-[14px] text-right">
-                {formatToKoreanWon(row.balanceWon)}
+                {formatToKoreanWon(row.interestWon)}
+              </p>
+              <p className="text-[#212529] text-[14px] text-right">
+                {formatToKoreanWon(row.paymentWon)}
               </p>
             </div>
           ))}
@@ -145,4 +147,3 @@ export default function LoanCalculatorResultPage() {
     </div>
   );
 }
-
