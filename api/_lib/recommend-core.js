@@ -601,7 +601,7 @@ export const apartmentRentHistory = async (req, res) => {
 
     const currentYm = getCurrentYearMonthKst();
     const months = [];
-    for (let offset = 0; offset < 12; offset += 1) {
+    for (let offset = 0; offset < 24; offset += 1) {
       months.push(monthShift(currentYm, -offset));
     }
     const settled = await Promise.allSettled(
