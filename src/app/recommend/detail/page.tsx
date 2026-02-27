@@ -182,7 +182,7 @@ export default function RecommendDetailPage() {
           const trades = Array.isArray(tradeHistoryResult.value.trades)
             ? tradeHistoryResult.value.trades
             : [];
-          setTradeRows(trades.slice(0, 5));
+          setTradeRows(trades.slice(0, 10));
         } else {
           setTradeRows([]);
         }
@@ -194,8 +194,8 @@ export default function RecommendDetailPage() {
           const monthly = Array.isArray(rentHistoryResult.value.monthly)
             ? rentHistoryResult.value.monthly
             : [];
-          setJeonseRows(jeonse.slice(0, 5));
-          setMonthlyRows(monthly.slice(0, 5));
+          setJeonseRows(jeonse.slice(0, 10));
+          setMonthlyRows(monthly.slice(0, 10));
         } else {
           setJeonseRows([]);
           setMonthlyRows([]);
@@ -259,7 +259,7 @@ export default function RecommendDetailPage() {
                 매매 추천 아파트 상세
               </h2>
               <p className="text-grey-80 text-sm font-normal leading-5 tracking-[-0.28px] mb-4">
-                최근 실거래 내역을 최대 5건까지 보여줘요.
+                최근 실거래 내역을 최대 10건까지 보여줘요.
               </p>
 
               <div className="flex flex-col p-4 gap-2 rounded-2xl bg-[#F8F9FA] mb-4">

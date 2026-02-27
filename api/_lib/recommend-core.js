@@ -539,7 +539,7 @@ export const apartmentTradeHistory = async (req, res) => {
     const recentTrades = await collectRecentTrades({
       regionCode,
       currentYm,
-      monthCount: 12,
+      monthCount: 60,
       numOfRows: 300,
       maxTrades: 1200,
     });
@@ -570,7 +570,7 @@ export const apartmentTradeHistory = async (req, res) => {
 
     const latestTrade = sorted[0] || null;
     const previousTrade = sorted[1] || null;
-    const payload = { aptName, regionCode, latestTrade, previousTrade, trades: sorted.slice(0, 5) };
+    const payload = { aptName, regionCode, latestTrade, previousTrade, trades: sorted.slice(0, 10) };
     setCachedValue(historyCacheKey, payload, HISTORY_CACHE_TTL_MS);
     return res.status(200).json(payload);
   } catch (error) {
@@ -601,7 +601,7 @@ export const apartmentRentHistory = async (req, res) => {
 
     const currentYm = getCurrentYearMonthKst();
     const months = [];
-    for (let offset = 0; offset < 24; offset += 1) {
+    for (let offset = 0; offset < 60; offset += 1) {
       months.push(monthShift(currentYm, -offset));
     }
     const settled = await Promise.allSettled(
@@ -635,8 +635,8 @@ export const apartmentRentHistory = async (req, res) => {
       return (b.depositWon || b.priceWon || 0) - (a.depositWon || a.priceWon || 0);
     });
 
-    const jeonse = sorted.filter((item) => !item.monthlyRentWon || item.monthlyRentWon <= 0).slice(0, 5);
-    const monthly = sorted.filter((item) => item.monthlyRentWon && item.monthlyRentWon > 0).slice(0, 5);
+    const jeonse = sorted.filter((item) => !item.monthlyRentWon || item.monthlyRentWon <= 0).slice(0, 10);
+    const monthly = sorted.filter((item) => item.monthlyRentWon && item.monthlyRentWon > 0).slice(0, 10);
     const payload = { aptName, regionCode, jeonse, monthly, rents: sorted.slice(0, 10) };
     setCachedValue(historyCacheKey, payload, RENT_HISTORY_CACHE_TTL_MS);
     return res.status(200).json(payload);
