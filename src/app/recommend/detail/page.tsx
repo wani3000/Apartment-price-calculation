@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import {
+  fetchApartmentRentHistoryFromMcp,
   fetchApartmentTradeHistoryFromMcp,
   type RecommendedApartment,
+  type RecommendedRentApartment,
 } from "@/utils/mcpRecommendations";
 
 const FALLBACK_SIGUNGU_BY_SIDO: Record<string, string> = {
@@ -41,6 +43,16 @@ const formatPyeong = (areaSqm?: number) => {
   if (!areaSqm || areaSqm <= 0) return "-";
   return `${(areaSqm / 3.3058).toFixed(1)}평`;
 };
+
+const formatLocation = (item: {
+  siDo?: string;
+  siGunGu?: string;
+  dong?: string;
+}) =>
+  [item.siDo, item.siGunGu, item.dong]
+    .map((part) => (part || "").trim())
+    .filter(Boolean)
+    .join(" ");
 
 const formatDateOrDash = (value?: string) => {
   if (!value || !value.trim()) return "-";
@@ -80,8 +92,13 @@ export default function RecommendDetailPage() {
   const searchParams = useSearchParams();
   const [apartment, setApartment] = useState<RecommendedApartment | null>(null);
   const [tradeRows, setTradeRows] = useState<RecommendedApartment[]>([]);
+  const [jeonseRows, setJeonseRows] = useState<RecommendedRentApartment[]>([]);
+  const [monthlyRows, setMonthlyRows] = useState<RecommendedRentApartment[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyTab, setHistoryTab] = useState<"trade" | "jeonse" | "monthly">(
+    "trade",
+  );
 
   useEffect(() => {
     const stored = localStorage.getItem("selectedRecommendationApartment");
@@ -142,16 +159,58 @@ export default function RecommendDetailPage() {
       setIsLoadingHistory(true);
       setHistoryError(null);
       try {
-        const history = await fetchApartmentTradeHistoryFromMcp({
-          aptName: apartment.aptName,
-          siDo,
-          siGunGu,
-          dong: apartment.dong,
-          floor: apartment.floor,
-          areaSqm: apartment.areaSqm,
-        });
-        const trades = Array.isArray(history.trades) ? history.trades : [];
-        setTradeRows(trades.slice(0, 5));
+        const [tradeHistoryResult, rentHistoryResult] = await Promise.allSettled([
+          fetchApartmentTradeHistoryFromMcp({
+            aptName: apartment.aptName,
+            siDo,
+            siGunGu,
+            dong: apartment.dong,
+            floor: apartment.floor,
+            areaSqm: apartment.areaSqm,
+          }),
+          fetchApartmentRentHistoryFromMcp({
+            aptName: apartment.aptName,
+            siDo,
+            siGunGu,
+            dong: apartment.dong,
+            floor: apartment.floor,
+            areaSqm: apartment.areaSqm,
+          }),
+        ]);
+
+        if (tradeHistoryResult.status === "fulfilled") {
+          const trades = Array.isArray(tradeHistoryResult.value.trades)
+            ? tradeHistoryResult.value.trades
+            : [];
+          setTradeRows(trades.slice(0, 5));
+        } else {
+          setTradeRows([]);
+        }
+
+        if (rentHistoryResult.status === "fulfilled") {
+          const jeonse = Array.isArray(rentHistoryResult.value.jeonse)
+            ? rentHistoryResult.value.jeonse
+            : [];
+          const monthly = Array.isArray(rentHistoryResult.value.monthly)
+            ? rentHistoryResult.value.monthly
+            : [];
+          setJeonseRows(jeonse.slice(0, 5));
+          setMonthlyRows(monthly.slice(0, 5));
+        } else {
+          setJeonseRows([]);
+          setMonthlyRows([]);
+        }
+
+        if (
+          tradeHistoryResult.status === "rejected" &&
+          rentHistoryResult.status === "rejected"
+        ) {
+          const message =
+            tradeHistoryResult.reason instanceof Error
+              ? tradeHistoryResult.reason.message
+              : "거래 이력 조회에 실패했습니다.";
+          setHistoryError(message);
+        }
       } catch (error) {
         setHistoryError(
           error instanceof Error ? error.message : "거래 이력 조회에 실패했습니다.",
@@ -209,7 +268,7 @@ export default function RecommendDetailPage() {
                 </p>
                 <p className="text-[#495057] text-[18px] font-medium leading-7 tracking-[-0.18px]">
                   {[
-                    apartment.dong || "-",
+                    formatLocation(apartment) || "-",
                     formatPyeong(apartment.areaSqm),
                     apartment.floor !== undefined ? `${apartment.floor}층` : "-",
                   ].join(" · ")}
@@ -279,18 +338,65 @@ export default function RecommendDetailPage() {
               )}
               {!isLoadingHistory && !historyError && (
                 <div className="overflow-hidden mb-3">
-                  <div className="py-3 border-b border-[#E9ECEF]">
+                  <div className="py-3">
                     <h3 className="text-[#212529] text-[18px] font-bold leading-7 tracking-[-0.18px]">
                       최근 거래
                     </h3>
                   </div>
+                  <div className="flex border-b border-[#E9ECEF]">
+                    <button
+                      type="button"
+                      onClick={() => setHistoryTab("trade")}
+                      className={`flex-1 py-[10px] text-center text-[15px] ${
+                        historyTab === "trade"
+                          ? "border-b-2 border-[#000000] text-[#000000] font-bold"
+                          : "text-[#868E96] font-medium"
+                      }`}
+                    >
+                      매매
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHistoryTab("jeonse")}
+                      className={`flex-1 py-[10px] text-center text-[15px] ${
+                        historyTab === "jeonse"
+                          ? "border-b-2 border-[#000000] text-[#000000] font-bold"
+                          : "text-[#868E96] font-medium"
+                      }`}
+                    >
+                      전세
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHistoryTab("monthly")}
+                      className={`flex-1 py-[10px] text-center text-[15px] ${
+                        historyTab === "monthly"
+                          ? "border-b-2 border-[#000000] text-[#000000] font-bold"
+                          : "text-[#868E96] font-medium"
+                      }`}
+                    >
+                      월세
+                    </button>
+                  </div>
                   <div className="py-3 grid grid-cols-[minmax(0,160px)_minmax(0,1fr)_minmax(0,96px)] items-center gap-x-4 border-b border-[#E9ECEF]">
                     <p className="text-[#495057] text-[13px] font-medium whitespace-nowrap">계약일</p>
                     <p className="text-[#495057] text-[13px] font-medium whitespace-nowrap">면적(공급)</p>
-                    <p className="text-[#495057] text-[13px] font-medium text-right justify-self-end w-full max-w-[96px]">가격</p>
+                    <p className="text-[#495057] text-[13px] font-medium text-right justify-self-end w-full max-w-[96px]">
+                      {historyTab === "trade" ? "가격" : "보증금/월세"}
+                    </p>
                   </div>
-                  {tradeRows.length > 0 ? (
-                    tradeRows.map((trade, index) => (
+                  {(historyTab === "trade"
+                    ? tradeRows
+                    : historyTab === "jeonse"
+                      ? jeonseRows
+                      : monthlyRows
+                  ).length > 0 ? (
+                    (historyTab === "trade"
+                      ? tradeRows
+                      : historyTab === "jeonse"
+                        ? jeonseRows
+                        : monthlyRows
+                    ).map((trade, index) => (
                       <div
                         key={`${trade.tradeDate}-${trade.priceWon}-${trade.floor ?? "na"}-${index}`}
                         className="py-4 grid grid-cols-[minmax(0,160px)_minmax(0,1fr)_minmax(0,96px)] items-center gap-x-4 border-b border-[#E9ECEF] last:border-b-0"
@@ -303,7 +409,19 @@ export default function RecommendDetailPage() {
                         </p>
                         <div className="text-right justify-self-end w-full max-w-[96px] overflow-hidden">
                           <p className="text-[#212529] text-[14px] font-bold leading-5 tracking-[-0.14px] whitespace-nowrap">
-                            {formatToKoreanWon(trade.priceWon).replace("만 원", "")}
+                            {historyTab === "trade"
+                              ? formatToKoreanWon(trade.priceWon).replace("만 원", "")
+                              : historyTab === "jeonse"
+                                ? formatToKoreanWon(
+                                    (trade as RecommendedRentApartment).depositWon ||
+                                      trade.priceWon,
+                                  ).replace("만 원", "")
+                                : `${formatToKoreanWon(
+                                    (trade as RecommendedRentApartment).depositWon ||
+                                      trade.priceWon,
+                                  ).replace("만 원", "")} / ${formatToKoreanWon(
+                                    (trade as RecommendedRentApartment).monthlyRentWon || 0,
+                                  ).replace("만 원", "")}`}
                           </p>
                           <p className="text-[#343A40] text-[14px] font-medium leading-5 whitespace-nowrap">
                             {trade.floor !== undefined ? `${trade.floor}층` : "-"}
@@ -314,7 +432,11 @@ export default function RecommendDetailPage() {
                   ) : (
                     <div className="px-4 py-6">
                       <p className="text-[#495057] text-[15px] font-normal leading-[22px]">
-                        최근 거래 내역이 없어요.
+                        {historyTab === "trade"
+                          ? "최근 매매 거래 내역이 없어요."
+                          : historyTab === "jeonse"
+                            ? "최근 전세 거래 내역이 없어요."
+                            : "최근 월세 거래 내역이 없어요."}
                       </p>
                     </div>
                   )}

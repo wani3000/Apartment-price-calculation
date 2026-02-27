@@ -16,12 +16,26 @@ export type RecommendedApartment = {
   rawFields?: Record<string, string | number | boolean>;
 };
 
+export type RecommendedRentApartment = RecommendedApartment & {
+  depositWon?: number;
+  monthlyRentWon?: number;
+  rentType?: "jeonse" | "monthly";
+};
+
 export type ApartmentTradeHistory = {
   aptName: string;
   regionCode?: string;
   latestTrade?: RecommendedApartment | null;
   previousTrade?: RecommendedApartment | null;
   trades?: RecommendedApartment[];
+};
+
+export type ApartmentRentHistory = {
+  aptName: string;
+  regionCode?: string;
+  jeonse?: RecommendedRentApartment[];
+  monthly?: RecommendedRentApartment[];
+  rents?: RecommendedRentApartment[];
 };
 
 const DEFAULT_LOCAL_PROXY_URL = "http://127.0.0.1:8787";
@@ -248,5 +262,37 @@ export async function fetchApartmentTradeHistoryFromMcp(params: {
     latestTrade: data?.latestTrade || null,
     previousTrade: data?.previousTrade || null,
     trades: Array.isArray(data?.trades) ? data.trades : [],
+  };
+}
+
+export async function fetchApartmentRentHistoryFromMcp(params: {
+  aptName: string;
+  siDo: string;
+  siGunGu: string;
+  dong?: string;
+  floor?: number;
+  areaSqm?: number;
+}): Promise<ApartmentRentHistory> {
+  const data = await postWithFallback(
+    "/apartments/rent-history",
+    {
+      aptName: params.aptName,
+      region: {
+        siDo: params.siDo,
+        siGunGu: params.siGunGu,
+      },
+      dong: params.dong,
+      floor: params.floor,
+      areaSqm: params.areaSqm,
+    },
+    "전세/월세 이력 조회에 실패했습니다.",
+  );
+
+  return {
+    aptName: String(data?.aptName || params.aptName),
+    regionCode: data?.regionCode,
+    jeonse: Array.isArray(data?.jeonse) ? data.jeonse : [],
+    monthly: Array.isArray(data?.monthly) ? data.monthly : [],
+    rents: Array.isArray(data?.rents) ? data.rents : [],
   };
 }

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const APT_TRADE_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade";
+const APT_RENT_URL = "https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent";
 const REGION_FILE = path.join(process.cwd(), "api", "_lib", "region_codes.txt");
 const FALLBACK_SIGUNGU_BY_SIDO = {
   서울: "강남구",
@@ -28,6 +29,8 @@ const TRADE_CACHE_TTL_MS = 5 * 60 * 1000;
 const RECOMMEND_CACHE_TTL_MS = 3 * 60 * 1000;
 const LATEST_CACHE_TTL_MS = 2 * 60 * 1000;
 const HISTORY_CACHE_TTL_MS = 3 * 60 * 1000;
+const RENT_CACHE_TTL_MS = 5 * 60 * 1000;
+const RENT_HISTORY_CACHE_TTL_MS = 3 * 60 * 1000;
 
 const getCacheStores = () => {
   const scoped = globalThis;
@@ -202,6 +205,77 @@ const parseItemsFromXml = (xmlText) => {
   return items;
 };
 
+const parseRentItemsFromXml = (xmlText) => {
+  const resultCode = getTagValue(xmlText, "resultCode");
+  const resultMsg = getTagValue(xmlText, "resultMsg");
+  if (resultCode && resultCode !== "000") {
+    throw new Error(`공공데이터 API 오류(${resultCode}): ${resultMsg || "요청 실패"}`);
+  }
+
+  const items = [];
+  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+  let match;
+  while ((match = itemRegex.exec(xmlText)) !== null) {
+    const block = match[1];
+    const aptName = getFirstTagValue(block, ["아파트", "aptNm"]);
+    const depositAmount = getFirstTagValue(block, ["보증금액", "deposit", "depositAmount"]);
+    const monthlyRentAmount = getFirstTagValue(block, ["월세금액", "monthlyRent", "monthlyRentAmount"]);
+    const areaText = getFirstTagValue(block, ["전용면적", "excluUseAr"]);
+    const floorText = getFirstTagValue(block, ["층", "floor"]);
+    const year = getFirstTagValue(block, ["년", "dealYear"]);
+    const month = getFirstTagValue(block, ["월", "dealMonth"]);
+    const day = getFirstTagValue(block, ["일", "dealDay"]);
+
+    const deposit10k = parseNumber(depositAmount);
+    const monthlyRent10k = parseNumber(monthlyRentAmount);
+    const depositWon = deposit10k === null ? null : Math.round(deposit10k * 10000);
+    const monthlyRentWon = monthlyRent10k === null ? 0 : Math.round(monthlyRent10k * 10000);
+    if (!aptName || !depositWon) continue;
+
+    const y = String(parseNumber(year) || "");
+    const m = String(parseNumber(month) || "").padStart(2, "0");
+    const d = String(parseNumber(day) || "").padStart(2, "0");
+    const tradeDate = y && m && d ? `${y}-${m}-${d}` : undefined;
+
+    const areaSqm = parseNumber(areaText);
+    const floor = parseNumber(floorText);
+    const buildYear = parseNumber(
+      getFirstTagValue(block, ["건축년도", "buildYear"]),
+    );
+    const dong =
+      getFirstTagValue(block, ["법정동", "umdNm", "dong"]) || undefined;
+    const rentType = monthlyRentWon > 0 ? "monthly" : "jeonse";
+
+    items.push({
+      aptName,
+      dong,
+      areaSqm: areaSqm === null ? undefined : areaSqm,
+      floor: floor === null ? undefined : floor,
+      buildYear: buildYear === null ? undefined : buildYear,
+      tradeDate,
+      contractDate: tradeDate,
+      registrationDate: undefined,
+      priceWon: depositWon,
+      depositWon,
+      monthlyRentWon,
+      rentType,
+      rawFields: {
+        apartment_name: aptName,
+        dong: dong || "",
+        exclu_use_ar: areaSqm ?? "",
+        floor: floor ?? "",
+        build_year: buildYear ?? "",
+        deposit_amount: deposit10k ?? "",
+        monthly_rent_amount: monthlyRent10k ?? "",
+        deal_year: y || "",
+        deal_month: m || "",
+        deal_day: d || "",
+      },
+    });
+  }
+  return items;
+};
+
 const getApiKey = () => {
   const key = (process.env.DATA_GO_KR_API_KEY || "").trim();
   if (!key) {
@@ -230,6 +304,29 @@ const fetchApartmentTrades = async (regionCode, yearMonth, numOfRows = 200, page
     const xmlText = await response.text();
     const items = parseItemsFromXml(xmlText);
     setCachedValue(cacheKey, items, TRADE_CACHE_TTL_MS);
+    return items;
+  });
+};
+
+const fetchApartmentRents = async (regionCode, yearMonth, numOfRows = 200, pageNo = 1) => {
+  const cacheKey = `rent:${regionCode}:${yearMonth}:${numOfRows}:${pageNo}`;
+  const cached = getCachedValue(cacheKey);
+  if (cached) return cached;
+
+  return withInflightDedup(cacheKey, async () => {
+    const serviceKey = getApiKey();
+    const url = `${APT_RENT_URL}?serviceKey=${serviceKey}&LAWD_CD=${encodeURIComponent(regionCode)}&DEAL_YMD=${encodeURIComponent(yearMonth)}&numOfRows=${encodeURIComponent(String(numOfRows))}&pageNo=${encodeURIComponent(String(pageNo))}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/xml, text/xml;q=0.9, */*;q=0.8" },
+    });
+    if (!response.ok) {
+      throw new Error(`전월세 API HTTP 오류: ${response.status}`);
+    }
+    const xmlText = await response.text();
+    const items = parseRentItemsFromXml(xmlText);
+    setCachedValue(cacheKey, items, RENT_CACHE_TTL_MS);
     return items;
   });
 };
@@ -479,5 +576,72 @@ export const apartmentTradeHistory = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: error instanceof Error ? error.message : "아파트 거래 이력 조회 중 오류가 발생했습니다." });
+  }
+};
+
+export const apartmentRentHistory = async (req, res) => {
+  try {
+    const aptName = String(req.body?.aptName || "").trim();
+    const siDo = String(req.body?.region?.siDo || "").trim();
+    const siGunGu = normalizeSiGunGu(siDo, req.body?.region?.siGunGu);
+    const dong = String(req.body?.dong || "").trim();
+    const floor = parseNumber(req.body?.floor);
+    const areaSqm = parseNumber(req.body?.areaSqm);
+
+    if (!aptName || !siDo || !siGunGu) {
+      return res.status(400).json({ error: "aptName, region.siDo, region.siGunGu가 필요합니다." });
+    }
+
+    const { regionCode } = searchRegionCode(`${siDo} ${siGunGu}`);
+    const historyCacheKey = `rentHistory:${regionCode}:${aptName}:${dong}:${String(floor ?? "")}:${String(areaSqm ?? "")}`;
+    const cachedHistory = getCachedValue(historyCacheKey);
+    if (cachedHistory) {
+      return res.status(200).json(cachedHistory);
+    }
+
+    const currentYm = getCurrentYearMonthKst();
+    const months = [];
+    for (let offset = 0; offset < 12; offset += 1) {
+      months.push(monthShift(currentYm, -offset));
+    }
+    const settled = await Promise.allSettled(
+      months.map((ym) => fetchApartmentRents(regionCode, ym, 300, 1)),
+    );
+
+    const dedupe = new Set();
+    const rows = [];
+    for (const result of settled) {
+      if (result.status !== "fulfilled") continue;
+      for (const item of result.value) {
+        if (item.aptName !== aptName) continue;
+        if (dong && item.dong && item.dong !== dong) continue;
+        if (areaSqm !== null && item.areaSqm !== undefined && Math.abs(item.areaSqm - areaSqm) > 0.3) continue;
+        const key = `${item.aptName}|${item.dong || ""}|${item.areaSqm || ""}|${item.floor || ""}|${item.tradeDate || ""}|${item.depositWon || item.priceWon}|${item.monthlyRentWon || 0}`;
+        if (dedupe.has(key)) continue;
+        dedupe.add(key);
+        rows.push({ ...item, siDo, siGunGu, regionCode });
+        if (rows.length >= 120) break;
+      }
+      if (rows.length >= 120) break;
+    }
+
+    const sorted = rows.sort((a, b) => {
+      const byDate = toTradeTimestamp(b.tradeDate || "") - toTradeTimestamp(a.tradeDate || "");
+      if (byDate !== 0) return byDate;
+      if (floor !== null) {
+        const floorDiff = Math.abs((a.floor || 0) - floor) - Math.abs((b.floor || 0) - floor);
+        if (floorDiff !== 0) return floorDiff;
+      }
+      return (b.depositWon || b.priceWon || 0) - (a.depositWon || a.priceWon || 0);
+    });
+
+    const jeonse = sorted.filter((item) => !item.monthlyRentWon || item.monthlyRentWon <= 0).slice(0, 5);
+    const monthly = sorted.filter((item) => item.monthlyRentWon && item.monthlyRentWon > 0).slice(0, 5);
+    const payload = { aptName, regionCode, jeonse, monthly, rents: sorted.slice(0, 10) };
+    setCachedValue(historyCacheKey, payload, RENT_HISTORY_CACHE_TTL_MS);
+    return res.status(200).json(payload);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: error instanceof Error ? error.message : "전세/월세 이력 조회 중 오류가 발생했습니다." });
   }
 };

@@ -221,6 +221,16 @@ export default function RecommendPage() {
     return `${pyeong.toFixed(1)}평`;
   };
 
+  const formatLocation = (item: {
+    siDo?: string;
+    siGunGu?: string;
+    dong?: string;
+  }) =>
+    [item.siDo, item.siGunGu, item.dong]
+      .map((part) => (part || "").trim())
+      .filter(Boolean)
+      .join(" ");
+
   const formatDateOrDash = (value?: string) => {
     if (!value || !value.trim()) return "-";
     const normalized = value.trim().replace(/\./g, "-");
@@ -801,7 +811,7 @@ export default function RecommendPage() {
                     </div>
                     <p className="text-[#495057] text-[18px] font-medium leading-7 tracking-[-0.18px]">
                       {[
-                        item.dong || "-",
+                        formatLocation(item) || "-",
                         formatPyeong(item.areaSqm),
                         item.floor !== undefined ? `${item.floor}층` : "-",
                       ].join(" · ")}
