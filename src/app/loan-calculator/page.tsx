@@ -77,7 +77,7 @@ export default function LoanCalculatorPage() {
               key={option.key}
               type="button"
               onClick={() => setRepaymentType(option.key)}
-              className={`flex-1 min-w-[92px] py-[10px] px-4 text-center text-[15px] ${
+              className={`flex-1 min-w-[104px] py-[10px] px-4 text-center text-[15px] whitespace-nowrap ${
                 repaymentType === option.key
                   ? "border-b-2 border-[#000000] text-[#000000] font-bold"
                   : "text-grey-80 font-medium"
