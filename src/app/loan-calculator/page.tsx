@@ -71,7 +71,10 @@ export default function LoanCalculatorPage() {
           상환 방식과 대출 정보를 입력하면 예상 상환 금액을 계산해요.
         </p>
 
-        <div className="w-full grid grid-cols-4 border-b border-grey-40 mb-6 overflow-x-hidden">
+        <div
+          className="-mx-5 px-5 w-[calc(100%+40px)] grid grid-cols-4 border-b border-grey-40 mb-6 overflow-x-hidden"
+          style={{ WebkitTextSizeAdjust: "100%" }}
+        >
           {REPAYMENT_OPTIONS.map((option) => (
             <button
               key={option.key}
